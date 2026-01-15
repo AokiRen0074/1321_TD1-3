@@ -107,6 +107,7 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					}
 				}
 
+				// ここにギミックを追加する処理を書く
 				if (id == "Door") {
 					Door newDoor;
 					newDoor.pos = { px, py };
@@ -120,6 +121,13 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					newButton.isPressed = false;
 					buttons.push_back(newButton);
 				}
+
+				if (id == "LiftGimmickBlock") {
+					LiftGimmickBlock newLift;
+					// 初期化（linkIdは既存の読み込み処理で取得済みのものを使用）
+					newLift.Initialize({ px, py }, linkId); 
+					liftBlocks.push_back(newLift);
+				}
 			}
 
 		}
@@ -127,6 +135,13 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 
 
 
+	}
+}
+
+void Map::Update(Player& player) {
+	for (auto& lift : liftBlocks) {
+		lift.Update();
+		lift.CheckCollision(player); // ここで各リフトとプレイヤーを判定
 	}
 }
 
@@ -222,6 +237,13 @@ void Map::Draw(Vector2 offset) {
 			// デバッグ用: リンクIDを確認したい場合
 			// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
 		}
+
+		// リフトギミックブロックの描画
+		for (auto& lift : liftBlocks) {
+			lift.Draw(offset);
+		}
+
+		// リフトギミックボタンの描画
 
 		// Map.cpp の Draw内に追加してデバッグ
 		Novice::ScreenPrintf(0, 100, "MapData[10][10]: %d", mapData[10][10]);

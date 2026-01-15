@@ -33,7 +33,7 @@ public:
 
 	std::vector<Door> doors;
 	std::vector<ButtonA> buttons;
-	//std::vector<LiftGimmickBlock> liftBlocks;
+	std::vector<LiftGimmickBlock> liftBlocks;
 	//std::vector<LiftGimmickButton> liftButtons;
 
 	// 初期化
@@ -41,6 +41,9 @@ public:
 
 	// LDtk読み込み
 	void LoadMapFromLDtk(const char* fileName,const std::vector<std::string>& layerName);
+
+	// 更新
+	void Update(Player& player);
 
 	// 描画
 	void Draw(Vector2 offset);

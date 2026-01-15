@@ -216,6 +216,9 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		}
 	}
 
+	// マップ更新(当たり判定など)
+	map->Update(*player);
+
 	// スクロールカメラ
 	// プレイヤーの座標を渡してカメラを更新
 	scrollCamera->Update(player->status_.pos);
