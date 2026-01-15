@@ -212,93 +212,91 @@ void Map::Draw(Vector2 offset) {
 				);
 
 			}
-
-
 		}
-
-		for (const auto& door : doors) {
-			// 描画座標の計算（ワールド座標 - カメラオフセット）
-			int drawX = (int)(door.pos.x - offset.x);
-			int drawY = (int)(door.pos.y - offset.y);
-
-			// 開いているかどうかの色分け（開いたら緑、閉じてたら青）
-			// ※ Noviceで定義されている色定数を使っています
-			unsigned int color = door.isOpen ? GREEN : BLUE;
-
-			Novice::DrawBox(
-				drawX, drawY,
-				kTileSize, kTileSize * 2, // タイルと同じ大きさ
-				0.0f,
-				color,
-				kFillModeSolid
-			);
-
-			// デバッグ用: リンクIDを画面左上に表示して確認したい場合
-			// Novice::ScreenPrintf(0, 0, "Door ID:%d at (%d,%d)", door.linkId, (int)door.pos.x, (int)door.pos.y);
-		}
-
-
-		// ボタンの描画
-		// (Map.hで定義した buttons リストをループ)
-		for (const auto& button : buttons) {
-			// 描画座標の計算
-			int drawX = (int)(button.pos.x - offset.x);
-			int drawY = (int)(button.pos.y - offset.y);
-
-			// 押されているかどうかの色分け（押されたら黄色、未踏なら赤）
-			unsigned int color = button.isPressed ? BLACK : RED;
-
-			// ボタンは少し小さく表示して、ドアと区別しやすくする
-			int btnSize = kTileSize / 2;
-			int offsetSize = (kTileSize - btnSize) / 2; // 中央寄せ用のオフセット
-
-			Novice::DrawBox(
-				drawX + offsetSize, drawY + offsetSize, // 少しずらして中央に
-				btnSize, btnSize,
-				0.0f,
-				color,
-				kFillModeSolid
-			);
-
-			// デバッグ用: リンクIDを確認したい場合
-			// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
-		}
-
-		// リフトギミックブロックの描画
-		for (auto& lift : liftBlocks) {
-			lift.Draw(offset);
-		}
-
-		// リフトギミックボタンの描画
-		for (auto& button : liftButtons) {
-			button.Draw(offset);
-		}
-
-		// (Map.hで定義した buttons リストをループ)
-		for (const auto& water : waters) {
-			// 描画座標の計算
-			int drawX = (int)(water.pos.x - offset.x);
-			int drawY = (int)(water.pos.y - offset.y);
-
-			// 押されているかどうかの色分け（押されたら黄色、未踏なら赤）
-			unsigned int color = water.isActive ? 0x00FF00FF : 0x00FF0000;
-
-			// ボタンは少し小さく表示して、ドアと区別しやすくする
-			int btnSize = kTileSize;
-
-			Novice::DrawBox(
-				drawX, drawY, // 少しずらして中央に
-				btnSize * 8, btnSize,
-				0.0f,
-				color,
-				kFillModeSolid
-			);
-
-			// デバッグ用: リンクIDを確認したい場合
-			// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
-		}
-
-		// Map.cpp の Draw内に追加してデバッグ
-		Novice::ScreenPrintf(0, 100, "MapData[10][10]: %d", mapData[10][10]);
 	}
+
+	for (const auto& door : doors) {
+		// 描画座標の計算（ワールド座標 - カメラオフセット）
+		int drawX = (int)(door.pos.x - offset.x);
+		int drawY = (int)(door.pos.y - offset.y);
+
+		// 開いているかどうかの色分け（開いたら緑、閉じてたら青）
+		// ※ Noviceで定義されている色定数を使っています
+		unsigned int color = door.isOpen ? GREEN : BLUE;
+
+		Novice::DrawBox(
+			drawX, drawY,
+			kTileSize, kTileSize * 2, // タイルと同じ大きさ
+			0.0f,
+			color,
+			kFillModeSolid
+		);
+
+		// デバッグ用: リンクIDを画面左上に表示して確認したい場合
+		// Novice::ScreenPrintf(0, 0, "Door ID:%d at (%d,%d)", door.linkId, (int)door.pos.x, (int)door.pos.y);
+	}
+
+
+	// ボタンの描画
+	// (Map.hで定義した buttons リストをループ)
+	for (const auto& button : buttons) {
+		// 描画座標の計算
+		int drawX = (int)(button.pos.x - offset.x);
+		int drawY = (int)(button.pos.y - offset.y);
+
+		// 押されているかどうかの色分け（押されたら黄色、未踏なら赤）
+		unsigned int color = button.isPressed ? BLACK : RED;
+
+		// ボタンは少し小さく表示して、ドアと区別しやすくする
+		int btnSize = kTileSize / 2;
+		int offsetSize = (kTileSize - btnSize) / 2; // 中央寄せ用のオフセット
+
+		Novice::DrawBox(
+			drawX + offsetSize, drawY + offsetSize, // 少しずらして中央に
+			btnSize, btnSize,
+			0.0f,
+			color,
+			kFillModeSolid
+		);
+
+		// デバッグ用: リンクIDを確認したい場合
+		// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
+	}
+
+	// リフトギミックブロックの描画
+	for (auto& lift : liftBlocks) {
+		lift.Draw(offset);
+	}
+
+	// リフトギミックボタンの描画
+	for (auto& button : liftButtons) {
+		button.Draw(offset);
+	}
+
+	// (Map.hで定義した buttons リストをループ)
+	for (const auto& water : waters) {
+		// 描画座標の計算
+		int drawX = (int)(water.pos.x - offset.x);
+		int drawY = (int)(water.pos.y - offset.y);
+
+		// 押されているかどうかの色分け（押されたら黄色、未踏なら赤）
+		unsigned int color = water.isActive ? 0x00FF00FF : 0x00FF0000;
+
+		// ボタンは少し小さく表示して、ドアと区別しやすくする
+		int btnSize = kTileSize;
+
+		Novice::DrawBox(
+			drawX, drawY, // 少しずらして中央に
+			btnSize * 8, btnSize,
+			0.0f,
+			color,
+			kFillModeSolid
+		);
+
+		// デバッグ用: リンクIDを確認したい場合
+		// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
+	}
+
+	// Map.cpp の Draw内に追加してデバッグ
+	Novice::ScreenPrintf(0, 100, "MapData[10][10]: %d", mapData[10][10]);
 }
