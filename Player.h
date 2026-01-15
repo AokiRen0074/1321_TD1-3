@@ -10,7 +10,8 @@ enum TileType {
 	BLOCK = 1,
 	HALF_FLOOR = 2,
 	ROUTER = 3,
-	SCRAPMACHINE=4
+	SCRAPMACHINE=4,
+	WATER=5
 };
 
 class Player
