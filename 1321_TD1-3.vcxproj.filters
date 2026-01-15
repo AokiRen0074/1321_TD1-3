@@ -19,52 +19,52 @@
     <ClCompile Include="C:\KamataEngine\Adapter\Novice.cpp">
       <Filter>KamataEngine\Adapter</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Clear.cpp">
+    <ClCompile Include="Router.cpp">
       <Filter>KamataEngine\Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Collision.cpp">
+    <ClCompile Include="SceneManager.cpp">
       <Filter>KamataEngine\Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Credit.cpp">
+    <ClCompile Include="ScrollCamera.cpp">
       <Filter>KamataEngine\Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Enemy.cpp">
+    <ClCompile Include="Setting.cpp">
       <Filter>KamataEngine\Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Game.cpp">
+    <ClCompile Include="Title.cpp">
       <Filter>KamataEngine\Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Gimmick.cpp">
+    <ClCompile Include="Tutorial.cpp">
       <Filter>KamataEngine\Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\main.cpp">
+    <ClCompile Include="Vector2.cpp">
       <Filter>KamataEngine\Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Map.cpp">
+    <ClCompile Include="Clear.cpp">
       <Filter>KamataEngine\Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Player.cpp">
+    <ClCompile Include="Collision.cpp">
       <Filter>KamataEngine\Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Router.cpp">
+    <ClCompile Include="Credit.cpp">
       <Filter>KamataEngine\Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\SceneManager.cpp">
+    <ClCompile Include="Enemy.cpp">
       <Filter>KamataEngine\Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\ScrollCamera.cpp">
+    <ClCompile Include="Game.cpp">
       <Filter>KamataEngine\Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Setting.cpp">
+    <ClCompile Include="Gimmick.cpp">
       <Filter>KamataEngine\Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Title.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>KamataEngine\Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Tutorial.cpp">
+    <ClCompile Include="Map.cpp">
       <Filter>KamataEngine\Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Vector2.cpp">
+    <ClCompile Include="Player.cpp">
       <Filter>KamataEngine\Source</Filter>
     </ClCompile>
   </ItemGroup>
@@ -150,58 +150,61 @@
     <ClInclude Include="C:\KamataEngine\DirectXGame\2d\ImGuiManager.h">
       <Filter>KamataEngine\Include</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Clear.h">
-      <Filter>KamataEngine\Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Collision.h">
-      <Filter>KamataEngine\Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Command.h">
-      <Filter>KamataEngine\Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\const.h">
-      <Filter>KamataEngine\Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Credit.h">
-      <Filter>KamataEngine\Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Enemy.h">
-      <Filter>KamataEngine\Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Game.h">
-      <Filter>KamataEngine\Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Gimmick.h">
-      <Filter>KamataEngine\Source</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\json.hpp">
       <Filter>KamataEngine\Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Map.h">
+    <ClInclude Include="Router.h">
       <Filter>KamataEngine\Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Player.h">
+    <ClInclude Include="SceneManager.h">
       <Filter>KamataEngine\Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Router.h">
+    <ClInclude Include="ScrollCamera.h">
       <Filter>KamataEngine\Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\SceneManager.h">
+    <ClInclude Include="Setting.h">
       <Filter>KamataEngine\Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\ScrollCamera.h">
+    <ClInclude Include="Title.h">
       <Filter>KamataEngine\Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Setting.h">
+    <ClInclude Include="Tutorial.h">
       <Filter>KamataEngine\Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Title.h">
+    <ClInclude Include="Vector2.h">
       <Filter>KamataEngine\Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Tutorial.h">
+    <ClInclude Include="Clear.h">
       <Filter>KamataEngine\Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Vector2.h">
+    <ClInclude Include="Collision.h">
+      <Filter>KamataEngine\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Command.h">
+      <Filter>KamataEngine\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="const.h">
+      <Filter>KamataEngine\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Credit.h">
+      <Filter>KamataEngine\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemy.h">
+      <Filter>KamataEngine\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Game.h">
+      <Filter>KamataEngine\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Gimmick.h">
+      <Filter>KamataEngine\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="json.hpp">
+      <Filter>KamataEngine\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Map.h">
+      <Filter>KamataEngine\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
       <Filter>KamataEngine\Source</Filter>
     </ClInclude>
   </ItemGroup>
@@ -212,12 +215,21 @@
     <Image Include="..\..\..\OneDrive\Desktop\爆弾除去\halfBlock.png">
       <Filter>KamataEngine\Source</Filter>
     </Image>
+    <Image Include="block.png">
+      <Filter>KamataEngine\Source</Filter>
+    </Image>
+    <Image Include="halfBlock.png">
+      <Filter>KamataEngine\Source</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\OneDrive\Desktop\爆弾除去\imgui.ini">
       <Filter>KamataEngine\Source</Filter>
     </None>
-    <None Include="..\..\..\OneDrive\Desktop\爆弾除去\mapTest9999.ldtk">
+    <None Include="imgui.ini">
+      <Filter>KamataEngine\Source</Filter>
+    </None>
+    <None Include="mapTest9999.ldtk">
       <Filter>KamataEngine\Source</Filter>
     </None>
   </ItemGroup>
