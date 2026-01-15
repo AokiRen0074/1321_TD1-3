@@ -59,6 +59,7 @@ void Router::UpdateRouter(int mapData[kMapHeight][kMapWidth]) {
 			}
 		}
 	}
+
 }
 
 void Router::DrawRouter(Vector2 offset) {
