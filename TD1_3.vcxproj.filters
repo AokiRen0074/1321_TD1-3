@@ -1,0 +1,234 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="KamataEngine">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="KamataEngine\Source">
+      <UniqueIdentifier>{d966e9f8-e880-44ae-8586-a08515e4cffc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="KamataEngine\Include">
+      <UniqueIdentifier>{4aae4e40-94f7-4d32-9a91-c0c37a2edf0d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="KamataEngine\Adapter">
+      <UniqueIdentifier>{c6468eb4-788b-4a83-b207-a5f4804e56c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="KamataEngine\Source\Scene">
+      <UniqueIdentifier>{fe955c77-918f-4b72-b6dd-0dd335afe516}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="KamataEngine\Source\SceneManager">
+      <UniqueIdentifier>{677730df-f226-4af0-9672-13154f5c69c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="KamataEngine\Source\Scene\Game">
+      <UniqueIdentifier>{12ce2d71-b9c9-4759-9303-c76bb20fee18}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="KamataEngine\Source\Scene\Clear">
+      <UniqueIdentifier>{54e4cc98-1aee-45b8-aedc-92e5b9886497}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="KamataEngine\Source\Scene\Credit">
+      <UniqueIdentifier>{8895ce33-789b-4039-8ec3-c6493e8fd58b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="KamataEngine\Source\Scene\Setting">
+      <UniqueIdentifier>{d7bf1e53-6ec0-4a7d-8489-cef0725a236d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="KamataEngine\Source\Scene\Title">
+      <UniqueIdentifier>{cbc00b01-76f6-4fa0-9889-d74b6c399c72}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="KamataEngine\Source\Scene\Tutorial">
+      <UniqueIdentifier>{78ab443e-4b34-471b-b695-85afe17afeea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="KamataEngine\Source\Math">
+      <UniqueIdentifier>{ae25174f-0a50-443a-bb85-484f06959eef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="KamataEngine\Source\Math\Collision">
+      <UniqueIdentifier>{40adab6e-cfc1-49cc-9832-887259530aa7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="KamataEngine\Source\Math\Vector2">
+      <UniqueIdentifier>{44d4995f-0efc-482e-9e08-8d1300c5979e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="KamataEngine\Source\Object">
+      <UniqueIdentifier>{39228a0e-f032-4e17-96b9-ccf943c49363}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="KamataEngine\Source\Object\Player">
+      <UniqueIdentifier>{11cadc30-05d4-4f74-abaf-ed3e1b6fb767}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="KamataEngine\Source\Object\Enemy">
+      <UniqueIdentifier>{fe39706e-0000-4f7b-bb91-366a7915339b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="KamataEngine\Source\ScrollCamera">
+      <UniqueIdentifier>{48f5ff4b-e04d-4f09-845f-179a0271b0c8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="C:\KamataEngine\Adapter\Novice.cpp">
+      <Filter>KamataEngine\Adapter</Filter>
+    </ClCompile>
+    <ClCompile Include="Map.cpp">
+      <Filter>KamataEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneManager.cpp">
+      <Filter>KamataEngine\Source\SceneManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Game.cpp">
+      <Filter>KamataEngine\Source\Scene\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Clear.cpp">
+      <Filter>KamataEngine\Source\Scene\Clear</Filter>
+    </ClCompile>
+    <ClCompile Include="Credit.cpp">
+      <Filter>KamataEngine\Source\Scene\Credit</Filter>
+    </ClCompile>
+    <ClCompile Include="Setting.cpp">
+      <Filter>KamataEngine\Source\Scene\Setting</Filter>
+    </ClCompile>
+    <ClCompile Include="Title.cpp">
+      <Filter>KamataEngine\Source\Scene\Title</Filter>
+    </ClCompile>
+    <ClCompile Include="Tutorial.cpp">
+      <Filter>KamataEngine\Source\Scene\Tutorial</Filter>
+    </ClCompile>
+    <ClCompile Include="Collision.cpp">
+      <Filter>KamataEngine\Source\Math\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector2.cpp">
+      <Filter>KamataEngine\Source\Math\Vector2</Filter>
+    </ClCompile>
+    <ClCompile Include="Enemy.cpp">
+      <Filter>KamataEngine\Source\Object\Enemy</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>KamataEngine\Source\Object\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="ScrollCamera.cpp">
+      <Filter>KamataEngine\Source\ScrollCamera</Filter>
+    </ClCompile>
+    <ClCompile Include="Router.cpp">
+      <Filter>KamataEngine</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\audio\Audio.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\2d\DebugText.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\base\DirectXCommon.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\scene\GameScene.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\input\Input.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\3d\Model.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\base\SafeDelete.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\2d\Sprite.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\base\TextureManager.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\base\WinApp.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\3d\WorldTransform.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\Adapter\Novice.h">
+      <Filter>KamataEngine\Adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\3d\CircleShadow.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\3d\DebugCamera.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\3d\DirectionalLight.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\3d\LightGroup.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\3d\Material.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\3d\Mesh.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\3d\PointLight.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\3d\SpotLight.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\base\StringUtility.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DirectXGame\3d\Camera.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\math\Matrix4x4.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\math\Vector2.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\math\Vector3.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\math\Vector4.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\KamataEngine\DirectXGame\2d\ImGuiManager.h">
+      <Filter>KamataEngine\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="const.h" />
+    <ClInclude Include="Map.h" />
+    <ClInclude Include="SceneManager.h">
+      <Filter>KamataEngine\Source\SceneManager</Filter>
+    </ClInclude>
+    <ClInclude Include="Game.h">
+      <Filter>KamataEngine\Source\Scene\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Clear.h">
+      <Filter>KamataEngine\Source\Scene\Clear</Filter>
+    </ClInclude>
+    <ClInclude Include="Credit.h">
+      <Filter>KamataEngine\Source\Scene\Credit</Filter>
+    </ClInclude>
+    <ClInclude Include="Setting.h">
+      <Filter>KamataEngine\Source\Scene\Setting</Filter>
+    </ClInclude>
+    <ClInclude Include="Title.h">
+      <Filter>KamataEngine\Source\Scene\Title</Filter>
+    </ClInclude>
+    <ClInclude Include="Tutorial.h">
+      <Filter>KamataEngine\Source\Scene\Tutorial</Filter>
+    </ClInclude>
+    <ClInclude Include="Collision.h">
+      <Filter>KamataEngine\Source\Math\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector2.h">
+      <Filter>KamataEngine\Source\Math\Vector2</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemy.h">
+      <Filter>KamataEngine\Source\Object\Enemy</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>KamataEngine\Source\Object\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="ScrollCamera.h">
+      <Filter>KamataEngine\Source\ScrollCamera</Filter>
+    </ClInclude>
+    <ClInclude Include="Command.h" />
+    <ClInclude Include="Router.h" />
+  </ItemGroup>
+</Project>
