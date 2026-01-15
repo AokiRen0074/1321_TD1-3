@@ -120,7 +120,7 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					newButton.linkId = linkId;
 					newButton.isPressed = false;
 					buttons.push_back(newButton);
-				}　else if (id == "Water") {
+				} else if (id == "Water") {
 					Water newWater;
 					newWater.pos = { px,py };
 					newWater.linkId = linkId;
@@ -131,8 +131,9 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 				if (id == "LiftGimmickBlock") {
 					LiftGimmickBlock newLift;
 					// 初期化（linkIdは既存の読み込み処理で取得済みのものを使用）
-					newLift.Initialize({ px, py }, linkId); 
+					newLift.Initialize({px, py}, linkId);
 					liftBlocks.push_back(newLift);
+				}
 			}
 
 		}
