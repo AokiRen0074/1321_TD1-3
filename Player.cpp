@@ -10,8 +10,7 @@ Player::Player() {
 }
 
 void Player::InitPlayer() {
-	status_.pos.x = 300.0f;
-	status_.pos.y = 704.0f;
+
 
 	//加速度計
 	status_.acceleration.x = 0.0f;
