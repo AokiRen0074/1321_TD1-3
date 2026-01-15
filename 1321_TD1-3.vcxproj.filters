@@ -19,52 +19,7 @@
     <ClCompile Include="C:\KamataEngine\Adapter\Novice.cpp">
       <Filter>KamataEngine\Adapter</Filter>
     </ClCompile>
-    <ClCompile Include="Router.cpp">
-      <Filter>KamataEngine\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneManager.cpp">
-      <Filter>KamataEngine\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="ScrollCamera.cpp">
-      <Filter>KamataEngine\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Setting.cpp">
-      <Filter>KamataEngine\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Title.cpp">
-      <Filter>KamataEngine\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Tutorial.cpp">
-      <Filter>KamataEngine\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Vector2.cpp">
-      <Filter>KamataEngine\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Clear.cpp">
-      <Filter>KamataEngine\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Collision.cpp">
-      <Filter>KamataEngine\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Credit.cpp">
-      <Filter>KamataEngine\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Enemy.cpp">
-      <Filter>KamataEngine\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Game.cpp">
-      <Filter>KamataEngine\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Gimmick.cpp">
-      <Filter>KamataEngine\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>KamataEngine\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Map.cpp">
-      <Filter>KamataEngine\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Player.cpp">
+
       <Filter>KamataEngine\Source</Filter>
     </ClCompile>
   </ItemGroup>
