@@ -120,6 +120,12 @@ void Game::Update(char keys[256], char preKeys[256]) {
 					door.isOpen = true; // ドアオープン！
 				}
 			}
+
+			for (auto& water : map->waters) {
+				if (water.linkId == btn.linkId) {
+					water.isActive = false; // ドアオープン！
+				}
+			}
 		}
 	}
 
@@ -145,6 +151,8 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		player->CheckRouter(router, 250);
 		bool isArrived = player->CheckRouter(router,250);
 		player->CheckDoorCollision(map->doors);
+		player->CheckWaterCollision(map->waters);
+
 		if (isArrived) {
 			isRunning = false; 
 		} else {
@@ -167,6 +175,8 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		//player->CheckRouter(router, 250);
 		bool isInsideRouter = player->CheckRouter(router, 250);
 		player->CheckDoorCollision(map->doors);
+		player->CheckWaterCollision(map->waters);
+
 
 		if (isClick) {
 			// 1. パレットのボタンを押してコマンドを追加
@@ -256,6 +266,8 @@ void Game::Draw() {
 	// プレイヤー描画
 	player->DrawPlayer(offset);
 
+
+
 	// 警告メッセージの表示
 	if (cantStartCount > 0) {
 		Novice::ScreenPrintf(800, 400, "Router Area! Can't Start!");
@@ -306,6 +318,7 @@ void Game::Draw() {
 			color = 0xFFAA44FF; // オレンジ
 			text = "If Air -> Jump";
 			break;
+
 		}
 		// もし今実行しているコマンドなら、色を「赤」に変えて目立たせる！
 		if (i == currentIndex) {
@@ -347,5 +360,21 @@ void Game::Draw() {
 	Novice::ScreenPrintf(0, 20, "BtnRight X: %d", (int)btnRight.x);
 	Novice::ScreenPrintf(0, 80, "player Pos X: %.2f", player->status_.pos.x);
 	Novice::ScreenPrintf(0, 110, "player Pos Y: %.2f", player->status_.pos.y);
+	for (const auto& btn : map->buttons) {
+		// ボタンの場所にIDを表示
+		Novice::ScreenPrintf(
+			(int)(btn.pos.x - offset.x),
+			(int)(btn.pos.y - offset.y - 20),
+			"ID:%d", btn.linkId
+		);
+	}
 
+	for (const auto& door : map->doors) {
+		// ドアの場所にIDを表示
+		Novice::ScreenPrintf(
+			(int)(door.pos.x - offset.x),
+			(int)(door.pos.y - offset.y - 20),
+			"ID:%d", door.linkId
+		);
+	}
 }

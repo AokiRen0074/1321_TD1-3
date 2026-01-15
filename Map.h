@@ -20,6 +20,12 @@ struct ButtonA {
 	bool isPressed; // 押されたか
 };
 
+struct Water {
+	Vector2 pos;  // 座標
+	int linkId;   // LDtkで設定したIntegerの値
+	bool isActive;  // 開いているか
+};
+
 class Map {
 public:
 	// マップデータ
@@ -34,6 +40,10 @@ public:
 	std::vector<Door> doors;
 	std::vector<ButtonA> buttons;
 	std::vector<LiftGimmickBlock> liftBlocks;
+	std::vector<Water> waters;
+
+	//std::vector<LiftGimmickBlock> liftBlocks;
+
 	//std::vector<LiftGimmickButton> liftButtons;
 
 	// 初期化

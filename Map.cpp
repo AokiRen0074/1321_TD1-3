@@ -50,7 +50,7 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 
 	doors.clear();
 	buttons.clear();
-
+	waters.clear();
 	// LDtkの全レイヤーをチェック
 	for (auto& layer : layers) {
 		std::string currentLayerName = layer["__identifier"];
@@ -99,7 +99,7 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 				// "fieldInstances" の中から、設定したIntegerフィールドを探す
 				for (auto& field : entity["fieldInstances"]) {
 					// LDtkで設定したフィールド名（例: "LinkID"）
-					if (field["__identifier"] == "LinkID") {
+					if (field["__identifier"] == "Integer") {
 						// 値が入っていれば取得
 						if (!field["__value"].is_null()) {
 							linkId = field["__value"];
@@ -120,14 +120,19 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					newButton.linkId = linkId;
 					newButton.isPressed = false;
 					buttons.push_back(newButton);
+				}　else if (id == "Water") {
+					Water newWater;
+					newWater.pos = { px,py };
+					newWater.linkId = linkId;
+					newWater.isActive = true;
+					waters.push_back(newWater);
 				}
-
+        
 				if (id == "LiftGimmickBlock") {
 					LiftGimmickBlock newLift;
 					// 初期化（linkIdは既存の読み込み処理で取得済みのものを使用）
 					newLift.Initialize({ px, py }, linkId); 
 					liftBlocks.push_back(newLift);
-				}
 			}
 
 		}
@@ -238,12 +243,37 @@ void Map::Draw(Vector2 offset) {
 			// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
 		}
 
+
 		// リフトギミックブロックの描画
 		for (auto& lift : liftBlocks) {
 			lift.Draw(offset);
 		}
 
 		// リフトギミックボタンの描画
+
+		// (Map.hで定義した buttons リストをループ)
+		for (const auto& water : waters) {
+			// 描画座標の計算
+			int drawX = (int)(water.pos.x - offset.x);
+			int drawY = (int)(water.pos.y - offset.y);
+
+			// 押されているかどうかの色分け（押されたら黄色、未踏なら赤）
+			unsigned int color = water.isActive ? 0x00FF00FF : 0x00FF0000;
+
+			// ボタンは少し小さく表示して、ドアと区別しやすくする
+			int btnSize = kTileSize;
+
+			Novice::DrawBox(
+				drawX, drawY , // 少しずらして中央に
+				btnSize*8, btnSize,
+				0.0f,
+				color,
+				kFillModeSolid
+			);
+
+			// デバッグ用: リンクIDを確認したい場合
+			// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
+		}
 
 		// Map.cpp の Draw内に追加してデバッグ
 		Novice::ScreenPrintf(0, 100, "MapData[10][10]: %d", mapData[10][10]);

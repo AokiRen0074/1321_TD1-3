@@ -37,6 +37,7 @@ void Player::InitPlayer() {
 	status_.isMoveFree = true;
 	status_.isCommandMove = true;
 
+	status_.isWaitingForLanding = false;
 	cmdIndex = 0;
 
 }
@@ -76,39 +77,64 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 			break;
 
 			// ---------------------------------------------------
-			// 壁があったらジャンプ：
-			// 「壁が来るまで待機」する。
-			// ---------------------------------------------------
+		// 壁があったらジャンプ
+		// ---------------------------------------------------
 		case CommandType::CheckWallJump:
+
+			// 移動処理
 			status_.pos.x += status_.Speed * status_.moveDir;
 
-			// 壁があったらジャンプ
-			if (!status_.isJumop) {
-				if (IsWallAhead(mapData)) {
-					ActionTryJump();
+			// すでにジャンプして、着地待ちの場合
+			if (status_.isWaitingForLanding) {
+				// ジャンプが終わった（着地した）かチェック
+				if (!status_.isJumop) {
+					status_.isWaitingForLanding = false;
 					cmdIndex++;
 				}
 			}
-			break;
+			// まだジャンプしていない
+			else {
+				// ジャンプ中でないなら壁チェック
+				if (!status_.isJumop) {
+					if (IsWallAhead(mapData)) {
+						ActionTryJump(); // ジャンプ開始！
 
-			// ---------------------------------------------------
-			// 崖があったらジャンプ：
-			// 「崖が来るまで待機」する。
-			// ---------------------------------------------------
-		case CommandType::CheckCliffJump:
-			status_.pos.x += status_.Speed * status_.moveDir;
-
-			// ★重要修正：地面にいるときだけチェックする！
-			if (!status_.isJumop) {
-				if (IsCliffAhead(mapData)) {
-					ActionTryJump();
-					cmdIndex++; // ジャンプしたので役目終了、次へ
+						status_.isWaitingForLanding = true;
+					}
 				}
 			}
 			break;
+
+
+			// ---------------------------------------------------
+			// 崖があったらジャンプ
+			// ---------------------------------------------------
+		case CommandType::CheckCliffJump:
+
+			status_.pos.x += status_.Speed * status_.moveDir;
+
+			// 着地待ちの場合
+			if (status_.isWaitingForLanding) {
+				if (!status_.isJumop) {
+					status_.isWaitingForLanding = false;
+					cmdIndex++;
+				}
+			}
+			//崖を探している場合
+			else {
+				if (!status_.isJumop) {
+					if (IsCliffAhead(mapData)) {
+						ActionTryJump();
+
+			
+						status_.isWaitingForLanding = true;
+					}
+				}
+			}
+			break;
+
 		}
-	}
-	else {
+	} else {
 		// コマンドがなくなった後
 		status_.pos.x += status_.Speed * status_.moveDir;
 	}
@@ -185,6 +211,7 @@ void Player::MovePlayer(char keys[256], char preKeys[256],
 	isGrounded(mapData, BLOCK);
 	isGrounded(mapData, HALF_FLOOR);  // ★ハーフ床の地面もチェック！
 	isGrounded(mapData, SCRAPMACHINE);//ウクラップによる処理
+
 
 	isTopWall(mapData, BLOCK);
 	isTopWall(mapData, HALF_FLOOR);//ハーフブロック判定
@@ -301,11 +328,14 @@ void Player::isGrounded(int mapData[kMapHeight][kMapWidth], int mapId) {
 	else if (mapId == SCRAPMACHINE) {
 		if ((tileLeftX >= 0 && tileLeftX < kMapWidth && mapData[tileBottomY][tileLeftX] == SCRAPMACHINE) ||
 			(tileRightX >= 0 && tileRightX < kMapWidth && mapData[tileBottomY][tileRightX] == SCRAPMACHINE)) {
+			//チェックポイントで管理する場合はここにチェックポイントの座標を入れて
+
 			status_.pos.x = 300.0f;
 			status_.pos.y = 704.0f;
 			InitPlayer();
 		}
 	}
+
 }
 
 
@@ -461,6 +491,10 @@ bool Player::CheckRouter(Router* router[], int count) {
 	return isArrived;
 }
 
+//=================================================================
+//プレイヤーのエミッター周りの判定処理
+//=================================================================
+
 
 void Player::CheckDoorCollision(std::vector<Door>& doors) {
 	for (auto& door : doors) {
@@ -484,6 +518,29 @@ void Player::CheckDoorCollision(std::vector<Door>& doors) {
 				// 左に移動中なら、ドアの右端（door.pos.x + kTileSize）で止める
 				status_.pos.x = door.pos.x + (float)kTileSize;
 			}
+		}
+	}
+}
+
+
+void Player::CheckWaterCollision(std::vector<Water>& waters){
+	for (auto& water : waters) {
+		// ドアが開いている（isOpen == true）なら当たり判定を無視する
+		if (!water.isActive) continue;
+
+		// --- 矩形判定（AABB）の直接計算 ---
+		// プレイヤーの四角形とドアの四角形が重なっているか
+		if (status_.pos.x < water.pos.x + kTileSize *8&&
+			status_.pos.x + status_.width > water.pos.x &&
+			status_.pos.y < water.pos.y + kTileSize  &&
+			status_.pos.y + status_.height > water.pos.y) {
+
+			//ここに数位没処理をかく
+			//ここもチャックポイントの変数を入れて戻せる要確認
+			status_.pos.x = 300.0f;
+			status_.pos.y = 704.0f;
+			InitPlayer();
+
 		}
 	}
 }

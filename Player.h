@@ -10,7 +10,8 @@ enum TileType {
 	BLOCK = 1,
 	HALF_FLOOR = 2,
 	ROUTER = 3,
-	SCRAPMACHINE=4
+	SCRAPMACHINE=4,
+	WATER=5
 };
 
 class Player
@@ -42,6 +43,7 @@ public:
 
 		bool isMoveFree;//自由に動けるかのフラグ
 		bool isCommandMove;//コマンドで動かす範囲
+		bool isWaitingForLanding;//着地待ちフラグ
 	}status_;//status＿で宣言
 
 
@@ -59,6 +61,7 @@ public:
 	// 引数でルーターの配列を受け取るようにする
 	bool CheckRouter(Router* router[], int count);
 	void CheckDoorCollision(std::vector<Door>& doors);
+	void CheckWaterCollision(std::vector<Water>& waters);
 
 private:
 
