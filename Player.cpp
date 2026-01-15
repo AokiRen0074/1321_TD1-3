@@ -37,6 +37,7 @@ void Player::InitPlayer() {
 	status_.isMoveFree = true;
 	status_.isCommandMove = true;
 
+	status_.isWaitingForLanding = false;
 	cmdIndex = 0;
 
 }
@@ -76,39 +77,64 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 			break;
 
 			// ---------------------------------------------------
-			// 壁があったらジャンプ：
-			// 「壁が来るまで待機」する。
-			// ---------------------------------------------------
+		// 壁があったらジャンプ
+		// ---------------------------------------------------
 		case CommandType::CheckWallJump:
+
+			// 移動処理
 			status_.pos.x += status_.Speed * status_.moveDir;
 
-			// 壁があったらジャンプ
-			if (!status_.isJumop) {
-				if (IsWallAhead(mapData)) {
-					ActionTryJump();
+			// すでにジャンプして、着地待ちの場合
+			if (status_.isWaitingForLanding) {
+				// ジャンプが終わった（着地した）かチェック
+				if (!status_.isJumop) {
+					status_.isWaitingForLanding = false;
 					cmdIndex++;
 				}
 			}
-			break;
+			// まだジャンプしていない
+			else {
+				// ジャンプ中でないなら壁チェック
+				if (!status_.isJumop) {
+					if (IsWallAhead(mapData)) {
+						ActionTryJump(); // ジャンプ開始！
 
-			// ---------------------------------------------------
-			// 崖があったらジャンプ：
-			// 「崖が来るまで待機」する。
-			// ---------------------------------------------------
-		case CommandType::CheckCliffJump:
-			status_.pos.x += status_.Speed * status_.moveDir;
-
-			// ★重要修正：地面にいるときだけチェックする！
-			if (!status_.isJumop) {
-				if (IsCliffAhead(mapData)) {
-					ActionTryJump();
-					cmdIndex++; // ジャンプしたので役目終了、次へ
+						status_.isWaitingForLanding = true;
+					}
 				}
 			}
 			break;
+
+
+			// ---------------------------------------------------
+			// 崖があったらジャンプ
+			// ---------------------------------------------------
+		case CommandType::CheckCliffJump:
+
+			status_.pos.x += status_.Speed * status_.moveDir;
+
+			// 着地待ちの場合
+			if (status_.isWaitingForLanding) {
+				if (!status_.isJumop) {
+					status_.isWaitingForLanding = false;
+					cmdIndex++;
+				}
+			}
+			//崖を探している場合
+			else {
+				if (!status_.isJumop) {
+					if (IsCliffAhead(mapData)) {
+						ActionTryJump();
+
+			
+						status_.isWaitingForLanding = true;
+					}
+				}
+			}
+			break;
+
 		}
-	}
-	else {
+	} else {
 		// コマンドがなくなった後
 		status_.pos.x += status_.Speed * status_.moveDir;
 	}
