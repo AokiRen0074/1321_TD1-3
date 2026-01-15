@@ -37,4 +37,6 @@ public:
 	void Initialize(Vector2 pos, Vector2 size, int linkId);
 	void Update();
 	void Draw(Vector2 offset);
+
+	void CheckCollision(Player& player);
 };

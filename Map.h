@@ -42,9 +42,7 @@ public:
 	std::vector<LiftGimmickBlock> liftBlocks;
 	std::vector<Water> waters;
 
-	//std::vector<LiftGimmickBlock> liftBlocks;
-
-	//std::vector<LiftGimmickButton> liftButtons;
+	std::vector<LiftGimmickButton> liftButtons;
 
 	// 初期化
 	void Initialize();

@@ -107,3 +107,41 @@ LiftGimmickButton::LiftGimmickButton() {
 
 LiftGimmickButton::~LiftGimmickButton() {
 }
+
+void LiftGimmickButton::Initialize(Vector2 pos, Vector2 size, int linkId) {
+    pos_ = pos;
+    size_ = size;
+    linkId_ = linkId;
+    isPressed_ = false;
+}
+
+void LiftGimmickButton::Update() {
+    // 特に更新処理はない
+}
+
+void LiftGimmickButton::Draw(Vector2 offset) {
+    // 押されているときは緑、そうでないときは赤
+    unsigned int color = isPressed_ ? 0xFF00FFFF : 0xFFFF00FF;
+
+    Novice::DrawBox(
+        (int)(pos_.x - offset.x),
+        (int)(pos_.y - offset.y),
+        (int)size_.x,
+        (int)size_.y,
+        0.0f,
+        color,
+        kFillModeSolid
+    );
+}
+
+void LiftGimmickButton::CheckCollision(Player& player) {
+    // CollisionクラスのCheckRectを使用して判定
+    if (Collision::CheckRect(
+        pos_, size_.x, size_.y, 
+        player.status_.pos, player.status_.width, player.status_.height)) 
+    {
+        isPressed_ = true;
+    } else {
+        isPressed_ = false;
+    }
+}
