@@ -1,6 +1,9 @@
 ﻿#pragma once
 #include "Vector2.h"
-#include "Map.h"
+// #include "Map.h"
+// #include "Player.h"
+
+class Player;
 
 class LiftGimmickBlock {
 public:
@@ -9,16 +12,29 @@ public:
 	float speed_;
 	bool isActive_;
 	Vector2 startPos_;
+	Vector2 size_ = {64.0f, 64.0f};
 
 	LiftGimmickBlock();
 	~LiftGimmickBlock();
 
-	void Initialize();
+	void Initialize(Vector2 pos, int linkId);
 	void Update();
 	void Draw(Vector2 offset);
+
+	void CheckCollision(Player& player);
 };
 
 class LiftGimmickButton {
 public:
+	Vector2 pos_;
+	int linkId_; // LDtkで設定したIntegerの値
+	Vector2 size_ = {32.0f, 32.0f};
+	bool isPressed_;
 
+	LiftGimmickButton();
+	~LiftGimmickButton();
+
+	void Initialize(Vector2 pos, Vector2 size, int linkId);
+	void Update();
+	void Draw(Vector2 offset);
 };
