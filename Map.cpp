@@ -15,7 +15,7 @@ Map::Map() {
 	}
 
 	// 画像配列の初期化
-	for (int i = 0;i < kMaxBlocksType;i++) {
+	for (int i = 0; i < kMaxBlocksType; i++) {
 		blockTextures[i] = 0;
 	}
 }
@@ -110,42 +110,62 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 				// ここにギミックを追加する処理を書く
 				if (id == "Door") {
 					Door newDoor;
-					newDoor.pos = { px, py };
+					newDoor.pos = {px, py};
 					newDoor.linkId = linkId;
 					newDoor.isOpen = false;
 					doors.push_back(newDoor);
 				} else if (id == "Button") {
 					ButtonA newButton;
-					newButton.pos = { px, py };
+					newButton.pos = {px, py};
 					newButton.linkId = linkId;
 					newButton.isPressed = false;
 					buttons.push_back(newButton);
 				} else if (id == "Water") {
 					Water newWater;
-					newWater.pos = { px,py };
+					newWater.pos = {px, py};
 					newWater.linkId = linkId;
 					newWater.isActive = true;
 					waters.push_back(newWater);
 				}
-        
+
 				if (id == "LiftGimmickBlock") {
 					LiftGimmickBlock newLift;
 					// 初期化（linkIdは既存の読み込み処理で取得済みのものを使用）
 					newLift.Initialize({px, py}, linkId);
 					liftBlocks.push_back(newLift);
 				}
+
+				if (id == "LiftGimmickButton") {
+					LiftGimmickButton newLiftButton;
+					// 初期化（linkIdは既存の読み込み処理で取得済みのものを使用）
+					newLiftButton.Initialize({px, py}, {32.0f, 32.0f}, linkId);
+					liftButtons.push_back(newLiftButton);
+				}
 			}
-
 		}
-
-
-
-
 	}
 }
 
 void Map::Update(Player& player) {
+	// リフトボタンの判定
+	for (auto& button : liftButtons) {
+		button.CheckCollision(player);
+	}
+
+	// リフトの更新
 	for (auto& lift : liftBlocks) {
+		bool linkedButtonIsPressed = false;
+
+		for (auto& button : liftButtons) {
+			if (lift.linkId_ == button.linkId_ && button.isPressed_) {
+				linkedButtonIsPressed = true;
+				break;
+			}
+		}
+
+		// ボタンが押されている間だけリフトをアクティブにする
+		lift.isActive_ = linkedButtonIsPressed;
+
 		lift.Update();
 		lift.CheckCollision(player); // ここで各リフトとプレイヤーを判定
 	}
@@ -161,16 +181,16 @@ void Map::Draw(Vector2 offset) {
 				Novice::DrawSprite(
 					(int)(x * kTileSize - offset.x),
 					(int)(y * kTileSize - offset.y),
-					blockTextures[id], 
+					blockTextures[id],
 					1.0f, 1.0f, 0.0f, 0xFFFFFFFF
 				);
 			}
 
 			//ルーターのデバック表示
 			if (mapData[y][x] == 3) {
-			
+
 				Novice::DrawBox(
-					(int)(x * kTileSize - offset.x), 
+					(int)(x * kTileSize - offset.x),
 					(int)(y * kTileSize - offset.y),
 					kTileSize, kTileSize,
 					0.0f,
@@ -207,7 +227,7 @@ void Map::Draw(Vector2 offset) {
 
 			Novice::DrawBox(
 				drawX, drawY,
-				kTileSize, kTileSize*2, // タイルと同じ大きさ
+				kTileSize, kTileSize * 2, // タイルと同じ大きさ
 				0.0f,
 				color,
 				kFillModeSolid
@@ -244,13 +264,15 @@ void Map::Draw(Vector2 offset) {
 			// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
 		}
 
-
 		// リフトギミックブロックの描画
 		for (auto& lift : liftBlocks) {
 			lift.Draw(offset);
 		}
 
 		// リフトギミックボタンの描画
+		for (auto& button : liftButtons) {
+			button.Draw(offset);
+		}
 
 		// (Map.hで定義した buttons リストをループ)
 		for (const auto& water : waters) {
@@ -265,8 +287,8 @@ void Map::Draw(Vector2 offset) {
 			int btnSize = kTileSize;
 
 			Novice::DrawBox(
-				drawX, drawY , // 少しずらして中央に
-				btnSize*8, btnSize,
+				drawX, drawY, // 少しずらして中央に
+				btnSize * 8, btnSize,
 				0.0f,
 				color,
 				kFillModeSolid
