@@ -757,12 +757,12 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#22D960",
-							"iid": "67ce3160-d380-11f0-88c3-5b064218f97a",
+							"iid": "734cdce0-d380-11f0-a355-977a952f9095",
 							"width": 64,
 							"height": 128,
 							"defUid": 17,
 							"px": [1664,1600],
-							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 0, "__tile": null, "defUid": 26, "realEditorValues": [] }],
+							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 3, "__tile": null, "defUid": 26, "realEditorValues": [{ "id": "V_Int", "params": [3] }] }],
 							"__worldX": 1344,
 							"__worldY": 1600
 						}
