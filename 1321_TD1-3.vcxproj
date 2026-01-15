@@ -227,10 +227,13 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
   <ItemGroup>
     <Image Include="..\..\..\OneDrive\Desktop\爆弾除去\block.png" />
     <Image Include="..\..\..\OneDrive\Desktop\爆弾除去\halfBlock.png" />
+    <Image Include="block.png" />
+    <Image Include="halfBlock.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\OneDrive\Desktop\爆弾除去\imgui.ini" />
-    <None Include="..\..\..\OneDrive\Desktop\爆弾除去\mapTest9999.ldtk" />
+    <None Include="imgui.ini" />
+    <None Include="mapTest9999.ldtk" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

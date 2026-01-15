@@ -57,6 +57,7 @@ public:
 	//ルーターの通信範囲内でさらにその中でも自由に行動できるのかの関数
 	// 引数でルーターの配列を受け取るようにする
 	bool CheckRouter(Router* router[], int count);
+	void CheckDoorCollision(std::vector<Door>& doors);
 
 private:
 
@@ -77,6 +78,8 @@ private:
 	void isRightWall(int mapData[kMapHeight][kMapWidth], int mapId);
 	void isLeftWall(int mapData[kMapHeight][kMapWidth], int mapId);
 	void isTopWall(int mapData[kMapHeight][kMapWidth], int mapId);
+
+
 
 	// コマンド実行時のインデックス
 	int cmdIndex;

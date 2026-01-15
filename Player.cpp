@@ -2,7 +2,7 @@
 #include "Novice.h"
 #include "Map.h"
 #include "const.h"
-
+#include "json.hpp" 
 Player::Player() {
 	status_.pos.x = 300.0f;
 	status_.pos.y = 704.0f;
@@ -359,6 +359,7 @@ void Player::isLeftWall(int mapData[kMapHeight][kMapWidth], int mapId) {
 			}
 		}
 	}
+
 }
 
 // --- 天井判定 ---
@@ -447,4 +448,31 @@ bool Player::CheckRouter(Router* router[], int count) {
 
 	// ★結果を返す
 	return isArrived;
+}
+
+
+void Player::CheckDoorCollision(std::vector<Door>& doors) {
+	for (auto& door : doors) {
+		// ドアが開いている（isOpen == true）なら当たり判定を無視する
+		if (door.isOpen) continue;
+
+		// --- 矩形判定（AABB）の直接計算 ---
+		// プレイヤーの四角形とドアの四角形が重なっているか
+		if (status_.pos.x < door.pos.x + kTileSize &&
+			status_.pos.x + status_.width > door.pos.x &&
+			status_.pos.y < door.pos.y + kTileSize*2 &&
+			status_.pos.y + status_.height > door.pos.y) {
+
+			// --- 押し戻し計算 ---
+			// 現在の移動方向（moveDir）に基づいて、めり込まない位置に座標を固定する
+			if (status_.moveDir > 0) {
+				// 右に移動中なら、ドアの左端で止める
+				status_.pos.x = door.pos.x - status_.width;
+			}
+			else if (status_.moveDir < 0) {
+				// 左に移動中なら、ドアの右端（door.pos.x + kTileSize）で止める
+				status_.pos.x = door.pos.x + (float)kTileSize;
+			}
+		}
+	}
 }
