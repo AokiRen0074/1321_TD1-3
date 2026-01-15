@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include "Vector2.h"
+#include "Gimmick.h"
 
 // 一応最大ブロック種類の定義
 const int kMaxBlocksType = 100;
@@ -32,6 +33,8 @@ public:
 
 	std::vector<Door> doors;
 	std::vector<ButtonA> buttons;
+	std::vector<LiftGimmickBlock> liftBlocks;
+	std::vector<LiftGimmickButton> liftButtons;
 
 	// 初期化
 	void Initialize();
