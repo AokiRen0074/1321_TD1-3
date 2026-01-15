@@ -123,6 +123,7 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 	isGrounded(mapData, BLOCK);//通常の地面判定
 	isGrounded(mapData, HALF_FLOOR);  // ★ハーフ床の地面もチェック！
 	isGrounded(mapData, SCRAPMACHINE);//ウクラップによる処理
+	isGrounded(mapData, WATER);//水による水死の処理
 
 	isTopWall(mapData, BLOCK);
 }
@@ -185,6 +186,8 @@ void Player::MovePlayer(char keys[256], char preKeys[256],
 	isGrounded(mapData, BLOCK);
 	isGrounded(mapData, HALF_FLOOR);  // ★ハーフ床の地面もチェック！
 	isGrounded(mapData, SCRAPMACHINE);//ウクラップによる処理
+	isGrounded(mapData, WATER);//水による水死の処理
+
 
 	isTopWall(mapData, BLOCK);
 	isTopWall(mapData, HALF_FLOOR);//ハーフブロック判定
@@ -301,6 +304,17 @@ void Player::isGrounded(int mapData[kMapHeight][kMapWidth], int mapId) {
 	else if (mapId == SCRAPMACHINE) {
 		if ((tileLeftX >= 0 && tileLeftX < kMapWidth && mapData[tileBottomY][tileLeftX] == SCRAPMACHINE) ||
 			(tileRightX >= 0 && tileRightX < kMapWidth && mapData[tileBottomY][tileRightX] == SCRAPMACHINE)) {
+			//チェックポイントで管理する場合はここにチェックポイントの座標を入れて
+
+			status_.pos.x = 300.0f;
+			status_.pos.y = 704.0f;
+			InitPlayer();
+		}
+	}
+	else if (mapId == WATER) {
+		if ((tileLeftX >= 0 && tileLeftX < kMapWidth && mapData[tileBottomY][tileLeftX] == SCRAPMACHINE) ||
+			(tileRightX >= 0 && tileRightX < kMapWidth && mapData[tileBottomY][tileRightX] == SCRAPMACHINE)) {
+			//チェックポイントで管理する場合はここにチェックポイントの座標を入れて
 			status_.pos.x = 300.0f;
 			status_.pos.y = 704.0f;
 			InitPlayer();
