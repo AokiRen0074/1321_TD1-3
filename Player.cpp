@@ -10,7 +10,8 @@ Player::Player() {
 }
 
 void Player::InitPlayer() {
-
+	status_.pos.x = 300.0f;
+	status_.pos.y = 704.0f;
 
 	//加速度計
 	status_.acceleration.x = 0.0f;
@@ -122,6 +123,7 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 	//下のタイルの座標系さんと当たり判定
 	isGrounded(mapData, BLOCK);//通常の地面判定
 	isGrounded(mapData, HALF_FLOOR);  // ★ハーフ床の地面もチェック！
+	isGrounded(mapData, SCRAPMACHINE);//ウクラップによる処理
 
 	isTopWall(mapData, BLOCK);
 }
@@ -133,9 +135,9 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 
 void Player::DrawPlayer(Vector2 offset) {
 	Novice::DrawBox(
-		static_cast<int>(status_.pos.x - offset.x), 
+		static_cast<int>(status_.pos.x - offset.x),
 		static_cast<int>(status_.pos.y - offset.y),
-		static_cast<int>(status_.scale.x), 
+		static_cast<int>(status_.scale.x),
 		static_cast<int>(status_.scale.y),
 		0.0f, WHITE, kFillModeSolid
 	);
@@ -173,9 +175,9 @@ void Player::MovePlayer(char keys[256], char preKeys[256],
 			isLeftWall(mapData, HALF_FLOOR);
 		}
 	}
-	
 
-	
+
+
 
 	Gravity();
 
@@ -183,7 +185,7 @@ void Player::MovePlayer(char keys[256], char preKeys[256],
 
 	isGrounded(mapData, BLOCK);
 	isGrounded(mapData, HALF_FLOOR);  // ★ハーフ床の地面もチェック！
-
+	isGrounded(mapData, SCRAPMACHINE);//ウクラップによる処理
 
 	isTopWall(mapData, BLOCK);
 	isTopWall(mapData, HALF_FLOOR);//ハーフブロック判定
@@ -221,7 +223,8 @@ bool Player::IsWallAhead(int mapData[kMapHeight][kMapWidth]) {
 	if (status_.moveDir > 0) {
 		// 右方向：自分の右端 + 5px
 		checkX = (int)(status_.pos.x + status_.width + 5.0f) / kTileSize;
-	} else {
+	}
+	else {
 		// 左方向：自分の左端 - 5px
 		checkX = (int)(status_.pos.x - 5.0f) / kTileSize;
 	}
@@ -240,7 +243,8 @@ bool Player::IsCliffAhead(int mapData[kMapHeight][kMapWidth]) {
 	int checkX;
 	if (status_.moveDir > 0) {
 		checkX = (int)(status_.pos.x + status_.width + 5.0f) / kTileSize;
-	} else {
+	}
+	else {
 		checkX = (int)(status_.pos.x - 5.0f) / kTileSize;
 	}
 
@@ -295,6 +299,14 @@ void Player::isGrounded(int mapData[kMapHeight][kMapWidth], int mapId) {
 			}
 		}
 	}
+	else if (mapId == SCRAPMACHINE) {
+		if ((tileLeftX >= 0 && tileLeftX < kMapWidth && mapData[tileBottomY][tileLeftX] == SCRAPMACHINE) ||
+			(tileRightX >= 0 && tileRightX < kMapWidth && mapData[tileBottomY][tileRightX] == SCRAPMACHINE)) {
+			status_.pos.x = 300.0f;
+			status_.pos.y = 704.0f;
+			InitPlayer();
+		}
+	}
 }
 
 
@@ -302,7 +314,7 @@ void Player::isGrounded(int mapData[kMapHeight][kMapWidth], int mapId) {
 void Player::isRightWall(int mapData[kMapHeight][kMapWidth], int mapId) {
 	float rightX = status_.pos.x + status_.width;
 	int tileRightX = (int)((rightX - 0.05f) / kTileSize); // 判定精度を微調整
-	int tileTopY = (int)((status_.pos.y+2.0f) / kTileSize);
+	int tileTopY = (int)((status_.pos.y + 2.0f) / kTileSize);
 	int tileBottomY = (int)((status_.pos.y + status_.height - 2.0f) / kTileSize);
 
 	if (tileRightX < 0 || tileRightX >= kMapWidth) return;
@@ -335,7 +347,7 @@ void Player::isRightWall(int mapData[kMapHeight][kMapWidth], int mapId) {
 void Player::isLeftWall(int mapData[kMapHeight][kMapWidth], int mapId) {
 	float leftX = status_.pos.x;
 	int tileLeftX = (int)(leftX / kTileSize);
-	int tileTopY = (int)((status_.pos.y+2.0f) / kTileSize);
+	int tileTopY = (int)((status_.pos.y + 2.0f) / kTileSize);
 	int tileBottomY = (int)((status_.pos.y + status_.height - 2.0f) / kTileSize);
 
 	if (tileLeftX < 0 || tileLeftX >= kMapWidth) return;
@@ -460,7 +472,7 @@ void Player::CheckDoorCollision(std::vector<Door>& doors) {
 		// プレイヤーの四角形とドアの四角形が重なっているか
 		if (status_.pos.x < door.pos.x + kTileSize &&
 			status_.pos.x + status_.width > door.pos.x &&
-			status_.pos.y < door.pos.y + kTileSize*2 &&
+			status_.pos.y < door.pos.y + kTileSize * 2 &&
 			status_.pos.y + status_.height > door.pos.y) {
 
 			// --- 押し戻し計算 ---

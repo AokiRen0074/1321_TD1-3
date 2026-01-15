@@ -159,6 +159,20 @@ void Map::Draw(Vector2 offset) {
 
 			}
 
+			if (mapData[y][x] == 4) {
+
+				Novice::DrawBox(
+					(int)(x * kTileSize - offset.x),
+					(int)(y * kTileSize - offset.y),
+					kTileSize, kTileSize,
+					0.0f,
+					0xFFFFFFFF,
+					kFillModeSolid
+				);
+
+			}
+
+
 		}
 
 		for (const auto& door : doors) {
