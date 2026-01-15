@@ -313,6 +313,7 @@ void Game::Draw() {
 			color = 0xFFAA44FF; // オレンジ
 			text = "If Air -> Jump";
 			break;
+
 		}
 		// もし今実行しているコマンドなら、色を「赤」に変えて目立たせる！
 		if (i == currentIndex) {
