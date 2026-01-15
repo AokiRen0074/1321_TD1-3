@@ -21,7 +21,11 @@ void Router::InitRouter(int id, int mapData[kMapHeight][kMapWidth]) {
 		router_.bigRadius = 1300.0f;
 
 		break;
+	case 3://ルーターの効果範囲の設定
+		router_.radius = 600.0f;
+		router_.bigRadius = 1300.0f;
 
+		break;
 	default:
 		break;
 	}
