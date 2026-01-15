@@ -179,30 +179,9 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\DirectXGame\3d\Camera.h" />
-    <ClInclude Include="C:\KamataEngine\DirectXGame\base\StringUtility.h" />
-    <ClInclude Include="C:\KamataEngine\DirectXGame\math\Matrix4x4.h" />
-    <ClInclude Include="C:\KamataEngine\DirectXGame\math\Vector2.h" />
-    <ClInclude Include="C:\KamataEngine\DirectXGame\math\Vector3.h" />
-    <ClInclude Include="C:\KamataEngine\DirectXGame\math\Vector4.h" />
     <ClInclude Include="C:\KamataEngine\DirectXGame\3d\CircleShadow.h" />
-    <ClInclude Include="C:\KamataEngine\DirectXGame\3d\DebugCamera.h" />
-    <ClInclude Include="C:\KamataEngine\DirectXGame\3d\DirectionalLight.h" />
     <ClInclude Include="C:\KamataEngine\DirectXGame\3d\LightGroup.h" />
-    <ClInclude Include="C:\KamataEngine\DirectXGame\3d\Material.h" />
-    <ClInclude Include="C:\KamataEngine\DirectXGame\3d\Mesh.h" />
-    <ClInclude Include="C:\KamataEngine\DirectXGame\3d\PointLight.h" />
-    <ClInclude Include="C:\KamataEngine\DirectXGame\3d\SpotLight.h" />
-    <ClInclude Include="C:\KamataEngine\DirectXGame\2d\DebugText.h" />
-    <ClInclude Include="C:\KamataEngine\DirectXGame\2d\Sprite.h" />
-    <ClInclude Include="C:\KamataEngine\DirectXGame\2d\ImGuiManager.h" />
-    <ClInclude Include="C:\KamataEngine\DirectXGame\3d\Model.h" />
-    <ClInclude Include="C:\KamataEngine\DirectXGame\3d\WorldTransform.h" />
     <ClInclude Include="C:\KamataEngine\DirectXGame\audio\Audio.h" />
-    <ClInclude Include="C:\KamataEngine\DirectXGame\base\DirectXCommon.h" />
-    <ClInclude Include="C:\KamataEngine\DirectXGame\base\SafeDelete.h" />
-    <ClInclude Include="C:\KamataEngine\DirectXGame\base\TextureManager.h" />
-    <ClInclude Include="C:\KamataEngine\DirectXGame\base\WinApp.h" />
-    <ClInclude Include="C:\KamataEngine\DirectXGame\input\Input.h" />
     <ClInclude Include="C:\KamataEngine\DirectXGame\scene\GameScene.h" />
     <ClInclude Include="C:\KamataEngine\Adapter\Novice.h" />
     <ClInclude Include="Clear.h" />
