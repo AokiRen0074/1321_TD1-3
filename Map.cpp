@@ -172,7 +172,7 @@ void Map::Draw(Vector2 offset) {
 
 			Novice::DrawBox(
 				drawX, drawY,
-				kTileSize, kTileSize, // タイルと同じ大きさ
+				kTileSize, kTileSize*2, // タイルと同じ大きさ
 				0.0f,
 				color,
 				kFillModeSolid
