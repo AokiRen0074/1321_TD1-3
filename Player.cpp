@@ -17,7 +17,7 @@ void Player::InitPlayer() {
 	status_.acceleration.y = 0.0f;
 	status_.Velocity.x = 0.0f;
 	status_.Velocity.y = +9.8f;
-	status_.Speed = 5.0f;
+	status_.Speed = 5.5f;
 
 	//スケール
 	status_.scale.x = 64.0f;
@@ -356,6 +356,12 @@ void Player::isRightWall(int mapData[kMapHeight][kMapWidth], int mapId) {
 			if (mapId == BLOCK) {
 				status_.pos.x = (float)(tileRightX * kTileSize) - status_.width;
 				return;
+			}
+			else if (mapId== SCRAPMACHINE) {
+				status_.pos.x = 300.0f;
+				status_.pos.y = 704.0f;
+				InitPlayer();
+
 			}
 			else if (mapId == HALF_FLOOR) {
 				// ハーフブロック（左半分）の場合、右から「空洞部分」に入ることがある
