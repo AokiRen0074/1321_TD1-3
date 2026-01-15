@@ -120,6 +120,12 @@ void Game::Update(char keys[256], char preKeys[256]) {
 					door.isOpen = true; // ドアオープン！
 				}
 			}
+
+			for (auto& water : map->waters) {
+				if (water.linkId == btn.linkId) {
+					water.isActive = false; // ドアオープン！
+				}
+			}
 		}
 	}
 
@@ -145,6 +151,8 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		player->CheckRouter(router, 250);
 		bool isArrived = player->CheckRouter(router,250);
 		player->CheckDoorCollision(map->doors);
+		player->CheckWaterCollision(map->waters);
+
 		if (isArrived) {
 			isRunning = false; 
 		} else {
@@ -167,6 +175,8 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		//player->CheckRouter(router, 250);
 		bool isInsideRouter = player->CheckRouter(router, 250);
 		player->CheckDoorCollision(map->doors);
+		player->CheckWaterCollision(map->waters);
+
 
 		if (isClick) {
 			// 1. パレットのボタンを押してコマンドを追加

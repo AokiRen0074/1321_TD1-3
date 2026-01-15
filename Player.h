@@ -60,6 +60,7 @@ public:
 	// 引数でルーターの配列を受け取るようにする
 	bool CheckRouter(Router* router[], int count);
 	void CheckDoorCollision(std::vector<Door>& doors);
+	void CheckWaterCollision(std::vector<Water>& waters);
 
 private:
 
