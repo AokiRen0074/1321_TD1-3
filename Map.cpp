@@ -99,7 +99,7 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 				// "fieldInstances" の中から、設定したIntegerフィールドを探す
 				for (auto& field : entity["fieldInstances"]) {
 					// LDtkで設定したフィールド名（例: "LinkID"）
-					if (field["__identifier"] == "LinkID") {
+					if (field["__identifier"] == "Integer") {
 						// 値が入っていれば取得
 						if (!field["__value"].is_null()) {
 							linkId = field["__value"];

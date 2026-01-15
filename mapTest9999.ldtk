@@ -666,7 +666,7 @@
 							"height": 128,
 							"defUid": 17,
 							"px": [1344,1600],
-							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 0, "__tile": null, "defUid": 26, "realEditorValues": [] }],
+							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 3, "__tile": null, "defUid": 26, "realEditorValues": [{ "id": "V_Int", "params": [3] }] }],
 							"__worldX": 1344,
 							"__worldY": 1600
 						},
