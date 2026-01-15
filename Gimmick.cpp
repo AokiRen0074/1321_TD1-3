@@ -18,6 +18,7 @@ void LiftGimmickBlock::Initialize(Vector2 pos, int linkId) {
 }
 
 void LiftGimmickBlock::Update() {
+    /*
 	if (isActive_) {
 		pos_.y -= speed_;
 		if (pos_.y < startPos_.y - 100.0f) {
@@ -31,6 +32,24 @@ void LiftGimmickBlock::Update() {
 			}
 		}
 	}
+    */
+
+    // アクティブじゃないとき常に動き続ける<->スイッチ押されたら止まる
+    // 上昇下降制限
+	float upperLimit = startPos_.y - 100.0f;
+	float lowerLimit = startPos_.y;
+
+    if (!isActive_) {
+        pos_.y -= speed_;
+        if (pos_.y < upperLimit) {
+            pos_.y = upperLimit;
+        }
+    } else {
+        pos_.y += speed_;
+        if (pos_.y > lowerLimit) {
+            pos_.y = lowerLimit;
+		}
+    }
 }
 
 void LiftGimmickBlock::Draw(Vector2 offset) {
