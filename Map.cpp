@@ -50,7 +50,7 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 
 	doors.clear();
 	buttons.clear();
-
+	waters.clear();
 	// LDtkの全レイヤーをチェック
 	for (auto& layer : layers) {
 		std::string currentLayerName = layer["__identifier"];
@@ -119,6 +119,13 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					newButton.linkId = linkId;
 					newButton.isPressed = false;
 					buttons.push_back(newButton);
+				}
+				else if (id == "Water") {
+					Water newWater;
+					newWater.pos = { px,py };
+					newWater.linkId = linkId;
+					newWater.isActive = true;
+					waters.push_back(newWater);
 				}
 			}
 
@@ -214,6 +221,31 @@ void Map::Draw(Vector2 offset) {
 			Novice::DrawBox(
 				drawX + offsetSize, drawY + offsetSize, // 少しずらして中央に
 				btnSize, btnSize,
+				0.0f,
+				color,
+				kFillModeSolid
+			);
+
+			// デバッグ用: リンクIDを確認したい場合
+			// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
+		}
+
+
+		// (Map.hで定義した buttons リストをループ)
+		for (const auto& water : waters) {
+			// 描画座標の計算
+			int drawX = (int)(water.pos.x - offset.x);
+			int drawY = (int)(water.pos.y - offset.y);
+
+			// 押されているかどうかの色分け（押されたら黄色、未踏なら赤）
+			unsigned int color = water.isActive ? 0x00FF00FF : 0x00FF0000;
+
+			// ボタンは少し小さく表示して、ドアと区別しやすくする
+			int btnSize = kTileSize;
+
+			Novice::DrawBox(
+				drawX, drawY , // 少しずらして中央に
+				btnSize*8, btnSize,
 				0.0f,
 				color,
 				kFillModeSolid

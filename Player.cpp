@@ -149,7 +149,6 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 	isGrounded(mapData, BLOCK);//通常の地面判定
 	isGrounded(mapData, HALF_FLOOR);  // ★ハーフ床の地面もチェック！
 	isGrounded(mapData, SCRAPMACHINE);//ウクラップによる処理
-	isGrounded(mapData, WATER);//水による水死の処理
 
 	isTopWall(mapData, BLOCK);
 }
@@ -212,7 +211,6 @@ void Player::MovePlayer(char keys[256], char preKeys[256],
 	isGrounded(mapData, BLOCK);
 	isGrounded(mapData, HALF_FLOOR);  // ★ハーフ床の地面もチェック！
 	isGrounded(mapData, SCRAPMACHINE);//ウクラップによる処理
-	isGrounded(mapData, WATER);//水による水死の処理
 
 
 	isTopWall(mapData, BLOCK);
@@ -337,15 +335,7 @@ void Player::isGrounded(int mapData[kMapHeight][kMapWidth], int mapId) {
 			InitPlayer();
 		}
 	}
-	else if (mapId == WATER) {
-		if ((tileLeftX >= 0 && tileLeftX < kMapWidth && mapData[tileBottomY][tileLeftX] == SCRAPMACHINE) ||
-			(tileRightX >= 0 && tileRightX < kMapWidth && mapData[tileBottomY][tileRightX] == SCRAPMACHINE)) {
-			//チェックポイントで管理する場合はここにチェックポイントの座標を入れて
-			status_.pos.x = 300.0f;
-			status_.pos.y = 704.0f;
-			InitPlayer();
-		}
-	}
+
 }
 
 
@@ -501,6 +491,10 @@ bool Player::CheckRouter(Router* router[], int count) {
 	return isArrived;
 }
 
+//=================================================================
+//プレイヤーのエミッター周りの判定処理
+//=================================================================
+
 
 void Player::CheckDoorCollision(std::vector<Door>& doors) {
 	for (auto& door : doors) {
@@ -524,6 +518,29 @@ void Player::CheckDoorCollision(std::vector<Door>& doors) {
 				// 左に移動中なら、ドアの右端（door.pos.x + kTileSize）で止める
 				status_.pos.x = door.pos.x + (float)kTileSize;
 			}
+		}
+	}
+}
+
+
+void Player::CheckWaterCollision(std::vector<Water>& waters){
+	for (auto& water : waters) {
+		// ドアが開いている（isOpen == true）なら当たり判定を無視する
+		if (!water.isActive) continue;
+
+		// --- 矩形判定（AABB）の直接計算 ---
+		// プレイヤーの四角形とドアの四角形が重なっているか
+		if (status_.pos.x < water.pos.x + kTileSize *8&&
+			status_.pos.x + status_.width > water.pos.x &&
+			status_.pos.y < water.pos.y + kTileSize  &&
+			status_.pos.y + status_.height > water.pos.y) {
+
+			//ここに数位没処理をかく
+			//ここもチャックポイントの変数を入れて戻せる要確認
+			status_.pos.x = 300.0f;
+			status_.pos.y = 704.0f;
+			InitPlayer();
+
 		}
 	}
 }
