@@ -33,8 +33,8 @@ public:
 
 	std::vector<Door> doors;
 	std::vector<ButtonA> buttons;
-	std::vector<LiftGimmickBlock> liftBlocks;
-	std::vector<LiftGimmickButton> liftButtons;
+	//std::vector<LiftGimmickBlock> liftBlocks;
+	//std::vector<LiftGimmickButton> liftButtons;
 
 	// 初期化
 	void Initialize();
