@@ -5,14 +5,13 @@
 #include "Player.h"
 #include "ScrollCamera.h"
 #include "Router.h"
-#include "Router.h"
 
 Game::Game() {
 	player = new Player();
 	map = new Map();
 	scrollCamera = new ScrollCamera(); // スクロールちゃん
 	for (int i = 0; i < 250; i++) {
-		router[i] = new Router(i, map->mapData);
+		router[i] = nullptr;
 	}
 	Initialize();
 }
@@ -26,7 +25,6 @@ Game::~Game() {
 	}
 }
 
-
 void Game::Initialize() {
 	// エリア定義
 	gameArea = { 0, 0, 1400, 1080 };
@@ -39,9 +37,6 @@ void Game::Initialize() {
 
 	map->Initialize();
 
-	//ルーターの生成
-	routerCount = 0;
-
 	/*------------------------------
 	ここにレイヤー名をいれるんだ！！
 	-----------------------------*/
@@ -49,10 +44,19 @@ void Game::Initialize() {
 
 	map->LoadMapFromLDtk("./mapTest9999.ldtk", layers);
 
+	//ルーターの生成
+	routerCount = 0;
+
+	for (int i = 0; i < 250; i++) {
+		if (router[i] != nullptr) {
+			delete router[i];
+			router[i] = nullptr;
+		}
+	}
 
 	for (int y = 0; y < kMapHeight; y++) {
 		for (int x = 0; x < kMapWidth; x++) {
-			if (map->mapData[y][x] == 3) { // 3をルーターとする
+			if (map->mapData[y][x] == 3) { 
 				if (routerCount < 250) {
 					router[routerCount] = new Router(routerCount, map->mapData);
 					routerCount++;
@@ -148,7 +152,6 @@ void Game::Update(char keys[256], char preKeys[256]) {
 	// ==========================================
 	if (isRunning) {
 		// --- 実行モード ---
-		player->CheckRouter(router, 250);
 		bool isArrived = player->CheckRouter(router,250);
 		player->CheckDoorCollision(map->doors);
 		player->CheckWaterCollision(map->waters);
