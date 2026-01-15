@@ -144,7 +144,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		// --- 実行モード ---
 		player->CheckRouter(router, 250);
 		bool isArrived = player->CheckRouter(router,250);
-
+		player->CheckDoorCollision(map->doors);
 		if (isArrived) {
 			isRunning = false; 
 		} else {
@@ -166,6 +166,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		player->UpdatePlayer(keys, preKeys, map->mapData);
 		//player->CheckRouter(router, 250);
 		bool isInsideRouter = player->CheckRouter(router, 250);
+		player->CheckDoorCollision(map->doors);
 
 		if (isClick) {
 			// 1. パレットのボタンを押してコマンドを追加
