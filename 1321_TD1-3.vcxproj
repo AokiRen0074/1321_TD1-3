@@ -159,43 +159,25 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Clear.cpp" />
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Collision.cpp" />
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Credit.cpp" />
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Enemy.cpp" />
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Game.cpp" />
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Gimmick.cpp" />
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\main.cpp" />
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Map.cpp" />
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Player.cpp" />
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Router.cpp" />
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\SceneManager.cpp" />
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\ScrollCamera.cpp" />
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Setting.cpp" />
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Title.cpp" />
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Tutorial.cpp" />
-    <ClCompile Include="..\..\..\OneDrive\Desktop\爆弾除去\Vector2.cpp" />
     <ClCompile Include="C:\KamataEngine\Adapter\Novice.cpp" />
+    <ClCompile Include="Clear.cpp" />
+    <ClCompile Include="Collision.cpp" />
+    <ClCompile Include="Credit.cpp" />
+    <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Gimmick.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Map.cpp" />
+    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Router.cpp" />
+    <ClCompile Include="SceneManager.cpp" />
+    <ClCompile Include="ScrollCamera.cpp" />
+    <ClCompile Include="Setting.cpp" />
+    <ClCompile Include="Title.cpp" />
+    <ClCompile Include="Tutorial.cpp" />
+    <ClCompile Include="Vector2.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Clear.h" />
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Collision.h" />
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Command.h" />
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\const.h" />
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Credit.h" />
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Enemy.h" />
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Game.h" />
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Gimmick.h" />
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\json.hpp" />
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Map.h" />
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Player.h" />
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Router.h" />
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\SceneManager.h" />
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\ScrollCamera.h" />
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Setting.h" />
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Title.h" />
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Tutorial.h" />
-    <ClInclude Include="..\..\..\OneDrive\Desktop\爆弾除去\Vector2.h" />
     <ClInclude Include="..\DirectXGame\3d\Camera.h" />
     <ClInclude Include="C:\KamataEngine\DirectXGame\base\StringUtility.h" />
     <ClInclude Include="C:\KamataEngine\DirectXGame\math\Matrix4x4.h" />
@@ -223,6 +205,24 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
     <ClInclude Include="C:\KamataEngine\DirectXGame\input\Input.h" />
     <ClInclude Include="C:\KamataEngine\DirectXGame\scene\GameScene.h" />
     <ClInclude Include="C:\KamataEngine\Adapter\Novice.h" />
+    <ClInclude Include="Clear.h" />
+    <ClInclude Include="Collision.h" />
+    <ClInclude Include="Command.h" />
+    <ClInclude Include="const.h" />
+    <ClInclude Include="Credit.h" />
+    <ClInclude Include="Enemy.h" />
+    <ClInclude Include="Game.h" />
+    <ClInclude Include="Gimmick.h" />
+    <ClInclude Include="json.hpp" />
+    <ClInclude Include="Map.h" />
+    <ClInclude Include="Player.h" />
+    <ClInclude Include="Router.h" />
+    <ClInclude Include="SceneManager.h" />
+    <ClInclude Include="ScrollCamera.h" />
+    <ClInclude Include="Setting.h" />
+    <ClInclude Include="Title.h" />
+    <ClInclude Include="Tutorial.h" />
+    <ClInclude Include="Vector2.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\OneDrive\Desktop\爆弾除去\block.png" />
