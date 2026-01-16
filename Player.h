@@ -62,6 +62,7 @@ public:
 	bool CheckRouter(Router* router[], int count);
 	void CheckDoorCollision(std::vector<Door>& doors);
 	void CheckWaterCollision(std::vector<Water>& waters);
+	void CheckBeltCollision(std::vector<Beltconveyor>& Beltconveyors);
 
 private:
 

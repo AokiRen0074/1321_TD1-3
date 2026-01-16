@@ -26,6 +26,14 @@ struct Water {
 	bool isActive;  // 開いているか
 };
 
+//ベルトコンベアー
+struct Beltconveyor {
+	Vector2 pos;  // 座標
+	int linkId;   // LDtkで設定したIntegerの値
+	float speed;
+	bool isReversed;  // 開いているか
+};
+
 class Map {
 public:
 	// マップデータ
@@ -43,6 +51,8 @@ public:
 	std::vector<Water> waters;
 
 	std::vector<LiftGimmickButton> liftButtons;
+	std::vector<Beltconveyor> Beltconveyors;
+
 
 	// 初期化
 	void Initialize();

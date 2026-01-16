@@ -126,7 +126,7 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 					if (IsCliffAhead(mapData)) {
 						ActionTryJump();
 
-			
+
 						status_.isWaitingForLanding = true;
 					}
 				}
@@ -134,7 +134,8 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 			break;
 
 		}
-	} else {
+	}
+	else {
 		// コマンドがなくなった後
 		status_.pos.x += status_.Speed * status_.moveDir;
 	}
@@ -357,7 +358,7 @@ void Player::isRightWall(int mapData[kMapHeight][kMapWidth], int mapId) {
 				status_.pos.x = (float)(tileRightX * kTileSize) - status_.width;
 				return;
 			}
-			else if (mapId== SCRAPMACHINE) {
+			else if (mapId == SCRAPMACHINE) {
 				status_.pos.x = 300.0f;
 				status_.pos.y = 704.0f;
 				InitPlayer();
@@ -529,16 +530,16 @@ void Player::CheckDoorCollision(std::vector<Door>& doors) {
 }
 
 
-void Player::CheckWaterCollision(std::vector<Water>& waters){
+void Player::CheckWaterCollision(std::vector<Water>& waters) {
 	for (auto& water : waters) {
 		// ドアが開いている（isOpen == true）なら当たり判定を無視する
 		if (!water.isActive) continue;
 
 		// --- 矩形判定（AABB）の直接計算 ---
 		// プレイヤーの四角形とドアの四角形が重なっているか
-		if (status_.pos.x < water.pos.x + kTileSize *8&&
+		if (status_.pos.x < water.pos.x + kTileSize * 8 &&
 			status_.pos.x + status_.width > water.pos.x &&
-			status_.pos.y < water.pos.y + kTileSize  &&
+			status_.pos.y < water.pos.y + kTileSize &&
 			status_.pos.y + status_.height > water.pos.y) {
 
 			//ここに数位没処理をかく
@@ -550,3 +551,58 @@ void Player::CheckWaterCollision(std::vector<Water>& waters){
 		}
 	}
 }
+
+
+void Player::CheckBeltCollision(std::vector<Beltconveyor>& Beltconveyors) {
+	for (auto& belt : Beltconveyors) {
+		float beltWidth = (float)kTileSize * 16;
+		float beltHeight = (float)kTileSize;
+
+		// 1. 矩形判定（そもそも重なっているか）
+		if (status_.pos.x < belt.pos.x + beltWidth &&
+			status_.pos.x + status_.width > belt.pos.x &&
+			status_.pos.y < belt.pos.y + beltHeight &&
+			status_.pos.y + status_.height > belt.pos.y) {
+
+			// --- 補正の計算 ---
+
+			// プレイヤーの足元がベルトの上面に近いかどうかを判定
+			// 判定用の「しきい値」として、少しだけめり込みを許容する（20pxなど）
+			float playerBottom = status_.pos.y + status_.height;
+			float overlapY = playerBottom - belt.pos.y;
+
+			if (status_.Velocity.y >= 0 && overlapY < 24.0f) {
+				// 【パターンA：上から乗っている】
+				// 足元の座標をベルトの天面に合わせる
+				status_.pos.y = belt.pos.y - status_.height;
+				status_.Velocity.y = 0;
+				status_.isJumop = false;
+
+				// ベルトの移動効果
+				if (belt.isReversed) {
+					status_.pos.x -= belt.speed;
+				}
+				else {
+					status_.pos.x += belt.speed;
+				}
+			}
+			else {
+				// 【パターンB：横からぶつかっている】
+				// プレイヤーの中心とベルトの中心を比べて、左右どちらに弾くか決める
+				float playerCenterX = status_.pos.x + status_.width / 2.0f;
+				float beltCenterX = belt.pos.x + beltWidth / 2.0f;
+
+				if (playerCenterX < beltCenterX) {
+					// ベルトの左側に押し戻す
+					status_.pos.x = belt.pos.x - status_.width;
+				}
+				else {
+					// ベルトの右側に押し戻す
+					status_.pos.x = belt.pos.x + beltWidth;
+				}
+			}
+		}
+	}
+}
+
+
