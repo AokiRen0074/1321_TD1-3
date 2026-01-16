@@ -130,6 +130,13 @@ void Game::Update(char keys[256], char preKeys[256]) {
 					water.isActive = false; // ドアオープン！
 				}
 			}
+
+			for (auto& Beltconveyor : map->Beltconveyors) {
+				if (Beltconveyor.linkId == btn.linkId) {
+					Beltconveyor.isReversed = false; // ドアオープン！
+				}
+			}
+
 		}
 	}
 
@@ -153,8 +160,11 @@ void Game::Update(char keys[256], char preKeys[256]) {
 	if (isRunning) {
 		// --- 実行モード ---
 		bool isArrived = player->CheckRouter(router,250);
+		//ドアと水とベルトの当たり判定とかの処理
 		player->CheckDoorCollision(map->doors);
 		player->CheckWaterCollision(map->waters);
+		player->CheckBeltCollision(map->Beltconveyors);
+
 
 		if (isArrived) {
 			isRunning = false; 
@@ -177,8 +187,11 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		player->UpdatePlayer(keys, preKeys, map->mapData);
 		//player->CheckRouter(router, 250);
 		bool isInsideRouter = player->CheckRouter(router, 250);
+
+		//ドアと水とベルトの当たり判定とかの処理
 		player->CheckDoorCollision(map->doors);
 		player->CheckWaterCollision(map->waters);
+		player->CheckBeltCollision(map->Beltconveyors);
 
 
 		if (isClick) {

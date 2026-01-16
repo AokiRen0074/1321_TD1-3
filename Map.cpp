@@ -51,6 +51,7 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 	doors.clear();
 	buttons.clear();
 	waters.clear();
+	Beltconveyors.clear();
 	// LDtkの全レイヤーをチェック
 	for (auto& layer : layers) {
 		std::string currentLayerName = layer["__identifier"];
@@ -126,6 +127,15 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					newWater.linkId = linkId;
 					newWater.isActive = true;
 					waters.push_back(newWater);
+				}
+				else if (id == "Beltconveyor") {
+
+					Beltconveyor nweBeltconveyor;
+					nweBeltconveyor.pos={ px,py };
+					nweBeltconveyor.speed = 6.0f;
+					nweBeltconveyor.linkId = linkId;
+					nweBeltconveyor.isReversed = true;
+					Beltconveyors.push_back(nweBeltconveyor);
 				}
 
 				if (id == "LiftGimmickBlock") {
@@ -296,6 +306,32 @@ void Map::Draw(Vector2 offset) {
 		// デバッグ用: リンクIDを確認したい場合
 		// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
 	}
+
+
+	// (Map.hで定義した belt リストをループ)
+	for (const auto& Beltconveyor : Beltconveyors) {
+		// 描画座標の計算
+		int drawX = (int)(Beltconveyor.pos.x - offset.x);
+		int drawY = (int)(Beltconveyor.pos.y - offset.y);
+
+		// 押されているかどうかの色分け（押されたら黄色、未踏なら赤）
+		unsigned int color = Beltconveyor.isReversed ? 0x00FF00FF : 0x0000FFFF;
+
+		// ボタンは少し小さく表示して、ドアと区別しやすくする
+		int btnSize = kTileSize;
+
+		Novice::DrawBox(
+			drawX, drawY, // 少しずらして中央に
+			btnSize * 16, btnSize,
+			0.0f,
+			color,
+			kFillModeSolid
+		);
+
+		// デバッグ用: リンクIDを確認したい場合
+		// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
+	}
+
 
 	// Map.cpp の Draw内に追加してデバッグ
 	Novice::ScreenPrintf(0, 100, "MapData[10][10]: %d", mapData[10][10]);
