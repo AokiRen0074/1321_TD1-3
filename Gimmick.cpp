@@ -13,43 +13,49 @@ void LiftGimmickBlock::Initialize(Vector2 pos, int linkId) {
 	pos_ = pos; // 引数で受け取った座標をセット
 	linkId_ = linkId; // 引数で受け取ったIDをセット
 	isActive_ = false; // 最初は止まっている
+	isRunning_ = false;
+    isReturning_ = false;
 	speed_ = 2.0f;
 	startPos_ = pos; // 元の位置を覚えておく
 }
 
 void LiftGimmickBlock::Update() {
-    /*
-	if (isActive_) {
-		pos_.y -= speed_;
-		if (pos_.y < startPos_.y - 100.0f) {
-			isActive_ = false;
-		}
-	} else {
-		if (pos_.y < startPos_.y) {
-			pos_.y += speed_;
-			if (pos_.y > startPos_.y) {
-				pos_.y = startPos_.y;
-			}
-		}
-	}
-    */
-
-    // アクティブじゃないとき常に動き続ける<->スイッチ押されたら止まる
+	// スイッチ押されたら上昇->制限に達したら下降->元の位置に戻ったら停止
     // 上昇下降制限
-	float upperLimit = startPos_.y - 100.0f;
-	float lowerLimit = startPos_.y;
+	float upperLimit = 200.0f;
+	//float lowerLimit = startPos_.y;
 
-    if (!isActive_) {
-        pos_.y -= speed_;
-        if (pos_.y < upperLimit) {
-            pos_.y = upperLimit;
-        }
-    } else {
-        pos_.y += speed_;
-        if (pos_.y > lowerLimit) {
-            pos_.y = lowerLimit;
-		}
+    if (isActive_) {
+        isRunning_ = true;
     }
+
+    if (isRunning_) {
+        if (!isReturning_) {
+            // --- 【往路】上昇処理 ---
+            pos_.y -= speed_;
+
+            // 上限に達したら「帰りモード」に切り替え
+            if (pos_.y <= startPos_.y - upperLimit) {
+                isReturning_ = true;
+            }
+
+        } else {
+            // --- 【復路】下降処理 ---
+            pos_.y += speed_;
+
+            // 元の位置に戻ったら全て終了
+            if (pos_.y >= startPos_.y) {
+                isRunning_ = false;
+                isActive_ = false;
+                isReturning_ = false;
+            }
+        }
+    }
+
+    // デバッグ用
+	Novice::ScreenPrintf(0, 800, "lift isActive_: %d", isActive_);
+    Novice::ScreenPrintf(0, 820, "lift isRunning_: %d", isRunning_);
+	Novice::ScreenPrintf(0, 840, "lift isReturning_: %d", isReturning_);
 }
 
 void LiftGimmickBlock::Draw(Vector2 offset) {
@@ -113,9 +119,16 @@ void LiftGimmickBlock::CheckCollision(Player& player) {
                 player.status_.isJumop = false; // 地面に付いたフラグ
 
                 // ★リフトが動いている場合、プレイヤーをその分同期させる
-                if (isActive_) {
-                    player.status_.pos.y -= speed_;
+                if (isRunning_) {
+                    if (!isReturning_) {
+                        // 上昇中ならプレイヤーを引き上げる
+                        player.status_.pos.y -= speed_;
+                    } else {
+                        // 下降中ならプレイヤーを一緒に下ろす
+                        player.status_.pos.y += speed_;
+                    }
                 }
+
                 break;
         }
     }
