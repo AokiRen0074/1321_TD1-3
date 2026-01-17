@@ -10,7 +10,9 @@ public:
 	Vector2 pos_;
 	int linkId_; // LDtkで設定したIntegerの値
 	float speed_;
-	bool isActive_;
+	bool isActive_; // ボタンが押されて処理が動くか
+	bool isRunning_; // 動いている最中か
+	bool isReturning_;
 	Vector2 startPos_;
 	Vector2 size_ = {64.0f, 64.0f};
 
