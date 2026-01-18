@@ -139,9 +139,40 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 				}
 
 				if (id == "LiftGimmickBlock") {
+					// --- フィールドから値を取得するための変数(デフォルト値を設定)---
+					//int linkId = 0;
+					Vector2 moveLimit = { 0.0f, 0.0f }; // 初期値は動かない設定
+					float speed = 2.0f; // 初期スピード
+
+					// entity["fieldInstances"] の中をループして設定した値を探す
+					for (auto& field : entity["fieldInstances"]) {
+						std::string fieldName = field["__identifier"];
+
+						if (fieldName == "Integer") { // 既存のリンク用ID
+							if (!field["__value"].is_null()) {
+								linkId = field["__value"];
+							}
+						}
+						else if (fieldName == "MoveX") { // 追加した横移動量
+							if (!field["__value"].is_null()) {
+								moveLimit.x = field["__value"];
+							}
+						}
+						else if (fieldName == "MoveY") { // 追加した縦移動量
+							if (!field["__value"].is_null()) {
+								moveLimit.y = field["__value"];
+							}
+						}
+						else if (fieldName == "Speed") { // 追加したスピード
+							if (!field["__value"].is_null()) {
+								speed = field["__value"];
+							}
+						}
+					}
+
+					// --- 正しい引数で初期化 ---
 					LiftGimmickBlock newLift;
-					// 初期化（linkIdは既存の読み込み処理で取得済みのものを使用）
-					newLift.Initialize({px, py}, linkId);
+					newLift.Initialize({px, py}, linkId, moveLimit, speed);
 					liftBlocks.push_back(newLift);
 				}
 
