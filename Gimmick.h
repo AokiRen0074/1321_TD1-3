@@ -16,10 +16,14 @@ public:
 	Vector2 startPos_;
 	Vector2 size_ = {64.0f, 64.0f};
 
+	// どこまで動くか
+	Vector2 moveLimit_;
+
 	LiftGimmickBlock();
 	~LiftGimmickBlock();
 
-	void Initialize(Vector2 pos, int linkId);
+	void Initialize(Vector2 pos, int linkId, Vector2 moveLimit, float speed);
+
 	void Update();
 	void Draw(Vector2 offset);
 
