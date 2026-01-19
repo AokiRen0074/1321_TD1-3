@@ -36,7 +36,7 @@ void Player::InitPlayer() {
 	//自由に動けるかの確認
 	status_.isMoveFree = true;
 	status_.isCommandMove = true;
-
+	status_.isBlet = false;
 	status_.isWaitingForLanding = false;
 	cmdIndex = 0;
 
@@ -112,22 +112,23 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 		case CommandType::CheckCliffJump:
 
 			status_.pos.x += status_.Speed * status_.moveDir;
-
-			// 着地待ちの場合
-			if (status_.isWaitingForLanding) {
-				if (!status_.isJumop) {
-					status_.isWaitingForLanding = false;
-					cmdIndex++;
+			if (!status_.isBlet) {
+				// 着地待ちの場合
+				if (status_.isWaitingForLanding) {
+					if (!status_.isJumop) {
+						status_.isWaitingForLanding = false;
+						cmdIndex++;
+					}
 				}
-			}
-			//崖を探している場合
-			else {
-				if (!status_.isJumop) {
-					if (IsCliffAhead(mapData)) {
-						ActionTryJump();
+				//崖を探している場合
+				else {
+					if (!status_.isJumop) {
+						if (IsCliffAhead(mapData)) {
+							ActionTryJump();
 
 
-						status_.isWaitingForLanding = true;
+							status_.isWaitingForLanding = true;
+						}
 					}
 				}
 			}
@@ -573,9 +574,10 @@ void Player::CheckBeltCollision(std::vector<Beltconveyor>& Beltconveyors) {
 
 			if (status_.Velocity.y >= 0 && overlapY < 24.0f) {
 				// 【パターンA：上から乗っている】
-				// 足元の座標をベルトの天面に合わせる
 				status_.pos.y = belt.pos.y - status_.height;
-				status_.Velocity.y = 0;
+				status_.isBlet = true;
+				// 重要：速度を完全に殺し、ジャンプフラグを折る
+				status_.Velocity.y = 0.0f;
 				status_.isJumop = false;
 
 				// ベルトの移動効果
@@ -591,7 +593,7 @@ void Player::CheckBeltCollision(std::vector<Beltconveyor>& Beltconveyors) {
 				// プレイヤーの中心とベルトの中心を比べて、左右どちらに弾くか決める
 				float playerCenterX = status_.pos.x + status_.width / 2.0f;
 				float beltCenterX = belt.pos.x + beltWidth / 2.0f;
-
+				status_.isBlet = false;
 				if (playerCenterX < beltCenterX) {
 					// ベルトの左側に押し戻す
 					status_.pos.x = belt.pos.x - status_.width;

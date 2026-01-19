@@ -44,6 +44,7 @@ public:
 		bool isMoveFree;//自由に動けるかのフラグ
 		bool isCommandMove;//コマンドで動かす範囲
 		bool isWaitingForLanding;//着地待ちフラグ
+		bool isBlet;
 	}status_;//status＿で宣言
 
 
