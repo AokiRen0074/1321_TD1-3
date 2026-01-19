@@ -50,111 +50,124 @@ void Player::UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHe
 }
 
 // コマンドで動かせるプレイヤー
-void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapData[kMapHeight][kMapWidth]) {
+void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapData[kMapHeight][kMapWidth], std::vector<Beltconveyor>& Beltconveyors) {
 
+	// ★重要：コマンド処理の「前」に一旦フラグをリセットしてベルト判定を行う
+	// これにより、コマンド移動前の正しい接地状態がセットされる
+	CheckBeltCollision(Beltconveyors);
 
-	// まだ実行すべきコマンドが残っているか？
 	if (cmdIndex < commands.size()) {
-
 		CommandType currentCmd = commands[cmdIndex];
 
 		switch (currentCmd) {
-
-			/*--------------------------------------
-			右へ進む
-			-----------------------------*/
 		case CommandType::MoveRight:
 			status_.moveDir = 1.0f;
-			cmdIndex++; // コマンド完了（動き続けるので即次へ）
+			cmdIndex++;
 			break;
 
-			/*---------------------------
-			左へ進む
-			---------------------------------*/
 		case CommandType::MoveLeft:
 			status_.moveDir = -1.0f;
 			cmdIndex++;
 			break;
 
-			// ---------------------------------------------------
-		// 壁があったらジャンプ
-		// ---------------------------------------------------
 		case CommandType::CheckWallJump:
-
-			// 移動処理
 			status_.pos.x += status_.Speed * status_.moveDir;
 
-			// すでにジャンプして、着地待ちの場合
+			// 移動した「後」に再度ベルト判定（座標の吸着とフラグ更新）
+			CheckBeltCollision(Beltconveyors);
+
 			if (status_.isWaitingForLanding) {
-				// ジャンプが終わった（着地した）かチェック
 				if (!status_.isJumop) {
 					status_.isWaitingForLanding = false;
 					cmdIndex++;
 				}
 			}
-			// まだジャンプしていない
 			else {
-				// ジャンプ中でないなら壁チェック
-				if (!status_.isJumop) {
-					if (IsWallAhead(mapData)) {
-						ActionTryJump(); // ジャンプ開始！
-
-						status_.isWaitingForLanding = true;
-					}
+				if (!status_.isJumop && IsWallAhead(mapData)) {
+					ActionTryJump();
+					status_.isWaitingForLanding = true;
 				}
 			}
 			break;
 
-
-			// ---------------------------------------------------
-			// 崖があったらジャンプ
-			// ---------------------------------------------------
 		case CommandType::CheckCliffJump:
-
+			// 1. まず移動
 			status_.pos.x += status_.Speed * status_.moveDir;
+
+			// 2. 「今」ベルトに乗っているかを即座に確定させる
+			CheckBeltCollision(Beltconveyors);
+
+			// 3. ベルトに乗っているなら、崖なんて関係ない。ジャンプもせず次へ
+			if (status_.isBlet) {
+				status_.isWaitingForLanding = false;
+				status_.isJumop = false;
+				status_.Velocity.y = 0;
+				cmdIndex++; // 「この場所の崖（ベルト）は攻略した」とみなして次のコマンドへ
+				break;
+			}
+
+			// 4. ベルトに乗っていない場合のみ、通常の着地待ち or 崖チェック
 			if (!status_.isBlet) {
-				// 着地待ちの場合
 				if (status_.isWaitingForLanding) {
 					if (!status_.isJumop) {
 						status_.isWaitingForLanding = false;
 						cmdIndex++;
 					}
 				}
-				//崖を探している場合
 				else {
-					if (!status_.isJumop) {
-						if (IsCliffAhead(mapData)) {
-							ActionTryJump();
-
-
-							status_.isWaitingForLanding = true;
-						}
+					// ここでも isBlet をチェック（念のため）
+					if (!status_.isJumop && !status_.isBlet && IsCliffAhead(mapData, Beltconveyors)) {
+						ActionTryJump(); // ジャンプ開始
+						status_.isWaitingForLanding = true;
 					}
 				}
 			}
 			break;
-
 		}
 	}
 	else {
-		// コマンドがなくなった後
 		status_.pos.x += status_.Speed * status_.moveDir;
+		CheckBeltCollision(Beltconveyors);
 	}
 
+	// --- 物理処理 ---
 	isRightWall(mapData, BLOCK);
 	isLeftWall(mapData, BLOCK);
 
+	// ★Gravity の前に isBlet が確定している必要がある
+	Gravity();
 
-	Gravity();//重力処理
-
-	//下のタイルの座標系さんと当たり判定
-	isGrounded(mapData, BLOCK);//通常の地面判定
-	isGrounded(mapData, HALF_FLOOR);  // ★ハーフ床の地面もチェック！
-	isGrounded(mapData, SCRAPMACHINE);//ウクラップによる処理
+	// ★接地判定（ベルトに乗っていない時だけ重力や接地を通常処理する）
+	if (!status_.isBlet) {
+		isGrounded(mapData, BLOCK);
+		isGrounded(mapData, HALF_FLOOR);
+		isGrounded(mapData, SCRAPMACHINE);
+	}
+	else {
+		// ベルトに乗っているなら空中フラグを折る（ダメ押し）
+		status_.isJumop = false;
+		status_.Velocity.y = 0;
+	}
 
 	isTopWall(mapData, BLOCK);
-}
 
+	// --- UpdateByCommands の一番最後 ---
+
+// 1. 全ての移動が終わった「最終的な座標」で、もう一度ベルト判定を上書きする
+	CheckBeltCollision(Beltconveyors);
+
+	// 2. もし最終的にベルトに乗っているなら、このフレームで発生したジャンプを「なかったこと」にする
+	if (status_.isBlet) {
+		status_.isJumop = false;
+		status_.Velocity.y = 0;
+		// もしジャンプ待ち状態に入ってしまっていたら、それも解除してコマンドを進める
+		if (status_.isWaitingForLanding) {
+			status_.isWaitingForLanding = false;
+			cmdIndex++;
+		}
+	}
+
+}
 
 
 
@@ -168,6 +181,8 @@ void Player::DrawPlayer(Vector2 offset) {
 		static_cast<int>(status_.scale.y),
 		0.0f, WHITE, kFillModeSolid
 	);
+	Novice::ScreenPrintf(0, 400, "isBlet%d", status_.isBlet);
+
 }
 
 //------------------------------------------------------------------------------------------------------
@@ -235,6 +250,14 @@ void Player::ActionMoveRight() {
 }
 
 void Player::ActionTryJump() {
+	// ★鉄壁のガード
+	// どんな理由があろうと、ベルトの上ならジャンプ入力を「無効」にする
+	if (status_.isBlet) {
+		status_.isJumop = false;
+		status_.Velocity.y = 0;
+		return;
+	}
+
 	if (!status_.isJumop) {
 		status_.isJumop = true;
 		status_.Velocity.y = -status_.jumpPower;
@@ -267,22 +290,46 @@ bool Player::IsWallAhead(int mapData[kMapHeight][kMapWidth]) {
 
 
 // 足元が崖かチェック
-bool Player::IsCliffAhead(int mapData[kMapHeight][kMapWidth]) {
-	int checkX;
-	if (status_.moveDir > 0) {
-		checkX = (int)(status_.pos.x + status_.width + 5.0f) / kTileSize;
-	}
-	else {
-		checkX = (int)(status_.pos.x - 5.0f) / kTileSize;
+// 引数に Beltconveyors を追加
+bool Player::IsCliffAhead(int mapData[kMapHeight][kMapWidth], const std::vector<Beltconveyor>& Beltconveyors) {
+	// 1. ベルトに乗っている最中なら、先がどうあれ今はジャンプしない
+	if (status_.isBlet) return false;
+
+	// 2. チェックする座標を計算
+	float checkWorldX = status_.pos.x + (status_.moveDir > 0 ? status_.width + 5.0f : -5.0f);
+	float checkWorldY = status_.pos.y + status_.height + 5.0f; // 足元より少し下
+
+	int tileX = (int)(checkWorldX / kTileSize);
+	int tileY = (int)(checkWorldY / kTileSize);
+
+	// 3. マップチップが「空」であることを確認
+	bool isMapEmpty = false;
+	if (tileX >= 0 && tileX < kMapWidth && tileY >= 0 && tileY < kMapHeight) {
+		if (mapData[tileY][tileX] == 0) {
+			isMapEmpty = true;
+		}
 	}
 
-	int checkY = (int)(status_.pos.y + status_.height + 5.0f) / kTileSize;
+	// 4. マップが空の時、そこに「ベルトのエミッター」がないか確認する
+	if (isMapEmpty) {
+		for (const auto& belt : Beltconveyors) {
+			float beltWidth = (float)kTileSize * 16; // エミッターの幅
+			float beltHeight = (float)kTileSize;
 
-	if (checkX >= 0 && checkX < kMapWidth && checkY >= 0 && checkY < kMapHeight) {
-		if (mapData[checkY][checkX] == 0) return true; // 0なら崖
+			// チェック地点がベルトの矩形内に入っているか？
+			if (checkWorldX >= belt.pos.x && checkWorldX <= belt.pos.x + beltWidth &&
+				checkWorldY >= belt.pos.y && checkWorldY <= belt.pos.y + beltHeight) {
+				// ベルトがある！そこは崖ではない！
+				return false;
+			}
+		}
+		// マップも空で、ベルトもなかったら、そこは本物の崖！
+		return true;
 	}
+
 	return false;
 }
+
 
 //マップチップの当たり判定関数
 #pragma region マップの当たり判定関数
@@ -555,53 +602,53 @@ void Player::CheckWaterCollision(std::vector<Water>& waters) {
 
 
 void Player::CheckBeltCollision(std::vector<Beltconveyor>& Beltconveyors) {
+	status_.isBlet = false;	
+
 	for (auto& belt : Beltconveyors) {
 		float beltWidth = (float)kTileSize * 16;
 		float beltHeight = (float)kTileSize;
 
-		// 1. 矩形判定（そもそも重なっているか）
+		// AABB 矩形判定
 		if (status_.pos.x < belt.pos.x + beltWidth &&
 			status_.pos.x + status_.width > belt.pos.x &&
 			status_.pos.y < belt.pos.y + beltHeight &&
 			status_.pos.y + status_.height > belt.pos.y) {
 
-			// --- 補正の計算 ---
+			// めり込み量を計算
+			float overlapLeft = (status_.pos.x + status_.width) - belt.pos.x;
+			float overlapRight = (belt.pos.x + beltWidth) - status_.pos.x;
+			float overlapTop = (status_.pos.y + status_.height) - belt.pos.y;
+			float overlapBottom = (belt.pos.y + beltHeight) - status_.pos.y;
 
-			// プレイヤーの足元がベルトの上面に近いかどうかを判定
-			// 判定用の「しきい値」として、少しだけめり込みを許容する（20pxなど）
-			float playerBottom = status_.pos.y + status_.height;
-			float overlapY = playerBottom - belt.pos.y;
+			// ★ どの方向のめり込みが一番小さいかを探す（一番小さい方向が「正解」の押し出し方向）
+			float minOverlap = overlapTop;
+			if (overlapLeft < minOverlap) minOverlap = overlapLeft;
+			if (overlapRight < minOverlap) minOverlap = overlapRight;
+			if (overlapBottom < minOverlap) minOverlap = overlapBottom;
 
-			if (status_.Velocity.y >= 0 && overlapY < 24.0f) {
-				// 【パターンA：上から乗っている】
+			// 1. 上から乗っている判定 (一番浅いのが Top だった場合)
+			if (minOverlap == overlapTop) {
 				status_.pos.y = belt.pos.y - status_.height;
 				status_.isBlet = true;
-				// 重要：速度を完全に殺し、ジャンプフラグを折る
 				status_.Velocity.y = 0.0f;
 				status_.isJumop = false;
 
 				// ベルトの移動効果
-				if (belt.isReversed) {
-					status_.pos.x -= belt.speed;
-				}
-				else {
-					status_.pos.x += belt.speed;
-				}
+				if (belt.isReversed) status_.pos.x -= belt.speed;
+				else status_.pos.x += belt.speed;
+
+				return; // 上に乗ったらこのフレームの処理は完了
 			}
-			else {
-				// 【パターンB：横からぶつかっている】
-				// プレイヤーの中心とベルトの中心を比べて、左右どちらに弾くか決める
-				float playerCenterX = status_.pos.x + status_.width / 2.0f;
-				float beltCenterX = belt.pos.x + beltWidth / 2.0f;
-				status_.isBlet = false;
-				if (playerCenterX < beltCenterX) {
-					// ベルトの左側に押し戻す
-					status_.pos.x = belt.pos.x - status_.width;
-				}
-				else {
-					// ベルトの右側に押し戻す
-					status_.pos.x = belt.pos.x + beltWidth;
-				}
+			// 2. 横からぶつかっている判定
+			else if (minOverlap == overlapLeft) {
+				status_.pos.x = belt.pos.x - status_.width;
+			}
+			else if (minOverlap == overlapRight) {
+				status_.pos.x = belt.pos.x + beltWidth;
+			}
+			else if (minOverlap == overlapBottom) {
+				status_.pos.y = belt.pos.y + beltHeight;
+				status_.Velocity.y = 0.0f;
 			}
 		}
 	}

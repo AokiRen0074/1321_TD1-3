@@ -165,11 +165,10 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		player->CheckWaterCollision(map->waters);
 		player->CheckBeltCollision(map->Beltconveyors);
 
-
 		if (isArrived) {
 			isRunning = false; 
 		} else {
-			player->UpdateByCommands(commandList, map->mapData);
+			player->UpdateByCommands(commandList, map->mapData,map->Beltconveyors);
 		}
 
 		// ストップボタン判定
