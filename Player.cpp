@@ -655,3 +655,53 @@ void Player::CheckBeltCollision(std::vector<Beltconveyor>& Beltconveyors) {
 }
 
 
+void Player::CheckFlooCollision(std::vector<VanishingFloor>& VanishingFloors) {
+	for (auto& floor : VanishingFloors) {
+		// 床がすでに消えている（isActive == false）なら当たり判定を無視する
+		if (floor.isActive) {
+			float floorWidth = (float)kTileSize * 2;
+			float beltHeight = (float)kTileSize;
+			// --- 矩形判定（AABB） ---
+			// プレイヤーの四角形と床の四角形が重なっているか
+			if (status_.pos.x < floor.pos.x + floorWidth &&
+				status_.pos.x + status_.width > floor.pos.x &&
+				status_.pos.y < floor.pos.y + beltHeight &&
+				status_.pos.y + status_.height > floor.pos.y) {
+
+				// めり込み量を計算（ベルトの時と同じロジック）
+				float overlapTop = (status_.pos.y + status_.height) - floor.pos.y;
+				float overlapBottom = (floor.pos.y + beltHeight) - status_.pos.y;
+				float overlapLeft = (status_.pos.x + status_.width) - floor.pos.x;
+				float overlapRight = (floor.pos.x + floorWidth) - status_.pos.x;
+
+				// 一番めり込みが浅い方向に押し出す
+				float minOverlap = overlapTop;
+				if (overlapBottom < minOverlap) minOverlap = overlapBottom;
+				if (overlapLeft < minOverlap) minOverlap = overlapLeft;
+				if (overlapRight < minOverlap) minOverlap = overlapRight;
+
+				// 1. 上から乗った場合（接地）
+				if (minOverlap == overlapTop) {
+					status_.pos.y = floor.pos.y - status_.height;
+					status_.Velocity.y = 0.0f;
+					status_.isJumop = false;
+
+					// ★ ここで床の「消え始めるタイマー」などを起動させる処理を入れることが多いです
+					// floor.isTouched = true; 
+				}
+				// 2. 下からぶつかった場合（天井）
+				else if (minOverlap == overlapBottom) {
+					status_.pos.y = floor.pos.y + beltHeight;
+					status_.Velocity.y = 0.0f;
+				}
+				// 3. 横からぶつかった場合（壁）
+				else if (minOverlap == overlapLeft) {
+					status_.pos.x = floor.pos.x - status_.width;
+				}
+				else if (minOverlap == overlapRight) {
+					status_.pos.x = floor.pos.x + floorWidth;
+				}
+			}
+		}
+	}
+}

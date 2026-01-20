@@ -146,6 +146,15 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					Checkpoints.push_back(nweCheckpoint);
 
 				}
+				else if (id == "VanishingFloor") {
+
+					VanishingFloor nweVanishingFloor;
+					nweVanishingFloor.pos = { px,py };
+					nweVanishingFloor.linkId = linkId;
+					nweVanishingFloor.isActive = true;
+					VanishingFloors.push_back(nweVanishingFloor);
+
+				}
 
 				if (id == "LiftGimmickBlock") {
 					// --- フィールドから値を取得するための変数(デフォルト値を設定) ---
@@ -392,7 +401,7 @@ void Map::Draw(Vector2 offset) {
 		int btnSize = kTileSize;
 
 		Novice::DrawBox(
-			drawX, drawY, // 少しずらして中央に
+			drawX-5, drawY, // 少しずらして中央に
 			btnSize * 16, btnSize,
 			0.0f,
 			color,
@@ -428,7 +437,33 @@ void Map::Draw(Vector2 offset) {
 	}
 
 
+	for (const auto& VanishingFloor : VanishingFloors) {
+		// 描画座標の計算
+		int drawX = (int)(VanishingFloor.pos.x - offset.x);
+		int drawY = (int)(VanishingFloor.pos.y - offset.y);
+
+		// 押されているかどうかの色分け（押されたら黄色、未踏なら赤）
+		unsigned int color = VanishingFloor.isActive ? 0xFFFF00FF : 0x000000FF;
+
+		// ボタンは少し小さく表示して、ドアと区別しやすくする
+		int btnSize = kTileSize;
+
+		Novice::DrawBox(
+			drawX, drawY, // 少しずらして中央に
+			btnSize * 4, btnSize,
+			0.0f,
+			color,
+			kFillModeSolid
+		);
+
+		// デバッグ用: リンクIDを確認したい場合
+		// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
+	}
+
+
 	// Map.cpp の Draw内に追加してデバッグ
 	Novice::ScreenPrintf(0, 100, "MapData[10][10]: %d", mapData[10][10]);
 }
+
+
 

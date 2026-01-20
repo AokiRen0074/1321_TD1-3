@@ -157,6 +157,11 @@ void Game::Update(char keys[256], char preKeys[256]) {
 				}
 			}
 
+			for (auto& floor : map->VanishingFloors) {
+				if (floor.linkId == btn.linkId) {
+					floor.isActive = false; // ドアオープン！
+				}
+			}
 		}
 	}
 
@@ -184,6 +189,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		player->CheckDoorCollision(map->doors);
 		player->CheckWaterCollision(map->waters);
 		player->CheckBeltCollision(map->Beltconveyors);
+		player->CheckFlooCollision(map->VanishingFloors);
 
 		if (isArrived) {
 			isRunning = false;
@@ -212,7 +218,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		player->CheckDoorCollision(map->doors);
 		player->CheckWaterCollision(map->waters);
 		player->CheckBeltCollision(map->Beltconveyors);
-
+		player->CheckFlooCollision(map->VanishingFloors);
 
 		if (isClick) {
 			// 1. パレットのボタンを押してコマンドを追加
