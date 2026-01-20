@@ -51,63 +51,32 @@ void Player::UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHe
 
 // コマンドで動かせるプレイヤー
 void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapData[kMapHeight][kMapWidth], std::vector<Beltconveyor>& Beltconveyors) {
+	if (status_.isActive) {
 
-	// ★重要：コマンド処理の「前」に一旦フラグをリセットしてベルト判定を行う
-	// これにより、コマンド移動前の正しい接地状態がセットされる
-	CheckBeltCollision(Beltconveyors);
+		// ★重要：コマンド処理の「前」に一旦フラグをリセットしてベルト判定を行う
+		// これにより、コマンド移動前の正しい接地状態がセットされる
+		CheckBeltCollision(Beltconveyors);
 
-	if (cmdIndex < commands.size()) {
-		CommandType currentCmd = commands[cmdIndex];
+		if (cmdIndex < commands.size()) {
+			CommandType currentCmd = commands[cmdIndex];
 
-		switch (currentCmd) {
-		case CommandType::MoveRight:
-			status_.moveDir = 1.0f;
-			cmdIndex++;
-			break;
-
-		case CommandType::MoveLeft:
-			status_.moveDir = -1.0f;
-			cmdIndex++;
-			break;
-
-		case CommandType::CheckWallJump:
-			status_.pos.x += status_.Speed * status_.moveDir;
-
-			// 移動した「後」に再度ベルト判定（座標の吸着とフラグ更新）
-			CheckBeltCollision(Beltconveyors);
-
-			if (status_.isWaitingForLanding) {
-				if (!status_.isJumop) {
-					status_.isWaitingForLanding = false;
-					cmdIndex++;
-				}
-			}
-			else {
-				if (!status_.isJumop && IsWallAhead(mapData)) {
-					ActionTryJump();
-					status_.isWaitingForLanding = true;
-				}
-			}
-			break;
-
-		case CommandType::CheckCliffJump:
-			// 1. まず移動
-			status_.pos.x += status_.Speed * status_.moveDir;
-
-			// 2. 「今」ベルトに乗っているかを即座に確定させる
-			CheckBeltCollision(Beltconveyors);
-
-			// 3. ベルトに乗っているなら、崖なんて関係ない。ジャンプもせず次へ
-			if (status_.isBlet) {
-				status_.isWaitingForLanding = false;
-				status_.isJumop = false;
-				status_.Velocity.y = 0;
-				cmdIndex++; // 「この場所の崖（ベルト）は攻略した」とみなして次のコマンドへ
+			switch (currentCmd) {
+			case CommandType::MoveRight:
+				status_.moveDir = 1.0f;
+				cmdIndex++;
 				break;
-			}
 
-			// 4. ベルトに乗っていない場合のみ、通常の着地待ち or 崖チェック
-			if (!status_.isBlet) {
+			case CommandType::MoveLeft:
+				status_.moveDir = -1.0f;
+				cmdIndex++;
+				break;
+
+			case CommandType::CheckWallJump:
+				status_.pos.x += status_.Speed * status_.moveDir;
+
+				// 移動した「後」に再度ベルト判定（座標の吸着とフラグ更新）
+				CheckBeltCollision(Beltconveyors);
+
 				if (status_.isWaitingForLanding) {
 					if (!status_.isJumop) {
 						status_.isWaitingForLanding = false;
@@ -115,21 +84,53 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 					}
 				}
 				else {
-					// ここでも isBlet をチェック（念のため）
-					if (!status_.isJumop && !status_.isBlet && IsCliffAhead(mapData, Beltconveyors)) {
-						ActionTryJump(); // ジャンプ開始
+					if (!status_.isJumop && IsWallAhead(mapData)) {
+						ActionTryJump();
 						status_.isWaitingForLanding = true;
 					}
 				}
+				break;
+
+			case CommandType::CheckCliffJump:
+				// 1. まず移動
+				status_.pos.x += status_.Speed * status_.moveDir;
+
+				// 2. 「今」ベルトに乗っているかを即座に確定させる
+				CheckBeltCollision(Beltconveyors);
+
+				// 3. ベルトに乗っているなら、崖なんて関係ない。ジャンプもせず次へ
+				if (status_.isBlet) {
+					status_.isWaitingForLanding = false;
+					status_.isJumop = false;
+					status_.Velocity.y = 0;
+					cmdIndex++; // 「この場所の崖（ベルト）は攻略した」とみなして次のコマンドへ
+					break;
+				}
+
+				// 4. ベルトに乗っていない場合のみ、通常の着地待ち or 崖チェック
+				if (!status_.isBlet) {
+					if (status_.isWaitingForLanding) {
+						if (!status_.isJumop) {
+							status_.isWaitingForLanding = false;
+							cmdIndex++;
+						}
+					}
+					else {
+						// ここでも isBlet をチェック（念のため）
+						if (!status_.isJumop && !status_.isBlet && IsCliffAhead(mapData, Beltconveyors)) {
+							ActionTryJump(); // ジャンプ開始
+							status_.isWaitingForLanding = true;
+						}
+					}
+				}
+				break;
 			}
-			break;
+		}
+		else {
+			status_.pos.x += status_.Speed * status_.moveDir;
+			CheckBeltCollision(Beltconveyors);
 		}
 	}
-	else {
-		status_.pos.x += status_.Speed * status_.moveDir;
-		CheckBeltCollision(Beltconveyors);
-	}
-
 	// --- 物理処理 ---
 	isRightWall(mapData, BLOCK);
 	isLeftWall(mapData, BLOCK);
@@ -174,13 +175,16 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 
 
 void Player::DrawPlayer(Vector2 offset) {
-	Novice::DrawBox(
-		static_cast<int>(status_.pos.x - offset.x),
-		static_cast<int>(status_.pos.y - offset.y),
-		static_cast<int>(status_.scale.x),
-		static_cast<int>(status_.scale.y),
-		0.0f, WHITE, kFillModeSolid
-	);
+	if (status_.isActive) {
+
+		Novice::DrawBox(
+			static_cast<int>(status_.pos.x - offset.x),
+			static_cast<int>(status_.pos.y - offset.y),
+			static_cast<int>(status_.scale.x),
+			static_cast<int>(status_.scale.y),
+			0.0f, WHITE, kFillModeSolid
+		);
+	}	
 	Novice::ScreenPrintf(0, 400, "isBlet%d", status_.isBlet);
 
 }
@@ -192,32 +196,33 @@ void Player::DrawPlayer(Vector2 offset) {
 
 void Player::MovePlayer(char keys[256], char preKeys[256],
 	int mapData[kMapHeight][kMapWidth]) {
-	if (status_.isMoveFree) {
-		// ジャンプ（押した瞬間）
-		if (!status_.isJumop) {
-			if (keys[DIK_SPACE] && !preKeys[DIK_SPACE]) {
-				status_.isJumop = true;
-				status_.Velocity.y = -status_.jumpPower;
+	if (status_.isActive) {
+		if (status_.isMoveFree) {
+			// ジャンプ（押した瞬間）
+			if (!status_.isJumop) {
+				if (keys[DIK_SPACE] && !preKeys[DIK_SPACE]) {
+					status_.isJumop = true;
+					status_.Velocity.y = -status_.jumpPower;
+				}
+			}
+
+
+			// --- 左右移動の処理 ---
+			if (keys[DIK_D]) {
+
+				status_.pos.x += status_.Speed;
+				isRightWall(mapData, BLOCK);
+				isRightWall(mapData, HALF_FLOOR);
+
+			}
+			if (keys[DIK_A]) {
+
+				status_.pos.x -= status_.Speed;
+				isLeftWall(mapData, BLOCK);
+				isLeftWall(mapData, HALF_FLOOR);
 			}
 		}
-
-
-		// --- 左右移動の処理 ---
-		if (keys[DIK_D]) {
-
-			status_.pos.x += status_.Speed;
-			isRightWall(mapData, BLOCK);
-			isRightWall(mapData, HALF_FLOOR);
-
-		}
-		if (keys[DIK_A]) {
-
-			status_.pos.x -= status_.Speed;
-			isLeftWall(mapData, BLOCK);
-			isLeftWall(mapData, HALF_FLOOR);
-		}
 	}
-
 
 
 
@@ -357,6 +362,13 @@ void Player::isGrounded(int mapData[kMapHeight][kMapWidth], int mapId) {
 			status_.isJumop = false;
 		}
 	}
+	else if (mapId == SCRAPMACHINE) {
+		if ((tileLeftX >= 0 && tileLeftX < kMapWidth && mapData[tileBottomY][tileLeftX] == SCRAPMACHINE) ||
+			(tileRightX >= 0 && tileRightX < kMapWidth && mapData[tileBottomY][tileRightX] == SCRAPMACHINE)) {
+			//チェックポイントで管理する場合はここにチェックポイントの座標を入れて
+			status_.isActive = false;
+		}
+	}
 	else if (mapId == HALF_FLOOR) {
 		int checkX[] = { tileLeftX, tileRightX };
 		for (int tx : checkX) {
@@ -374,16 +386,7 @@ void Player::isGrounded(int mapData[kMapHeight][kMapWidth], int mapId) {
 			}
 		}
 	}
-	else if (mapId == SCRAPMACHINE) {
-		if ((tileLeftX >= 0 && tileLeftX < kMapWidth && mapData[tileBottomY][tileLeftX] == SCRAPMACHINE) ||
-			(tileRightX >= 0 && tileRightX < kMapWidth && mapData[tileBottomY][tileRightX] == SCRAPMACHINE)) {
-			//チェックポイントで管理する場合はここにチェックポイントの座標を入れて
-
-			status_.pos.x = 300.0f;
-			status_.pos.y = 704.0f;
-			InitPlayer();
-		}
-	}
+	
 
 }
 
@@ -407,10 +410,8 @@ void Player::isRightWall(int mapData[kMapHeight][kMapWidth], int mapId) {
 				return;
 			}
 			else if (mapId == SCRAPMACHINE) {
-				status_.pos.x = 300.0f;
-				status_.pos.y = 704.0f;
-				InitPlayer();
-
+				status_.isActive = false;
+				
 			}
 			else if (mapId == HALF_FLOOR) {
 				// ハーフブロック（左半分）の場合、右から「空洞部分」に入ることがある
@@ -592,10 +593,7 @@ void Player::CheckWaterCollision(std::vector<Water>& waters) {
 
 			//ここに数位没処理をかく
 			//ここもチャックポイントの変数を入れて戻せる要確認
-			status_.pos.x = 300.0f;
-			status_.pos.y = 704.0f;
-			InitPlayer();
-
+			status_.isActive = false;
 		}
 	}
 }
