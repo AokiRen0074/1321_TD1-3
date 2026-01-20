@@ -229,6 +229,15 @@ void Map::Update(Player& player) {
 		lift.Update();
 		lift.CheckCollision(player); // ここで各リフトとプレイヤーを判定
 	}
+
+	for (auto& blet : Beltconveyors) {
+
+		if (blet.linkId == 100) {
+
+		}
+
+	}
+
 }
 
 void Map::Draw(Vector2 offset) {
