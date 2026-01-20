@@ -61,29 +61,7 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 	if (cmdIndex < commands.size()) {
 		CommandType currentCmd = commands[cmdIndex];
 		switch (currentCmd) {
- 	case CommandType::None:
-
-			// ベルトコンベア判定
-			CheckBeltCollision(Beltconveyors);
-			if (status_.isBlet) {
-				status_.waitTimer = 0; // タイマーリセット
-				status_.isJumop = false;
-				status_.Velocity.y = 0;
-				cmdIndex++; // 次のコマンドへ
-				break;
-			}
-			// タイマー設定
-			if (status_.waitTimer <= 0) {
-				status_.waitTimer = 60;
-			}
-			// タイマーを減らす
-			status_.waitTimer--;
-			// 時間が来たら次のコマンドへ
-			if (status_.waitTimer <= 0) {
-				cmdIndex++;
-			}
-			break;
-
+ 
 		case CommandType::MoveRight:
 			status_.moveDir = 1.0f;
 			cmdIndex++;
