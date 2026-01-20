@@ -1,8 +1,8 @@
 ﻿#pragma once
 
 //マップ設定
-const int kMapHeight = 48;
-const int kMapWidth = 98;
+const int kMapHeight = 63;
+const int kMapWidth = 141;
 const int kTileSize = 64;
 
 // --- カメラの注視点 ---
