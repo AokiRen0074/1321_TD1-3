@@ -17,8 +17,7 @@ void LiftGimmickBlock::Initialize(Vector2 pos, int linkId, Vector2 moveLimit, fl
     isActive_ = false; // 最初は止まっている
     isRunning_ = false;
     isReturning_ = false;
-    speed_ = 2.0f;
-    startPos_ = pos; // 元の位置を覚えておく
+	startPos_ = pos; // 元の位置を覚えておく
 }
 
 void LiftGimmickBlock::Update() {
