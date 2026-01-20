@@ -213,12 +213,44 @@ void Map::Update(Player& player) {
 }
 
 void Map::Draw(Vector2 offset) {
-	for (int y = 0; y < kMapHeight; y++) {
-		for (int x = 0; x < kMapWidth; x++) {
+
+	const float kScreenWidth = 1980.0f;
+	const float kScreenHeight = 1080.0f;
+
+	// ========================================================
+	//  最適化処理（カリング）
+	// ========================================================
+
+	// 1. 描画開始位置（左上）を計算
+	// カメラ位置(offset)をタイルサイズで割って、何番目のタイルから描けばいいか求める
+	int startX = (int)(offset.x / kTileSize);
+	int startY = (int)(offset.y / kTileSize);
+
+	// 2. 描画終了位置（右下）を計算
+	// 画面に入りきるタイル数 ＋ 少しの余裕(+2) を足す
+	// ※ +2 はスクロールした瞬間に端っこが消えないようにするための予備です
+	int endX = startX + (int)(kScreenWidth / kTileSize) + 2;
+	int endY = startY + (int)(kScreenHeight / kTileSize) + 2;
+
+	// 3. マップの範囲外（マイナスや最大値オーバー）にアクセスしないように補正
+	// これを忘れるとゲームがクラッシュします！
+	if (startX < 0) startX = 0;
+	if (startY < 0) startY = 0;
+	if (endX > kMapWidth) endX = kMapWidth;
+	if (endY > kMapHeight) endY = kMapHeight;
+
+
+	// ========================================================
+	//  描画ループ
+	//  （0からではなく、計算した startX, startY から回します）
+	// ========================================================
+	for (int y = startY; y < endY; y++) {
+		for (int x = startX; x < endX; x++) {
 
 			int id = mapData[y][x];
-			if (id > 0 && id < kMaxBlocksType && blockTextures[id] != 0) {
 
+			// --- 通常ブロックの描画 ---
+			if (id > 0 && id < kMaxBlocksType && blockTextures[id] != 0) {
 				Novice::DrawSprite(
 					(int)(x * kTileSize - offset.x),
 					(int)(y * kTileSize - offset.y),
@@ -227,9 +259,8 @@ void Map::Draw(Vector2 offset) {
 				);
 			}
 
-			//ルーターのデバック表示
-			if (mapData[y][x] == 3) {
-
+			// --- ルーターのデバッグ表示 (ID: 3) ---
+			if (id == 3) {
 				Novice::DrawBox(
 					(int)(x * kTileSize - offset.x),
 					(int)(y * kTileSize - offset.y),
@@ -238,11 +269,10 @@ void Map::Draw(Vector2 offset) {
 					RED,
 					kFillModeSolid
 				);
-
 			}
 
-			if (mapData[y][x] == 4) {
-
+			// --- 追加ブロック (ID: 4) ---
+			if (id == 4) {
 				Novice::DrawBox(
 					(int)(x * kTileSize - offset.x),
 					(int)(y * kTileSize - offset.y),
@@ -251,10 +281,10 @@ void Map::Draw(Vector2 offset) {
 					0xFFFFFFFF,
 					kFillModeSolid
 				);
-
 			}
 		}
 	}
+
 
 	for (const auto& door : doors) {
 		// 描画座標の計算（ワールド座標 - カメラオフセット）
