@@ -9,6 +9,9 @@
 #include "ScrollCamera.h"
 #include "Router.h"
 
+#include <iostream>
+#include <fstream>
+
 struct GameScreen {
 	Vector2 position;
 	Vector2 size;
@@ -90,9 +93,16 @@ private:
 	Button btnReset;
 	Button btnNone;
 
+
+
 	// 更新
 	void Update();
 
+	void CheckpointPlayer();
 
+	void SaveProgress();
+	
+	// Game.h
+	Vector2 respawnPos = { 300.0f, 704.0f }; // 初期値を設定しておく
 };
 

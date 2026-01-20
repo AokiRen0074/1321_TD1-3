@@ -5,6 +5,7 @@
 #include "Player.h"
 #include "ScrollCamera.h"
 #include "Router.h"
+#include <fstream> // ファイル操作に必要
 
 Game::Game() {
 	player = new Player();
@@ -36,6 +37,10 @@ void Game::Initialize() {
 	commandList.clear();
 
 	map->Initialize();
+	if (respawnPos.x == 0 && respawnPos.y == 0) {
+		respawnPos.x = 300.0f;
+		respawnPos.y = 704.0f;
+	}
 
 	/*------------------------------
 	ここにレイヤー名をいれるんだ！！
@@ -56,7 +61,7 @@ void Game::Initialize() {
 
 	for (int y = 0; y < kMapHeight; y++) {
 		for (int x = 0; x < kMapWidth; x++) {
-			if (map->mapData[y][x] == 3) { 
+			if (map->mapData[y][x] == 3) {
 				if (routerCount < 250) {
 					router[routerCount] = new Router(routerCount, map->mapData);
 					routerCount++;
@@ -101,21 +106,33 @@ bool IsPlayerHit(Player* player, const ButtonA& button) {
 };
 
 void Game::Update(char keys[256], char preKeys[256]) {
+	// Game::Update 内
+	CheckpointPlayer();
 
-	// Rキーでリセット
 	if (keys[DIK_R] && !preKeys[DIK_R]) {
-		player->status_.pos.x = 300.0f;
-		player->status_.pos.y = 704.0f;
-		isRunning = false; // 実行中なら編集モードに戻す
+		// 保存されているリスポーン地点（初期位置 or 最後に触れた旗）に戻す
+		player->status_.pos = respawnPos;
+
+		isRunning = false;
 		cantStartCount = 0;
+		player->InitPlayer(); // 速度などをゼロにする
+	}
+
+	if (!player->status_.isActive) {
+		// 保存されているリスポーン地点（初期位置 or 最後に触れた旗）に戻す
+		player->status_.pos = respawnPos;
+
+		isRunning = false;
+		cantStartCount = 0;
+		player->InitPlayer(); // 速度などをゼロにする
 	}
 
 	// 例えば Map::Update() や GameScene::Update() などで
 
 // 全部のボタンをチェック
 	for (auto& btn : map->buttons) {
-	
-	
+
+
 		// プレイヤーがボタンを踏んだら
 		if (IsPlayerHit(player, btn)) {
 			btn.isPressed = true;
@@ -162,16 +179,17 @@ void Game::Update(char keys[256], char preKeys[256]) {
 	// ==========================================
 	if (isRunning) {
 		// --- 実行モード ---
-		bool isArrived = player->CheckRouter(router,250);
+		bool isArrived = player->CheckRouter(router, 250);
 		//ドアと水とベルトの当たり判定とかの処理
 		player->CheckDoorCollision(map->doors);
 		player->CheckWaterCollision(map->waters);
 		player->CheckBeltCollision(map->Beltconveyors);
 
 		if (isArrived) {
-			isRunning = false; 
-		} else {
-			player->UpdateByCommands(commandList, map->mapData,map->Beltconveyors);
+			isRunning = false;
+		}
+		else {
+			player->UpdateByCommands(commandList, map->mapData, map->Beltconveyors);
 		}
 
 		// ストップボタン判定
@@ -182,7 +200,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 				player->InitPlayer();
 			}
 		}
-	
+
 	}
 	else {
 		// --- 編集モード ---
@@ -221,13 +239,14 @@ void Game::Update(char keys[256], char preKeys[256]) {
 			// 2. スタートボタン
 			if (mouseX >= btnStart.x && mouseX <= btnStart.x + btnStart.w && mouseY >= btnStart.y && mouseY <= btnStart.y + btnStart.h) {
 
-				
+
 
 				if (!isInsideRouter) {
 					isRunning = true;
 					player->InitPlayer();
 					cantStartCount = 0;
-				} else {
+				}
+				else {
 					// (オプション)「ここではスタートできません」みたいなログを出してもいいかも
 					cantStartCount = 60;
 				}
@@ -294,7 +313,7 @@ void Game::Draw() {
 	if (cantStartCount > 0) {
 		Novice::ScreenPrintf(800, 400, "Router Area! Can't Start!");
 	}
-	
+
 	// --- UIボタン描画 ---
 	auto DrawBtn = [](Button& b) {
 		Novice::DrawBox((int)b.x, (int)b.y, (int)b.w, (int)b.h, 0.0f, b.color, kFillModeSolid);
@@ -404,5 +423,41 @@ void Game::Draw() {
 			(int)(door.pos.y - offset.y - 20),
 			"ID:%d", door.linkId
 		);
+	}
+}
+
+
+
+void Game::CheckpointPlayer() {
+	for (size_t i = 0; i < map->Checkpoints.size(); i++) {
+		auto& cp = map->Checkpoints[i];
+		if (player->status_.pos.x < cp.pos.x + kTileSize &&
+			player->status_.pos.x + player->status_.width > cp.pos.x &&
+			player->status_.pos.y < cp.pos.y + kTileSize &&
+			player->status_.pos.y + player->status_.height > cp.pos.y) {
+
+			// 触れたらリスポーン地点を更新
+			this->respawnPos = cp.pos;
+
+			if (!cp.isActive) {
+				cp.isActive = true;
+				SaveProgress(); // ここでファイル書き込み！
+			}
+		}
+	}
+}
+
+
+void Game::SaveProgress() {
+	// "save.txt" という名前で書き込みモードで開く
+	std::ofstream ofs("./save.txt");
+	if (ofs.is_open()) {
+		// 座標を保存
+		ofs << respawnPos.x << " " << respawnPos.y << std::endl;
+
+		// 他に保存したいもの（ドアの開閉状況など）があれば続けて書く
+		// ofs << someFlag << std::endl;
+
+		ofs.close();
 	}
 }

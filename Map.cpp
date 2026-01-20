@@ -137,11 +137,52 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					nweBeltconveyor.isReversed = true;
 					Beltconveyors.push_back(nweBeltconveyor);
 				}
+				else if (id == "Checkpoint") {
+
+					Checkpoint nweCheckpoint;
+					nweCheckpoint.pos = { px,py };
+					nweCheckpoint.linkId = linkId;
+					nweCheckpoint.isActive = true;
+					Checkpoints.push_back(nweCheckpoint);
+
+				}
 
 				if (id == "LiftGimmickBlock") {
+					// --- フィールドから値を取得するための変数(デフォルト値を設定) ---
+					Vector2 moveLimit = { 0.0f, 0.0f }; // 初期値
+					float speed = 2.0f;                // 初期スピード
+					// linkId は既に上の階層で取得済みと想定（あるいはここで再度取得）
+
+					// entity["fieldInstances"] の中をループして設定した値を探す
+					for (auto& field : entity["fieldInstances"]) {
+						std::string fieldName = field["__identifier"];
+
+						if (fieldName == "Integer") { // リンク用ID
+							if (!field["__value"].is_null()) {
+								linkId = field["__value"];
+							}
+						}
+						else if (fieldName == "MoveX") { // 横移動量
+							if (!field["__value"].is_null()) {
+								moveLimit.x = field["__value"];
+							}
+						}
+						else if (fieldName == "MoveY") { // 縦移動量
+							if (!field["__value"].is_null()) {
+								moveLimit.y = field["__value"];
+							}
+						}
+						else if (fieldName == "Speed") { // スピード
+							if (!field["__value"].is_null()) {
+								speed = field["__value"];
+							}
+						}
+					}
+
+					// --- ここを新しい引数に合わせて修正 ---
 					LiftGimmickBlock newLift;
-					// 初期化（linkIdは既存の読み込み処理で取得済みのものを使用）
-					newLift.Initialize({px, py}, linkId);
+					// 引数：座標, ID, 移動制限(Vector2), スピード(float)
+					newLift.Initialize({px, py}, linkId, moveLimit, speed); 
 					liftBlocks.push_back(newLift);
 				}
 
@@ -363,6 +404,31 @@ void Map::Draw(Vector2 offset) {
 	}
 
 
+	for (const auto& Checkpoint : Checkpoints) {
+		// 描画座標の計算
+		int drawX = (int)(Checkpoint.pos.x - offset.x);
+		int drawY = (int)(Checkpoint.pos.y - offset.y);
+
+		// 押されているかどうかの色分け（押されたら黄色、未踏なら赤）
+		unsigned int color = Checkpoint.isActive ? 0x000000FF : 0xFF0000FF;
+
+		// ボタンは少し小さく表示して、ドアと区別しやすくする
+		int btnSize = kTileSize;
+
+		Novice::DrawBox(
+			drawX, drawY, // 少しずらして中央に
+			btnSize*2, btnSize/2,
+			0.0f,
+			color,
+			kFillModeSolid
+		);
+
+		// デバッグ用: リンクIDを確認したい場合
+		// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
+	}
+
+
 	// Map.cpp の Draw内に追加してデバッグ
 	Novice::ScreenPrintf(0, 100, "MapData[10][10]: %d", mapData[10][10]);
 }
+
