@@ -44,6 +44,7 @@ public:
 		bool isMoveFree;//自由に動けるかのフラグ
 		bool isCommandMove;//コマンドで動かす範囲
 		bool isWaitingForLanding;//着地待ちフラグ
+		bool isBlet;
 	}status_;//status＿で宣言
 
 
@@ -51,8 +52,7 @@ public:
 	void InitPlayer();
 	void UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHeight][kMapWidth]);
 	// コマンドで動かせる
-	void UpdateByCommands(const std::vector<CommandType>& commands, int mapData[kMapHeight][kMapWidth]);
-	void DrawPlayer(Vector2 offset);
+	void UpdateByCommands(const std::vector<CommandType>& commands, int mapData[kMapHeight][kMapWidth], std::vector<Beltconveyor>& Beltconveyors);	void DrawPlayer(Vector2 offset);
 
 	// 今どのコマンドを実行中か
 	int GetCurrentCommandIndex() const { return cmdIndex; }
@@ -76,7 +76,7 @@ private:
 
 	// センサー関数
 	bool IsWallAhead(int mapData[kMapHeight][kMapWidth]);
-	bool IsCliffAhead(int mapData[kMapHeight][kMapWidth]);
+	bool IsCliffAhead(int mapData[kMapHeight][kMapWidth], const std::vector<Beltconveyor>& Beltconveyors);
 
 	// マップの当たり判定関数
 	void isGrounded(int mapData[kMapHeight][kMapWidth],int mapId);
