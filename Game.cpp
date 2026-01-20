@@ -75,17 +75,20 @@ void Game::Initialize() {
 	float btnW = 400;
 	float btnH = 50; // 少し高さを詰めたほうが入りやすいかも
 
-	// 左・右・壁・崖 の順に並べる例
-	btnLeft = { btnX, 50,  btnW, btnH, "<< Move Left",     CommandType::MoveLeft,     0x44AAFFFF };
-	btnRight = { btnX, 110, btnW, btnH, ">> Move Right",    CommandType::MoveRight,    0x44AAFFFF };
+	// 左・右・壁・崖・None の順に並べる
+	btnLeft = { btnX, 50,  btnW, btnH, "<< Move Left",      CommandType::MoveLeft,      0x44AAFFFF };
+	btnRight = { btnX, 110, btnW, btnH, ">> Move Right",     CommandType::MoveRight,     0x44AAFFFF };
 	btnWallJump = { btnX, 170, btnW, btnH, "If Wall -> Jump",  CommandType::CheckWallJump, (int)0xFFAA44FF };
 	btnCliffJump = { btnX, 230, btnW, btnH, "If Air -> Jump",   CommandType::CheckCliffJump,(int)0xFFAA44FF };
 
-	// スタート・リセットボタン
-	btnStart = { 1450, 300, 180, 80, "START >", (CommandType)-1, (int)0xFF4444FF };
-	btnReset = { 1670, 300, 180, 80, "STOP []", (CommandType)-1, 0x44FF44FF };
-}
+	// ★追加：Wait/None ボタン
+	btnNone = { btnX, 290, btnW, btnH, "None",CommandType::None,(int)0xAAAAAAFF };
 
+	// スタート・リセットボタン
+	// 位置を下にずらして重ならないようにする
+	btnStart = { 1450, 350, 180, 40, "START >", (CommandType)-1, (int)0xFF4444FF };
+	btnReset = { 1670, 350, 180, 40, "STOP []", (CommandType)-1, 0x44FF44FF };
+}
 // プレイヤーとボタンの当たり判定を行う関数を追加
 bool IsPlayerHit(Player* player, const ButtonA& button) {
 	// プレイヤーの位置とボタンの位置を比較して当たり判定を行う
@@ -228,6 +231,10 @@ void Game::Update(char keys[256], char preKeys[256]) {
 				commandList.push_back(btnCliffJump.cmdType);
 			}
 
+			if (mouseX >= btnNone.x && mouseX <= btnNone.x + btnNone.w && mouseY >= btnNone.y && mouseY <= btnNone.y + btnNone.h) {
+				commandList.push_back(btnNone.cmdType);
+			}
+
 
 			// 2. スタートボタン
 			if (mouseX >= btnStart.x && mouseX <= btnStart.x + btnStart.w && mouseY >= btnStart.y && mouseY <= btnStart.y + btnStart.h) {
@@ -319,6 +326,7 @@ void Game::Draw() {
 	DrawBtn(btnCliffJump);
 	DrawBtn(btnStart);
 	DrawBtn(btnReset);
+	DrawBtn(btnNone);
 
 	// --- プログラムリストのブロック描画 ---
 	Novice::ScreenPrintf(1420, 410, "--- YOUR PROGRAM (Click to Delete) ---");
@@ -351,6 +359,11 @@ void Game::Draw() {
 		case CommandType::CheckCliffJump:
 			color = 0xFFAA44FF; // オレンジ
 			text = "If Air -> Jump";
+			break;
+
+		case  CommandType::None:
+			color = 0xFF00FFFF;
+			text = "None";
 			break;
 
 		}

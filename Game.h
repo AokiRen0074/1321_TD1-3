@@ -91,6 +91,7 @@ private:
 	Button btnCliffJump;
 	Button btnStart;
 	Button btnReset;
+	Button btnNone;
 
 
 

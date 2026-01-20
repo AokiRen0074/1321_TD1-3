@@ -40,6 +40,7 @@ void Player::InitPlayer() {
 	status_.isWaitingForLanding = false;
 	cmdIndex = 0;
 
+	status_.waitTimer = 0;
 }
 
 void Player::UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHeight][kMapWidth]) {
@@ -53,9 +54,57 @@ void Player::UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHe
 void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapData[kMapHeight][kMapWidth], std::vector<Beltconveyor>& Beltconveyors) {
 	if (status_.isActive) {
 
-		// ★重要：コマンド処理の「前」に一旦フラグをリセットしてベルト判定を行う
-		// これにより、コマンド移動前の正しい接地状態がセットされる
-		CheckBeltCollision(Beltconveyors);
+	// ★重要：コマンド処理の「前」に一旦フラグをリセットしてベルト判定を行う
+	// これにより、コマンド移動前の正しい接地状態がセットされる
+	CheckBeltCollision(Beltconveyors);
+
+	if (cmdIndex < commands.size()) {
+		CommandType currentCmd = commands[cmdIndex];
+
+		switch (currentCmd) {
+
+
+
+		case CommandType::None:
+
+			status_.pos.x += status_.Speed * status_.moveDir;
+
+			// ベルトコンベア判定
+			CheckBeltCollision(Beltconveyors);
+			if (status_.isBlet) {
+				status_.waitTimer = 0; // タイマーリセット
+				status_.isJumop = false;
+				status_.Velocity.y = 0;
+				cmdIndex++; // 次のコマンドへ
+				break;
+			}
+
+			// タイマー設定
+			if (status_.waitTimer <= 0) {
+				status_.waitTimer = 60;
+			}
+
+			// タイマーを減らす
+			status_.waitTimer--;
+
+			// 時間が来たら次のコマンドへ
+			if (status_.waitTimer <= 0) {
+				cmdIndex++;
+			}
+			break;
+
+		case CommandType::MoveRight:
+			status_.moveDir = 1.0f;
+			cmdIndex++;
+			break;
+
+		case CommandType::MoveLeft:
+			status_.moveDir = -1.0f;
+			cmdIndex++;
+			break;
+
+		case CommandType::CheckWallJump:
+			status_.pos.x += status_.Speed * status_.moveDir;
 
 		if (cmdIndex < commands.size()) {
 			CommandType currentCmd = commands[cmdIndex];
