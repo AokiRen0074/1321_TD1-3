@@ -3,6 +3,8 @@
 #include "Collision.h"
 #include "Player.h"
 
+// うわ
+
 LiftGimmickBlock::LiftGimmickBlock() {
 }
 
