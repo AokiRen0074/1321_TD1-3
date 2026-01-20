@@ -637,7 +637,7 @@ void Player::CheckFlooCollision(std::vector<VanishingFloor>& VanishingFloors) {
 	for (auto& floor : VanishingFloors) {
 		// 床がすでに消えている（isActive == false）なら当たり判定を無視する
 		if (floor.isActive) {
-			float floorWidth = (float)kTileSize * 2;
+			float floorWidth = (float)kTileSize * 4;
 			float beltHeight = (float)kTileSize;
 			// --- 矩形判定（AABB） ---
 			// プレイヤーの四角形と床の四角形が重なっているか
