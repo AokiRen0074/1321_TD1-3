@@ -945,7 +945,7 @@
 						},
 						{
 							"__identifier": "LiftGimmickBlock",
-							"__grid": [122,89],
+							"__grid": [120,90],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": null,
