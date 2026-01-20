@@ -9,42 +9,53 @@ LiftGimmickBlock::LiftGimmickBlock() {
 LiftGimmickBlock::~LiftGimmickBlock() {
 }
 
-void LiftGimmickBlock::Initialize(Vector2 pos, int linkId) {
-	pos_ = pos; // 引数で受け取った座標をセット
-	linkId_ = linkId; // 引数で受け取ったIDをセット
-	isActive_ = false; // 最初は止まっている
-	isRunning_ = false;
+void LiftGimmickBlock::Initialize(Vector2 pos, int linkId, Vector2 moveLimit, float speed) {
+    pos_ = pos; // 引数で受け取った座標をセット
+    linkId_ = linkId; // 引数で受け取ったIDをセット
+    moveLimit_ = moveLimit; // LDtkのMoveX,MoveYをセット
+    speed_ = speed; // LDtkのSpeedをセット
+    isActive_ = false; // 最初は止まっている
+    isRunning_ = false;
     isReturning_ = false;
-	speed_ = 2.0f;
-	startPos_ = pos; // 元の位置を覚えておく
+    speed_ = 2.0f;
+    startPos_ = pos; // 元の位置を覚えておく
 }
 
 void LiftGimmickBlock::Update() {
-	// スイッチ押されたら上昇->制限に達したら下降->元の位置に戻ったら停止
-    // 上昇下降制限
-	float upperLimit = 200.0f;
-	//float lowerLimit = startPos_.y;
-
     if (isActive_) {
         isRunning_ = true;
     }
 
     if (isRunning_) {
-        if (!isReturning_) {
-            // --- 【往路】上昇処理 ---
-            pos_.y -= speed_;
+        // 目標地点の計算 (開始地点 + 移動量)
+        Vector2 targetPos = { startPos_.x + moveLimit_.x, startPos_.y + moveLimit_.y };
 
-            // 上限に達したら「帰りモード」に切り替え
-            if (pos_.y <= startPos_.y - upperLimit) {
+        if (!isReturning_) {
+            // --- 【往路】 ---
+            // X移動
+            if (moveLimit_.x > 0) pos_.x += speed_;
+            else if (moveLimit_.x < 0) pos_.x -= speed_;
+
+            // Y移動 (LDtkは下方向がプラスなので、マイナス移動なら上昇)
+            if (moveLimit_.y > 0) pos_.y += speed_;
+            else if (moveLimit_.y < 0) pos_.y -= speed_;
+
+            // 目標地点に達したか判定 (誤差考慮のため abs で判定)
+            if (std::abs(pos_.x - targetPos.x) < speed_ && std::abs(pos_.y - targetPos.y) < speed_) {
+                pos_ = targetPos; // 座標をピッタリ合わせる
                 isReturning_ = true;
             }
-
         } else {
-            // --- 【復路】下降処理 ---
-            pos_.y += speed_;
+            // --- 【復路】 ---
+            if (moveLimit_.x > 0) pos_.x -= speed_;
+            else if (moveLimit_.x < 0) pos_.x += speed_;
 
-            // 元の位置に戻ったら全て終了
-            if (pos_.y >= startPos_.y) {
+            if (moveLimit_.y > 0) pos_.y -= speed_;
+            else if (moveLimit_.y < 0) pos_.y += speed_;
+
+            // 元の位置に戻ったか判定
+            if (std::abs(pos_.x - startPos_.x) < speed_ && std::abs(pos_.y - startPos_.y) < speed_) {
+                pos_ = startPos_;
                 isRunning_ = false;
                 isActive_ = false;
                 isReturning_ = false;
@@ -116,17 +127,23 @@ void LiftGimmickBlock::CheckCollision(Player& player) {
             case 3: // 上へ押し戻す（着地）
                 player.status_.pos.y -= pushTop;
                 player.status_.Velocity.y = 0;
-                player.status_.isJumop = false; // 地面に付いたフラグ
+                player.status_.isJumop = false;
 
-                // ★リフトが動いている場合、プレイヤーをその分同期させる
                 if (isRunning_) {
+                    float moveX = 0, moveY = 0;
+
+                    // 現在の移動方向を割り出す
                     if (!isReturning_) {
-                        // 上昇中ならプレイヤーを引き上げる
-                        player.status_.pos.y -= speed_;
+                        if (moveLimit_.x != 0) moveX = (moveLimit_.x > 0) ? speed_ : -speed_;
+                        if (moveLimit_.y != 0) moveY = (moveLimit_.y > 0) ? speed_ : -speed_;
                     } else {
-                        // 下降中ならプレイヤーを一緒に下ろす
-                        player.status_.pos.y += speed_;
+                        if (moveLimit_.x != 0) moveX = (moveLimit_.x > 0) ? -speed_ : speed_;
+                        if (moveLimit_.y != 0) moveY = (moveLimit_.y > 0) ? -speed_ : speed_;
                     }
+
+                    // プレイヤーをリフトの移動分だけ動かす
+                    player.status_.pos.x += moveX;
+                    player.status_.pos.y += moveY;
                 }
 
                 break;
