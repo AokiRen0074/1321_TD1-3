@@ -64,7 +64,7 @@ public:
 	void CheckDoorCollision(std::vector<Door>& doors);
 	void CheckWaterCollision(std::vector<Water>& waters);
 	void CheckBeltCollision(std::vector<Beltconveyor>& Beltconveyors);
-
+	void CheckFlooCollision(std::vector< VanishingFloor>& VanishingFloors);
 private:
 
 	void MovePlayer(char keys[256], char preKeys[256], int  mapData[kMapHeight][kMapWidth]);
