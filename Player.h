@@ -40,6 +40,7 @@ public:
 		bool isJumop;//ジャンプフラグ
 		float radius;
 
+		int waitTimer;
 
 		bool isMoveFree;//自由に動けるかのフラグ
 		bool isCommandMove;//コマンドで動かす範囲

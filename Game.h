@@ -88,6 +88,7 @@ private:
 	Button btnCliffJump;
 	Button btnStart;
 	Button btnReset;
+	Button btnNone;
 
 	// 更新
 	void Update();

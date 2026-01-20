@@ -40,6 +40,7 @@ void Player::InitPlayer() {
 	status_.isWaitingForLanding = false;
 	cmdIndex = 0;
 
+	status_.waitTimer = 0;
 }
 
 void Player::UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHeight][kMapWidth]) {
@@ -60,6 +61,37 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 		CommandType currentCmd = commands[cmdIndex];
 
 		switch (currentCmd) {
+
+
+
+		case CommandType::None:
+
+			status_.pos.x += status_.Speed * status_.moveDir;
+
+			// ベルトコンベア判定
+			CheckBeltCollision(Beltconveyors);
+			if (status_.isBlet) {
+				status_.waitTimer = 0; // タイマーリセット
+				status_.isJumop = false;
+				status_.Velocity.y = 0;
+				cmdIndex++; // 次のコマンドへ
+				break;
+			}
+
+			// タイマー設定
+			if (status_.waitTimer <= 0) {
+				status_.waitTimer = 60;
+			}
+
+			// タイマーを減らす
+			status_.waitTimer--;
+
+			// 時間が来たら次のコマンドへ
+			if (status_.waitTimer <= 0) {
+				cmdIndex++;
+			}
+			break;
+
 		case CommandType::MoveRight:
 			status_.moveDir = 1.0f;
 			cmdIndex++;
