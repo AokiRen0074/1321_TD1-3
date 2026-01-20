@@ -50,24 +50,18 @@ void Player::UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHe
 	}
 }
 
-// コマンドで動かせるプレイヤー
-void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapData[kMapHeight][kMapWidth], std::vector<Beltconveyor>& Beltconveyors) {
-	if (status_.isActive) {
 
+
+// コマンドで動かせるプレイヤー
+
+void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapData[kMapHeight][kMapWidth], std::vector<Beltconveyor>& Beltconveyors) {
 	// ★重要：コマンド処理の「前」に一旦フラグをリセットしてベルト判定を行う
 	// これにより、コマンド移動前の正しい接地状態がセットされる
 	CheckBeltCollision(Beltconveyors);
-
 	if (cmdIndex < commands.size()) {
 		CommandType currentCmd = commands[cmdIndex];
-
 		switch (currentCmd) {
-
-
-
-		case CommandType::None:
-
-			status_.pos.x += status_.Speed * status_.moveDir;
+ 	case CommandType::None:
 
 			// ベルトコンベア判定
 			CheckBeltCollision(Beltconveyors);
@@ -78,15 +72,12 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 				cmdIndex++; // 次のコマンドへ
 				break;
 			}
-
 			// タイマー設定
 			if (status_.waitTimer <= 0) {
 				status_.waitTimer = 60;
 			}
-
 			// タイマーを減らす
 			status_.waitTimer--;
-
 			// 時間が来たら次のコマンドへ
 			if (status_.waitTimer <= 0) {
 				cmdIndex++;
@@ -105,27 +96,39 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 
 		case CommandType::CheckWallJump:
 			status_.pos.x += status_.Speed * status_.moveDir;
+			// 移動した「後」に再度ベルト判定（座標の吸着とフラグ更新）
+			CheckBeltCollision(Beltconveyors);
 
-		if (cmdIndex < commands.size()) {
-			CommandType currentCmd = commands[cmdIndex];
+			if (status_.isWaitingForLanding) {
+				if (!status_.isJumop) {
+					status_.isWaitingForLanding = false;
+					cmdIndex++;
+				}
+			}
+			else {
+				if (!status_.isJumop && IsWallAhead(mapData)) {
+					ActionTryJump();
+					status_.isWaitingForLanding = true;
+				}
+			}
+			break;
 
-			switch (currentCmd) {
-			case CommandType::MoveRight:
-				status_.moveDir = 1.0f;
-				cmdIndex++;
-				break;
+		case CommandType::CheckCliffJump:
 
-			case CommandType::MoveLeft:
-				status_.moveDir = -1.0f;
-				cmdIndex++;
-				break;
-
-			case CommandType::CheckWallJump:
-				status_.pos.x += status_.Speed * status_.moveDir;
-
-				// 移動した「後」に再度ベルト判定（座標の吸着とフラグ更新）
-				CheckBeltCollision(Beltconveyors);
-
+			// 1. まず移動
+			status_.pos.x += status_.Speed * status_.moveDir;
+			// 2. 「今」ベルトに乗っているかを即座に確定させる
+			CheckBeltCollision(Beltconveyors);
+			// 3. ベルトに乗っているなら、崖なんて関係ない。ジャンプもせず次へ
+			if (status_.isBlet) {
+				status_.isWaitingForLanding = false;
+				status_.isJumop = false;
+				status_.Velocity.y = 0;
+				cmdIndex++; // 「この場所の崖（ベルト）は攻略した」とみなして次のコマンドへ
+			break;
+			}
+			// 4. ベルトに乗っていない場合のみ、通常の着地待ち or 崖チェック
+			if (!status_.isBlet) {
 				if (status_.isWaitingForLanding) {
 					if (!status_.isJumop) {
 						status_.isWaitingForLanding = false;
@@ -133,79 +136,41 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 					}
 				}
 				else {
-					if (!status_.isJumop && IsWallAhead(mapData)) {
-						ActionTryJump();
-						status_.isWaitingForLanding = true;
+					// ここでも isBlet をチェック（念のため）
+					if (!status_.isJumop && !status_.isBlet && IsCliffAhead(mapData, Beltconveyors)) {
+						ActionTryJump(); // ジャンプ開始
+					status_.isWaitingForLanding = true;
 					}
 				}
-				break;
-
-			case CommandType::CheckCliffJump:
-				// 1. まず移動
-				status_.pos.x += status_.Speed * status_.moveDir;
-
-				// 2. 「今」ベルトに乗っているかを即座に確定させる
-				CheckBeltCollision(Beltconveyors);
-
-				// 3. ベルトに乗っているなら、崖なんて関係ない。ジャンプもせず次へ
-				if (status_.isBlet) {
-					status_.isWaitingForLanding = false;
-					status_.isJumop = false;
-					status_.Velocity.y = 0;
-					cmdIndex++; // 「この場所の崖（ベルト）は攻略した」とみなして次のコマンドへ
-					break;
-				}
-
-				// 4. ベルトに乗っていない場合のみ、通常の着地待ち or 崖チェック
-				if (!status_.isBlet) {
-					if (status_.isWaitingForLanding) {
-						if (!status_.isJumop) {
-							status_.isWaitingForLanding = false;
-							cmdIndex++;
-						}
-					}
-					else {
-						// ここでも isBlet をチェック（念のため）
-						if (!status_.isJumop && !status_.isBlet && IsCliffAhead(mapData, Beltconveyors)) {
-							ActionTryJump(); // ジャンプ開始
-							status_.isWaitingForLanding = true;
-						}
-					}
-				}
-				break;
 			}
+			break;
 		}
-		else {
-			status_.pos.x += status_.Speed * status_.moveDir;
-			CheckBeltCollision(Beltconveyors);
-		}
+	} else {
+		status_.pos.x += status_.Speed * status_.moveDir;
+		CheckBeltCollision(Beltconveyors);
 	}
 	// --- 物理処理 ---
 	isRightWall(mapData, BLOCK);
 	isLeftWall(mapData, BLOCK);
-
 	// ★Gravity の前に isBlet が確定している必要がある
-	Gravity();
 
+	Gravity();
 	// ★接地判定（ベルトに乗っていない時だけ重力や接地を通常処理する）
 	if (!status_.isBlet) {
 		isGrounded(mapData, BLOCK);
 		isGrounded(mapData, HALF_FLOOR);
 		isGrounded(mapData, SCRAPMACHINE);
 	}
+
 	else {
 		// ベルトに乗っているなら空中フラグを折る（ダメ押し）
 		status_.isJumop = false;
 		status_.Velocity.y = 0;
 	}
-
 	isTopWall(mapData, BLOCK);
-
 	// --- UpdateByCommands の一番最後 ---
-
-// 1. 全ての移動が終わった「最終的な座標」で、もう一度ベルト判定を上書きする
+	// 1. 全ての移動が終わった「最終的な座標」で、もう一度ベルト判定を上書きする
 	CheckBeltCollision(Beltconveyors);
-
 	// 2. もし最終的にベルトに乗っているなら、このフレームで発生したジャンプを「なかったこと」にする
 	if (status_.isBlet) {
 		status_.isJumop = false;
@@ -214,13 +179,11 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 		if (status_.isWaitingForLanding) {
 			status_.isWaitingForLanding = false;
 			cmdIndex++;
+
 		}
 	}
 
 }
-
-
-
 
 
 void Player::DrawPlayer(Vector2 offset) {
@@ -233,7 +196,7 @@ void Player::DrawPlayer(Vector2 offset) {
 			static_cast<int>(status_.scale.y),
 			0.0f, WHITE, kFillModeSolid
 		);
-	}	
+	}
 	Novice::ScreenPrintf(0, 400, "isBlet%d", status_.isBlet);
 
 }
@@ -328,8 +291,7 @@ bool Player::IsWallAhead(int mapData[kMapHeight][kMapWidth]) {
 	if (status_.moveDir > 0) {
 		// 右方向：自分の右端 + 5px
 		checkX = (int)(status_.pos.x + status_.width + 5.0f) / kTileSize;
-	}
-	else {
+	} else {
 		// 左方向：自分の左端 - 5px
 		checkX = (int)(status_.pos.x - 5.0f) / kTileSize;
 	}
@@ -410,15 +372,13 @@ void Player::isGrounded(int mapData[kMapHeight][kMapWidth], int mapId) {
 			status_.Velocity.y = 0;
 			status_.isJumop = false;
 		}
-	}
-	else if (mapId == SCRAPMACHINE) {
+	} else if (mapId == SCRAPMACHINE) {
 		if ((tileLeftX >= 0 && tileLeftX < kMapWidth && mapData[tileBottomY][tileLeftX] == SCRAPMACHINE) ||
 			(tileRightX >= 0 && tileRightX < kMapWidth && mapData[tileBottomY][tileRightX] == SCRAPMACHINE)) {
 			//チェックポイントで管理する場合はここにチェックポイントの座標を入れて
 			status_.isActive = false;
 		}
-	}
-	else if (mapId == HALF_FLOOR) {
+	} else if (mapId == HALF_FLOOR) {
 		int checkX[] = { tileLeftX, tileRightX };
 		for (int tx : checkX) {
 			if (tx >= 0 && tx < kMapWidth && mapData[tileBottomY][tx] == HALF_FLOOR) {
@@ -435,7 +395,7 @@ void Player::isGrounded(int mapData[kMapHeight][kMapWidth], int mapId) {
 			}
 		}
 	}
-	
+
 
 }
 
@@ -457,12 +417,10 @@ void Player::isRightWall(int mapData[kMapHeight][kMapWidth], int mapId) {
 			if (mapId == BLOCK) {
 				status_.pos.x = (float)(tileRightX * kTileSize) - status_.width;
 				return;
-			}
-			else if (mapId == SCRAPMACHINE) {
+			} else if (mapId == SCRAPMACHINE) {
 				status_.isActive = false;
-				
-			}
-			else if (mapId == HALF_FLOOR) {
+
+			} else if (mapId == HALF_FLOOR) {
 				// ハーフブロック（左半分）の場合、右から「空洞部分」に入ることがある
 				// しかし、実体（タイルの左端）に右端が触れたら止める必要がある
 				float tileLeftEdge = (float)(tileRightX * kTileSize);
@@ -494,8 +452,7 @@ void Player::isLeftWall(int mapData[kMapHeight][kMapWidth], int mapId) {
 			if (mapId == BLOCK) {
 				status_.pos.x = (float)((tileLeftX + 1) * kTileSize);
 				return;
-			}
-			else if (mapId == HALF_FLOOR) {
+			} else if (mapId == HALF_FLOOR) {
 				// ハーフブロック（左半分）の実体右端は「タイルの真ん中」
 				float tileCenterX = (float)(tileLeftX * kTileSize) + (kTileSize / 2.0f);
 				if (leftX < tileCenterX) {
@@ -528,8 +485,7 @@ void Player::isTopWall(int mapData[kMapHeight][kMapWidth], int mapId) {
 			status_.pos.y = (float)((tileTopY + 1) * kTileSize);
 			status_.Velocity.y = 0;
 		}
-	}
-	else if (mapId == HALF_FLOOR) {
+	} else if (mapId == HALF_FLOOR) {
 		int checkX[] = { tileLeftX, tileRightX };
 		for (int tx : checkX) {
 			if (tx >= 0 && tx < kMapWidth && mapData[tileTopY][tx] == HALF_FLOOR) {
@@ -618,8 +574,7 @@ void Player::CheckDoorCollision(std::vector<Door>& doors) {
 			if (status_.moveDir > 0) {
 				// 右に移動中なら、ドアの左端で止める
 				status_.pos.x = door.pos.x - status_.width;
-			}
-			else if (status_.moveDir < 0) {
+			} else if (status_.moveDir < 0) {
 				// 左に移動中なら、ドアの右端（door.pos.x + kTileSize）で止める
 				status_.pos.x = door.pos.x + (float)kTileSize;
 			}
@@ -649,7 +604,7 @@ void Player::CheckWaterCollision(std::vector<Water>& waters) {
 
 
 void Player::CheckBeltCollision(std::vector<Beltconveyor>& Beltconveyors) {
-	status_.isBlet = false;	
+	status_.isBlet = false;
 
 	for (auto& belt : Beltconveyors) {
 		float beltWidth = (float)kTileSize * 16;
@@ -689,11 +644,9 @@ void Player::CheckBeltCollision(std::vector<Beltconveyor>& Beltconveyors) {
 			// 2. 横からぶつかっている判定
 			else if (minOverlap == overlapLeft) {
 				status_.pos.x = belt.pos.x - status_.width;
-			}
-			else if (minOverlap == overlapRight) {
+			} else if (minOverlap == overlapRight) {
 				status_.pos.x = belt.pos.x + beltWidth;
-			}
-			else if (minOverlap == overlapBottom) {
+			} else if (minOverlap == overlapBottom) {
 				status_.pos.y = belt.pos.y + beltHeight;
 				status_.Velocity.y = 0.0f;
 			}
