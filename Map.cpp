@@ -137,6 +137,15 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					nweBeltconveyor.isReversed = true;
 					Beltconveyors.push_back(nweBeltconveyor);
 				}
+				else if (id == "Checkpoint") {
+
+					Checkpoint nweCheckpoint;
+					nweCheckpoint.pos = { px,py };
+					nweCheckpoint.linkId = linkId;
+					nweCheckpoint.isActive = true;
+					Checkpoints.push_back(nweCheckpoint);
+
+				}
 
 				if (id == "LiftGimmickBlock") {
 					// --- フィールドから値を取得するための変数(デフォルト値を設定) ---
@@ -395,6 +404,31 @@ void Map::Draw(Vector2 offset) {
 	}
 
 
+	for (const auto& Checkpoint : Checkpoints) {
+		// 描画座標の計算
+		int drawX = (int)(Checkpoint.pos.x - offset.x);
+		int drawY = (int)(Checkpoint.pos.y - offset.y);
+
+		// 押されているかどうかの色分け（押されたら黄色、未踏なら赤）
+		unsigned int color = Checkpoint.isActive ? 0x000000FF : 0xFF0000FF;
+
+		// ボタンは少し小さく表示して、ドアと区別しやすくする
+		int btnSize = kTileSize;
+
+		Novice::DrawBox(
+			drawX, drawY, // 少しずらして中央に
+			btnSize*2, btnSize/2,
+			0.0f,
+			color,
+			kFillModeSolid
+		);
+
+		// デバッグ用: リンクIDを確認したい場合
+		// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
+	}
+
+
 	// Map.cpp の Draw内に追加してデバッグ
 	Novice::ScreenPrintf(0, 100, "MapData[10][10]: %d", mapData[10][10]);
 }
+
