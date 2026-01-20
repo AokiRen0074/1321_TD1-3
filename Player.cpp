@@ -632,7 +632,7 @@ void Player::CheckBeltCollision(std::vector<Beltconveyor>& Beltconveyors) {
 	}
 }
 
-
+//とぅんとぅンサフール
 void Player::CheckFlooCollision(std::vector<VanishingFloor>& VanishingFloors) {
 	for (auto& floor : VanishingFloors) {
 		// 床がすでに消えている（isActive == false）なら当たり判定を無視する
