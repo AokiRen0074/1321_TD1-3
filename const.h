@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 //マップ設定
-const int kMapHeight = 63;
+const int kMapHeight = 66;
 const int kMapWidth = 141;
 const int kTileSize = 64;
 
