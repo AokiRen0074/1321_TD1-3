@@ -42,6 +42,33 @@ void Game::Initialize() {
 		respawnPos.y = 704.0f;
 	}
 
+	/*---------------------------------
+	コマンドUIのリソース
+	--------------------------------*/
+	texRight = Novice::LoadTexture("./Images/moveRight.png");
+	texLeft = Novice::LoadTexture("./Images/moveLeft.png");
+	texWallJump = Novice::LoadTexture("./Images/wallJamp.png");
+	texCliffJump = Novice::LoadTexture("./Images/airJamp.png");
+	texStart = Novice::LoadTexture("./Images/start.png");
+	texStop = Novice::LoadTexture("./Images/stop.png");
+
+
+
+
+
+	float btnX = 1450;
+	float btnW = 400;
+	float btnH = 50;
+
+	btnLeft = { btnX, 50,  btnW, btnH, "Left",  CommandType::MoveLeft,(int) WHITE, texLeft };
+	btnRight = { btnX, 110, btnW, btnH, "Right", CommandType::MoveRight,(int)WHITE, texRight };
+	btnWallJump = { btnX, 170, btnW, btnH, "Wall",  CommandType::CheckWallJump,(int)WHITE, texWallJump };
+	btnCliffJump = { btnX, 230, btnW, btnH, "Cliff", CommandType::CheckCliffJump,(int)WHITE, texCliffJump };
+	// スタート・リセット
+	btnStart = { 1450, 300, 180, 80, "START", (CommandType)-1, (int)WHITE, texStart };
+	btnReset = { 1670, 300, 180, 80, "STOP",  (CommandType)-1, (int)WHITE, texStop };
+
+
 	/*------------------------------
 	ここにレイヤー名をいれるんだ！！
 	-----------------------------*/
@@ -70,19 +97,8 @@ void Game::Initialize() {
 		}
 	}
 
-	// ★パレットエリアにボタンを配置
-	float btnX = 1450;
-	float btnW = 400;
-	float btnH = 50;
 
-	// 左・右・壁・崖 の順に並べる
-	btnLeft = { btnX, 50,  btnW, btnH, "<< Move Left",      CommandType::MoveLeft,      0x44AAFFFF };
-	btnRight = { btnX, 110, btnW, btnH, ">> Move Right",     CommandType::MoveRight,     0x44AAFFFF };
-	btnWallJump = { btnX, 170, btnW, btnH, "If Wall -> Jump",  CommandType::CheckWallJump, (int)0xFFAA44FF };
-	btnCliffJump = { btnX, 230, btnW, btnH, "If Air -> Jump",   CommandType::CheckCliffJump,(int)0xFFAA44FF };
 
-	btnStart = { 1450, 300, 180, 80, "START >", (CommandType)-1, (int)0xFF4444FF };
-	btnReset = { 1670, 300, 180, 80, "STOP []", (CommandType)-1, 0x44FF44FF };
 }
 // プレイヤーとボタンの当たり判定を行う関数を追加
 bool IsPlayerHit(Player* player, const ButtonA& button) {
@@ -314,8 +330,7 @@ void Game::Draw() {
 
 	// --- UIボタン描画 ---
 	auto DrawBtn = [](Button& b) {
-		Novice::DrawBox((int)b.x, (int)b.y, (int)b.w, (int)b.h, 0.0f, b.color, kFillModeSolid);
-		Novice::ScreenPrintf((int)b.x + 20, (int)b.y + 20, b.label);
+		Novice::DrawSprite((int)b.x, (int)b.y, b.textureHandle, 1.0f, 1.0f, 0.0f, b.color);
 		};
 
 	DrawBtn(btnRight);
@@ -335,50 +350,42 @@ void Game::Draw() {
 	if (isRunning) {
 		currentIndex = player->GetCurrentCommandIndex();
 	}
-
 	for (int i = 0; i < commandList.size(); i++) {
-		unsigned int color = 0xFFFFFFFF;
-		const char* text = "";
 
-		// コマンドの種類によって色と文字を変える
+		// ここで描画する画像を決める
+		int currentTex = 0;
+
 		switch (commandList[i]) {
 		case CommandType::MoveRight:
-			color = 0x44AAFFFF; // 青
-			text = "Move Right";
+			currentTex = texRight;
 			break;
 		case CommandType::MoveLeft:
-			color = 0x44AAFFFF; // 青
-			text = "Move Left";
+			currentTex = texLeft;
 			break;
 		case CommandType::CheckWallJump:
-			color = 0xFFAA44FF; // オレンジ
-			text = "If Wall -> Jump";
+			currentTex = texWallJump;
 			break;
 		case CommandType::CheckCliffJump:
-			color = 0xFFAA44FF; // オレンジ
-			text = "If Air -> Jump";
+			currentTex = texCliffJump;
 			break;
-
-		
-
 		}
-		// もし今実行しているコマンドなら、色を「赤」に変えて目立たせる！
+
+		// 実行中の強調表示（色を変えるなど）
+		unsigned int color = 0xFFFFFFFF;
 		if (i == currentIndex) {
-			color = 0xFF0000FF; // 赤色
+			color = 0xFFAAAAFF; // 実行中は少し赤っぽくする例
 		}
 
-		// ブロック描画
-		Novice::DrawBox(1450, (int)blockY, 400, 50, 0.0f, color, kFillModeSolid);
-		Novice::ScreenPrintf(1470, (int)blockY + 15, "%d: %s", i + 1, text);
+		if (currentTex != 0) {
+			Novice::DrawSprite(1450, (int)blockY, currentTex, 1.0f, 1.0f, 0.0f, color);
+		}
 
-		// さらに左側に矢印「▶」を出して強調する
+		// 矢印や強調枠の処理
 		if (i == currentIndex) {
 			Novice::ScreenPrintf(1420, (int)blockY + 15, "->");
-			// 少しずらして枠っぽく描画する演出などを入れてもOK
 			Novice::DrawBox(1445, (int)blockY - 5, 410, 60, 0.0f, RED, kFillModeWireFrame);
 		}
 
-		// つながりの矢印
 		if (i < commandList.size() - 1) {
 			Novice::DrawTriangle(1650, (int)blockY + 50, 1630, (int)blockY + 60, 1670, (int)blockY + 60, WHITE, kFillModeSolid);
 		}

@@ -30,6 +30,7 @@ struct Button {
 	const char* label;
 	CommandType cmdType; // Noneならシステム用ボタン
 	int color;
+	int textureHandle;
 };
 
 class Game {
@@ -46,6 +47,8 @@ public:
 
 	// 描画
 	void Draw();
+
+
 
 private:
 	// screen
@@ -93,7 +96,12 @@ private:
 	Button btnReset;
 	Button btnNone;
 
-
+	int texRight;
+	int texLeft;
+	int texWallJump;
+	int texCliffJump;
+	int texStart;
+	int texStop;
 
 	// 更新
 	void Update();
