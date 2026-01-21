@@ -112,5 +112,16 @@ private:
 	
 	// Game.h
 	Vector2 respawnPos = { 300.0f, 704.0f }; // 初期値を設定しておく
+
+	///// 画面の暗転処理(切り替えかも～おいしいかも～) /////
+	enum FadeState { FADE_NONE, FADE_OUT, FADE_IN };
+	FadeState fadeState_ = FADE_NONE;
+	int fadeTimer_ = 0;
+	const int kFadeMax = 120; // 演出にかけるフレーム数（約2秒）
+
+	// 画面分割の設定
+	const int kBlockSize = 60;
+	const int kCols = (1920 / 60) + 1; // 32列
+	const int kRows = (1080 / 60) + 1; // 18列
 };
 
