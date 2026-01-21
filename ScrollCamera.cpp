@@ -3,7 +3,6 @@
 #include "Game.h"
 #include "const.h" // マップ計算
 #include "Vector2.h"
-#include "const.h"
 
 // コンストラクタ
 ScrollCamera::ScrollCamera() : offset_({0, 0}) {
@@ -18,7 +17,15 @@ void ScrollCamera::Update(Vector2& playerPos) {
 	// プレイヤーがゲーム面中央に来るようにオフセットを計算
 	// offset=プレイヤー位置-画面の半分
 	offset_.x = playerPos.x - (kScreenSize.x / 2.0f);
-	offset_.y = playerPos.y - targetY_;
+	//offset_.y = playerPos.y - targetY_;
+
+	if (isScrollMode_) {
+		// スクロールモード：プレイヤーに合わせて動く
+		offset_.y = playerPos.y - (kScreenSize.y / 2.0f);
+	} else {
+		// 切り替えモード：設定されたステージの高さに固定（パッと切り替え）
+		offset_.y = targetY_;
+	}
 
 	// マップ全体の横幅を計算 (例: 100枚 * 64px = 6400px)
 	Vector2 mapWorld = {
