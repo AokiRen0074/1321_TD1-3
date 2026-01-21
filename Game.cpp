@@ -28,9 +28,9 @@ Game::~Game() {
 
 void Game::Initialize() {
 	// エリア定義
-	gameArea = { 0, 0, 1400, 1080 };
-	paletteArea = { 1400, 0, 580, 400 };     // 右上：パレット
-	programArea = { 1400, 400, 580, 680 };   // 右下：プログラム置き場
+	gameArea = {0, 0, 1400, 1080};
+	paletteArea = {1400, 0, 580, 400};     // 右上：パレット
+	programArea = {1400, 400, 580, 680};   // 右下：プログラム置き場
 
 	isRunning = false;
 	player->InitPlayer();
@@ -45,7 +45,7 @@ void Game::Initialize() {
 	/*------------------------------
 	ここにレイヤー名をいれるんだ！！
 	-----------------------------*/
-	std::vector<std::string> layers = { "IntGrid","HalfBlock" };
+	std::vector<std::string> layers = {"IntGrid", "HalfBlock"};
 
 	map->LoadMapFromLDtk("./mapTest9999.ldtk", layers);
 
@@ -76,13 +76,13 @@ void Game::Initialize() {
 	float btnH = 50;
 
 	// 左・右・壁・崖 の順に並べる
-	btnLeft = { btnX, 50,  btnW, btnH, "<< Move Left",      CommandType::MoveLeft,      0x44AAFFFF };
-	btnRight = { btnX, 110, btnW, btnH, ">> Move Right",     CommandType::MoveRight,     0x44AAFFFF };
-	btnWallJump = { btnX, 170, btnW, btnH, "If Wall -> Jump",  CommandType::CheckWallJump, (int)0xFFAA44FF };
-	btnCliffJump = { btnX, 230, btnW, btnH, "If Air -> Jump",   CommandType::CheckCliffJump,(int)0xFFAA44FF };
+	btnLeft = {btnX, 50, btnW, btnH, "<< Move Left", CommandType::MoveLeft, 0x44AAFFFF};
+	btnRight = {btnX, 110, btnW, btnH, ">> Move Right", CommandType::MoveRight, 0x44AAFFFF};
+	btnWallJump = {btnX, 170, btnW, btnH, "If Wall -> Jump", CommandType::CheckWallJump, (int)0xFFAA44FF};
+	btnCliffJump = {btnX, 230, btnW, btnH, "If Air -> Jump", CommandType::CheckCliffJump, (int)0xFFAA44FF};
 
-	btnStart = { 1450, 300, 180, 80, "START >", (CommandType)-1, (int)0xFF4444FF };
-	btnReset = { 1670, 300, 180, 80, "STOP []", (CommandType)-1, 0x44FF44FF };
+	btnStart = {1450, 300, 180, 80, "START >", (CommandType)-1, (int)0xFF4444FF};
+	btnReset = {1670, 300, 180, 80, "STOP []", (CommandType)-1, 0x44FF44FF};
 }
 // プレイヤーとボタンの当たり判定を行う関数を追加
 bool IsPlayerHit(Player* player, const ButtonA& button) {
@@ -188,8 +188,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 
 		if (isArrived) {
 			isRunning = false;
-		}
-		else {
+		} else {
 			player->UpdateByCommands(commandList, map->mapData, map->Beltconveyors);
 		}
 
@@ -201,9 +200,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 				player->InitPlayer();
 			}
 		}
-
-	}
-	else {
+	} else {
 		// --- 編集モード ---
 		player->UpdatePlayer(keys, preKeys, map->mapData);
 		//player->CheckRouter(router, 250);
@@ -232,7 +229,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 				commandList.push_back(btnCliffJump.cmdType);
 			}
 
-		
+
 
 			// 2. スタートボタン
 			if (mouseX >= btnStart.x && mouseX <= btnStart.x + btnStart.w && mouseY >= btnStart.y && mouseY <= btnStart.y + btnStart.h) {
@@ -243,8 +240,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 					isRunning = true;
 					player->InitPlayer();
 					cantStartCount = 0;
-				}
-				else {
+				} else {
 					// (オプション)「ここではスタートできません」みたいなログを出してもいいかも
 					cantStartCount = 60;
 				}
@@ -264,6 +260,83 @@ void Game::Update(char keys[256], char preKeys[256]) {
 			}
 		}
 	}
+
+	// --- フェード中の処理 ---
+	if (fadeState_ == FADE_OUT) {
+		fadeTimer_++;
+		if (fadeTimer_ >= kFadeMax) {
+			// ★画面が真っ暗になった瞬間の処理
+			// ここでプレイヤーのワープやカメラの切り替えを行う
+			int nextStage = scrollCamera->GetStageIndex() + 1;
+			scrollCamera->SetStageIndex(nextStage);
+			player->status_.pos.y = scrollCamera->GetStageYPosition(nextStage) - 100.0f;
+			player->status_.Velocity.y = 5.0f;
+
+			fadeState_ = FADE_IN; // 開ける演出へ
+		}
+		return; // フェード中は他の更新を止める（任意）
+	} else if (fadeState_ == FADE_IN) {
+		fadeTimer_--;
+		if (fadeTimer_ <= 0) {
+			fadeState_ = FADE_NONE;
+			fadeTimer_ = 0;
+		}
+		// フェードイン中はプレイヤーを動かしたくない場合はここでreturn
+	}
+
+	// --- 既存のステージ切り替え判定を書き換え ---
+	Vector2 camOffset = scrollCamera->GetOffset();
+	if (fadeState_ == FADE_NONE && player->status_.pos.y > (camOffset.y + 1200.0f)) {
+		if (scrollCamera->GetStageIndex() + 1 < 3) {
+			fadeState_ = FADE_OUT; // 暗転開始！
+			fadeTimer_ = 0;
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+	/*
+	// ステージ切り替えのカメラの設定
+	Vector2 camOffset = scrollCamera->GetOffset();
+
+	// プレイヤーが今の画面の下端（カメラY + 画面1080 + 余裕120）を超えたら
+	if (player->status_.pos.y > (camOffset.y + 1200.0f)) {
+
+		// 次のステージ番号を計算（ここではまだ変えない）
+		int nextStage = scrollCamera->GetStageIndex() + 1;
+
+		if (nextStage < 3) { // 3ステージ（0,1,2）の範囲内なら実行
+
+			// 1. カメラの目標ステージを次の番号に更新
+			scrollCamera->SetStageIndex(nextStage);
+
+			// 2. 次のステージの基準となるY座標を取得
+			float newY = scrollCamera->GetStageYPosition(nextStage);
+
+			// 3. プレイヤーを次のステージへワープさせる
+			// 新しいステージの基準位置(newY)より少し上(100px)から出現させる
+			player->status_.pos.y = newY - 100.0f;
+
+			// 落下速度をリセット（ワープ直後に地面を突き抜けないようにするため）
+			player->status_.Velocity.y = 5.0f;
+		}
+	}
+
+	if (player->status_.pos.y > 3000.0f) {
+		scrollCamera->SetIsScrollMode(true);
+		player->status_.pos.y = 2800.0f;
+	}
+	*/
 
 	// マップ更新(当たり判定など)
 	map->Update(*player);
@@ -342,24 +415,24 @@ void Game::Draw() {
 
 		// コマンドの種類によって色と文字を変える
 		switch (commandList[i]) {
-		case CommandType::MoveRight:
-			color = 0x44AAFFFF; // 青
-			text = "Move Right";
-			break;
-		case CommandType::MoveLeft:
-			color = 0x44AAFFFF; // 青
-			text = "Move Left";
-			break;
-		case CommandType::CheckWallJump:
-			color = 0xFFAA44FF; // オレンジ
-			text = "If Wall -> Jump";
-			break;
-		case CommandType::CheckCliffJump:
-			color = 0xFFAA44FF; // オレンジ
-			text = "If Air -> Jump";
-			break;
+			case CommandType::MoveRight:
+				color = 0x44AAFFFF; // 青
+				text = "Move Right";
+				break;
+			case CommandType::MoveLeft:
+				color = 0x44AAFFFF; // 青
+				text = "Move Left";
+				break;
+			case CommandType::CheckWallJump:
+				color = 0xFFAA44FF; // オレンジ
+				text = "If Wall -> Jump";
+				break;
+			case CommandType::CheckCliffJump:
+				color = 0xFFAA44FF; // オレンジ
+				text = "If Air -> Jump";
+				break;
 
-		
+
 
 		}
 		// もし今実行しているコマンドなら、色を「赤」に変えて目立たせる！
@@ -391,9 +464,35 @@ void Game::Draw() {
 		Novice::ScreenPrintf(10, 10, "RUNNING...");
 		// 画面全体に枠を表示して実行中っぽくする
 		Novice::DrawBox(0, 0, 1400, 1080, 0.0f, 0xFF000044, kFillModeSolid);
-	}
-	else {
+	} else {
 		Novice::ScreenPrintf(10, 10, "EDIT MODE");
+	}
+
+	// --- 暗転ブロックの描画 ---
+	if (fadeState_ != FADE_NONE) {
+		// 右上から左下への斜めラインの合計値の最大
+		int maxDiagonal = kCols + kRows;
+
+		// 現在のタイマーに基づいた進行度 (0.0 ～ 1.0)
+		float progress = (float)fadeTimer_ / kFadeMax;
+		int currentThreshold = (int)(maxDiagonal * progress);
+
+		for (int y = 0; y < kRows; y++) {
+			for (int x = 0; x < kCols; x++) {
+				// 右上からの距離を計算 (xが大きければ右上、yが大きければ下)
+				// 右上(x:max, y:0) から 左下(x:0, y:max) へ
+				// 式: (kCols - x) + y  が小さいほど右上
+				int diagonalPos = (kCols - 1 - x) + y;
+
+				if (diagonalPos <= currentThreshold) {
+					Novice::DrawBox(
+						x * kBlockSize, y * kBlockSize,
+						kBlockSize, kBlockSize,
+						0.0f, BLACK, kFillModeSolid
+					);
+				}
+			}
+		}
 	}
 
 	int mx, my;
