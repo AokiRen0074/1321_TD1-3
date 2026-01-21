@@ -265,7 +265,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 	if (fadeState_ == FADE_OUT) {
 		fadeTimer_++;
 		if (fadeTimer_ >= kFadeMax) {
-			// ★画面が真っ暗になった瞬間の処理
+			// 画面が真っ暗になった瞬間の処理
 			// ここでプレイヤーのワープやカメラの切り替えを行う
 			int nextStage = scrollCamera->GetStageIndex() + 1;
 			scrollCamera->SetStageIndex(nextStage);
@@ -293,7 +293,10 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		}
 	}
 
-
+	if (player->status_.pos.y > 3000.0f) {
+		scrollCamera->SetIsScrollMode(true);
+		// player->status_.pos.y = 2800.0f;
+	}
 
 
 
