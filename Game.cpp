@@ -68,6 +68,16 @@ void Game::Initialize() {
 	btnStart = { 1450, 300, 180, 80, "START", (CommandType)-1, (int)WHITE, texStart };
 	btnReset = { 1670, 300, 180, 80, "STOP",  (CommandType)-1, (int)WHITE, texStop };
 
+	/*----------------------------------
+				音
+	-------------------------------------*/
+
+	/*------------------------
+				音
+	------------------------*/
+	soundClick = Novice::LoadAudio("./Sounds/komandoCorect.mp3");
+	soundStart = Novice::LoadAudio("./Sounds/komandoStart.mp3");
+	soundDelete = Novice::LoadAudio("./Sounds/modosu.mp3");
 
 	/*------------------------------
 	ここにレイヤー名をいれるんだ！！
@@ -240,22 +250,33 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		player->CheckBlockGround(map->Blocks);
 		player->CheckBlockWall(map->Blocks);
 		if (isClick) {
+			bool isCommandAdded = false;
 			// 1. パレットのボタンを押してコマンドを追加
 			if (mouseX >= btnRight.x && mouseX <= btnRight.x + btnRight.w && mouseY >= btnRight.y && mouseY <= btnRight.y + btnRight.h) {
 				commandList.push_back(btnRight.cmdType);
+				isCommandAdded = true;
 			}
 
 			if (mouseX >= btnLeft.x && mouseX <= btnLeft.x + btnLeft.w && mouseY >= btnLeft.y && mouseY <= btnLeft.y + btnLeft.h) {
 				commandList.push_back(btnLeft.cmdType);
+				isCommandAdded = true;
 			}
 
 			if (mouseX >= btnWallJump.x && mouseX <= btnWallJump.x + btnWallJump.w && mouseY >= btnWallJump.y && mouseY <= btnWallJump.y + btnWallJump.h) {
 				commandList.push_back(btnWallJump.cmdType);
+				isCommandAdded = true;
 			}
 			if (mouseX >= btnCliffJump.x && mouseX <= btnCliffJump.x + btnCliffJump.w && mouseY >= btnCliffJump.y && mouseY <= btnCliffJump.y + btnCliffJump.h) {
 				commandList.push_back(btnCliffJump.cmdType);
+				isCommandAdded = true;
 			}
 
+			if (isCommandAdded) {
+				
+				if (Novice::IsPlayingAudio(soundClick) == 0 || soundClick != -1) {
+					Novice::PlayAudio(soundClick, false, 1.0f);
+				}
+			}
 
 
 			// 2. スタートボタン
@@ -267,6 +288,8 @@ void Game::Update(char keys[256], char preKeys[256]) {
 					isRunning = true;
 					player->InitPlayer();
 					cantStartCount = 0;
+
+					Novice::PlayAudio(soundStart, false, 1.0f);
 				} else {
 					// (オプション)「ここではスタートできません」みたいなログを出してもいいかも
 					cantStartCount = 60;
@@ -279,6 +302,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 				if (mouseX >= 1450 && mouseX <= 1450 + 400 &&
 					mouseY >= blockY && mouseY <= blockY + 50) {
 
+					Novice::PlayAudio(soundDelete, false, 1.0f);
 					// このコマンドを削除する
 					commandList.erase(commandList.begin() + i);
 					break;

@@ -41,6 +41,7 @@ void Player::InitPlayer() {
 	cmdIndex = 0;
 
 	status_.waitTimer = 0;
+
 }
 
 void Player::UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHeight][kMapWidth], std::vector<Block>& blocks) {
@@ -812,4 +813,4 @@ void Player::CheckBlockCeiling(std::vector<Block>& blocks) {
 
 
 
-//私はGitを許さない
+//私はGitを許さない　<-!?!!?!?

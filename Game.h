@@ -103,6 +103,10 @@ private:
 	int texStart;
 	int texStop;
 
+	// 音
+	int soundClick;
+	int soundStart;
+	int soundDelete;
 	// 更新
 	void Update();
 
