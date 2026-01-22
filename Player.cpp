@@ -43,10 +43,13 @@ void Player::InitPlayer() {
 	status_.waitTimer = 0;
 }
 
-void Player::UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHeight][kMapWidth]) {
+void Player::UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHeight][kMapWidth], std::vector<Block>& blocks) {
 
 	if (status_.isActive) {
 		MovePlayer(keys, preKeys, mapData);
+		CheckBlockWall(blocks);
+		CheckBlockGround(blocks);
+		CheckBlockCeiling(blocks);
 	}
 }
 
@@ -54,10 +57,13 @@ void Player::UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHe
 
 // コマンドで動かせるプレイヤー
 
-void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapData[kMapHeight][kMapWidth], std::vector<Beltconveyor>& Beltconveyors) {
+void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapData[kMapHeight][kMapWidth],
+	std::vector<Beltconveyor>& Beltconveyors, std::vector<Block>& blocks) {
 	// ★重要：コマンド処理の「前」に一旦フラグをリセットしてベルト判定を行う
 	// これにより、コマンド移動前の正しい接地状態がセットされる
 	CheckBeltCollision(Beltconveyors);
+	bool wallFoundNow = IsWallAhead(mapData, blocks);
+
 	if (cmdIndex < commands.size()) {
 		CommandType currentCmd = commands[cmdIndex];
 		switch (currentCmd) {
@@ -73,9 +79,17 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 			break;
 
 		case CommandType::CheckWallJump:
+			// ① まず左右に移動
 			status_.pos.x += status_.Speed * status_.moveDir;
-			// 移動した「後」に再度ベルト判定（座標の吸着とフラグ更新）
+
+			// ② ★ここが重要！移動直後に「壁の押し戻し」を呼ぶ
+			// これを使わないと、次の wallFoundNow が「めり込み」のせいで正しく判定できません
+			CheckBlockWall(blocks);
 			CheckBeltCollision(Beltconveyors);
+			CheckBlockCeiling(blocks);
+
+			// ③ 壁の表面に座標が固定された状態で、壁があるかチェック
+			wallFoundNow = IsWallAhead(mapData, blocks);
 
 			if (status_.isWaitingForLanding) {
 				if (!status_.isJumop) {
@@ -84,12 +98,15 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 				}
 			}
 			else {
-				if (!status_.isJumop && IsWallAhead(mapData)) {
+				// ④ ここで「空中ジャンプが暴発する」のを防ぐため、
+				// 「本当に地面にいるか」も条件に追加します
+				if (!status_.isJumop && wallFoundNow) {
 					ActionTryJump();
 					status_.isWaitingForLanding = true;
 				}
 			}
 			break;
+
 
 		case CommandType::CheckCliffJump:
 
@@ -97,6 +114,9 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 			status_.pos.x += status_.Speed * status_.moveDir;
 			// 2. 「今」ベルトに乗っているかを即座に確定させる
 			CheckBeltCollision(Beltconveyors);
+			CheckBlockWall(blocks);
+			CheckBlockCeiling(blocks);
+
 			// 3. ベルトに乗っているなら、崖なんて関係ない。ジャンプもせず次へ
 			if (status_.isBlet) {
 				status_.isWaitingForLanding = false;
@@ -161,7 +181,9 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 
 		}
 	}
+	CheckBlockCeiling(blocks);
 
+	CheckBlockGround(blocks);
 }
 
 
@@ -261,26 +283,37 @@ void Player::ActionTryJump() {
 }
 
 // 前に壁があるかチェック
-bool Player::IsWallAhead(int mapData[kMapHeight][kMapWidth]) {
-
+bool Player::IsWallAhead(int mapData[kMapHeight][kMapWidth], std::vector<Block>& blocks) {
+	// 1. まずマップチップ（静止壁）のチェック
 	int checkX;
-
-	// ★右を向いているか、左を向いているか
-	// でチェック位置を変える
 	if (status_.moveDir > 0) {
-		// 右方向：自分の右端 + 5px
 		checkX = (int)(status_.pos.x + status_.width + 5.0f) / kTileSize;
 	}
 	else {
-		// 左方向：自分の左端 - 5px
 		checkX = (int)(status_.pos.x - 5.0f) / kTileSize;
 	}
-
 	int checkY = (int)(status_.pos.y + status_.height / 2.0f) / kTileSize;
 
 	if (checkX >= 0 && checkX < kMapWidth && checkY >= 0 && checkY < kMapHeight) {
-		if (mapData[checkY][checkX] != 0) return true; // 壁あり
+		if (mapData[checkY][checkX] != 0) return true; // マップに壁あり
 	}
+
+	// 2. 次に「ブロック（動く壁）」があるかチェック
+	// ★ここでは CheckMovingBlockCollision を呼ばない！
+	for (auto& block : blocks) {
+		float bWidth = (float)kTileSize;
+		float bHeight = (float)kTileSize;
+
+		// 進行方向にブロックの矩形があるか判定
+		float nextX = (status_.moveDir > 0) ? (status_.pos.x + status_.width + 5.0f) : (status_.pos.x - 5.0f);
+		float centerY = status_.pos.y + status_.height / 2.0f;
+
+		if (nextX >= block.pos.x && nextX <= block.pos.x + bWidth &&
+			centerY >= block.pos.y && centerY <= block.pos.y + bHeight) {
+			return true; // ブロックを壁として認識
+		}
+	}
+
 	return false;
 }
 
@@ -700,3 +733,83 @@ void Player::CheckFlooCollision(std::vector<VanishingFloor>& VanishingFloors) {
 		}
 	}
 }
+
+void Player::CheckBlockWall(std::vector<Block>& blocks) {
+	for (auto& block : blocks) {
+		float bW = (float)kTileSize;
+		float bH = (float)kTileSize;
+
+		// 1. そもそも重なっているか（AABB判定）
+		if (status_.pos.x < block.pos.x + bW &&
+			status_.pos.x + status_.width > block.pos.x &&
+			status_.pos.y < block.pos.y + bH &&
+			status_.pos.y + status_.height > block.pos.y) {
+
+			// 2. 左右のめり込み量を計算
+			float overlapLeft = (status_.pos.x + status_.width) - block.pos.x; // プレイヤーが左から右へ
+			float overlapRight = (block.pos.x + bW) - status_.pos.x;            // プレイヤーが右から左へ
+
+			// 3. 上下のめり込みも計算（どの面が一番近いかを判断するためだけに使う）
+			float overlapTop = (status_.pos.y + status_.height) - block.pos.y;
+			float overlapBottom = (block.pos.y + bH) - status_.pos.y;
+
+			// 4. 一番「浅い」方向を探す
+			float minOverlap = overlapLeft;
+			int direction = 0; // 0:左, 1:右, 2:上, 3:下
+
+			if (overlapRight < minOverlap) { minOverlap = overlapRight;  direction = 1; }
+			if (overlapTop < minOverlap) { minOverlap = overlapTop;    direction = 2; }
+			if (overlapBottom < minOverlap) { minOverlap = overlapBottom; direction = 3; }
+
+			// 5. 【横方向だけ】押し戻す
+			// case 2(上) と case 3(下) は何もしないことで、縦方向の判定をスルーさせる
+			switch (direction) {
+			case 0: // ブロックの左側に押し戻す
+				status_.pos.x = block.pos.x - status_.width;
+				break;
+			case 1: // ブロックの右側に押し戻す
+				status_.pos.x = block.pos.x + bW;
+				break;
+			}
+		}
+	}
+}
+
+
+
+void Player::CheckBlockGround(std::vector<Block>& blocks) {
+	if (status_.Velocity.y < 0) return; // 上昇中は無視
+
+	for (auto& block : blocks) {
+		// X軸の範囲内か
+		if (status_.pos.x + status_.width > block.pos.x && status_.pos.x < block.pos.x + kTileSize) {
+			// 足元が「上面」を貫通した瞬間を捕まえる
+			if (status_.pos.y + status_.height > block.pos.y && status_.pos.y + status_.height < block.pos.y + 20.0f) {
+				status_.pos.y = block.pos.y - status_.height;
+				status_.Velocity.y = 0.0f;
+				status_.isJumop = false;
+				status_.isBlet = true;
+			}
+		}
+	}
+}
+
+
+void Player::CheckBlockCeiling(std::vector<Block>& blocks) {
+	if (status_.Velocity.y >= 0) return; // 落下中は無視
+
+	for (auto& block : blocks) {
+		// X軸の範囲内か
+		if (status_.pos.x + status_.width > block.pos.x && status_.pos.x < block.pos.x + kTileSize) {
+			// 頭が「底面」を貫通した瞬間を捕まえる
+			if (status_.pos.y < block.pos.y + kTileSize && status_.pos.y > block.pos.y + kTileSize - 25.0f) {
+				status_.pos.y = block.pos.y + kTileSize;
+				status_.Velocity.y = 0.0f;
+			}
+		}
+	}
+}
+
+
+
+//私はGitを許さない
