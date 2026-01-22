@@ -55,6 +55,9 @@ public:
 	// ブロックごとの画像を保存
 	int blockTextures[kMaxBlocksType];
 
+	int buttonOnTexture;
+	int buttonOffTexture;
+
 	// コンストラクタ
 	Map();
 

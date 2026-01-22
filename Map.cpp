@@ -28,6 +28,9 @@ void Map::Initialize() {
 	blockTextures[2] = Novice::LoadTexture("./halfBlock.png");// ハーフブロック用
 	blockTextures[3] = Novice::LoadTexture("./halfBlock.png");// ルーター用
 
+	buttonOffTexture = Novice::LoadTexture("./Images/Switch-Push-Blue.png");
+	buttonOnTexture = Novice::LoadTexture("./Images/Switch-Blue.png");
+
 }
 
 // LDtk読み込み
@@ -338,28 +341,31 @@ void Map::Draw(Vector2 offset) {
 
 	// ボタンの描画
 	// (Map.hで定義した buttons リストをループ)
-	for (const auto& button : buttons) {
-		// 描画座標の計算
-		int drawX = (int)(button.pos.x - offset.x);
-		int drawY = (int)(button.pos.y - offset.y);
+	// ---------------------------------------------
+	// ボタン（ドアスイッチ）の描画
+	// ---------------------------------------------
+	for (const auto& btn : buttons) {
+		// 画面上の描画位置を計算
+		int drawX = (int)(btn.pos.x - offset.x);
+		int drawY = (int)(btn.pos.y - offset.y);
 
-		// 押されているかどうかの色分け（押されたら黄色、未踏なら赤）
-		unsigned int color = button.isPressed ? BLACK : RED;
+		// ★ここで画像を切り替える！
+		// btn.isPressed が true なら ON画像、false なら OFF画像 を選ぶ
+		int currentTex;
 
-		// ボタンは少し小さく表示して、ドアと区別しやすくする
-		int btnSize = kTileSize / 2;
-		int offsetSize = (kTileSize - btnSize) / 2; // 中央寄せ用のオフセット
+		if (btn.isPressed) {
+			currentTex = buttonOffTexture;  // 押されてる！
+		} else {
+			currentTex = buttonOnTexture; // まだ押されてない
+		}
 
-		Novice::DrawBox(
-			drawX + offsetSize, drawY + offsetSize, // 少しずらして中央に
-			btnSize, btnSize,
-			0.0f,
-			color,
-			kFillModeSolid
-		);
+		// 画像を描画 (DrawBox ではなく DrawSprite を使う)
+		// ※画像サイズと当たり判定サイズが違う場合は、第4,5引数のスケール(1.0f)で調整してください
+		Novice::DrawSprite(drawX, drawY, currentTex, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
 
-		// デバッグ用: リンクIDを確認したい場合
-		// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
+
+		// (デバッグ用) IDを表示したければ残してもOK
+		// Novice::ScreenPrintf(drawX, drawY - 20, "ID:%d", btn.linkId);
 	}
 
 	// リフトギミックブロックの描画
