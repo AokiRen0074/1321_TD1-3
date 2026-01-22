@@ -69,8 +69,9 @@ void Game::Initialize() {
 	btnReset = { 1670, 300, 180, 80, "STOP",  (CommandType)-1, (int)WHITE, texStop };
 
 	/*----------------------------------
-				音
+				その他画像
 	-------------------------------------*/
+	texRouter = Novice::LoadTexture("./Images/ruta.png");
 
 	/*------------------------
 				音
@@ -284,7 +285,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 			if (isCommandAdded) {
 				
 				if (Novice::IsPlayingAudio(soundClick) == 0 || soundClick != -1) {
-					Novice::PlayAudio(soundClick, false, 0.7f);
+					Novice::PlayAudio(soundClick, false, 0.4f);
 				}
 			}
 
@@ -299,7 +300,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 					player->InitPlayer();
 					cantStartCount = 0;
 
-					Novice::PlayAudio(soundStart, false, 1.0f);
+					Novice::PlayAudio(soundStart, false, 0.4f);
 				} else {
 					// (オプション)「ここではスタートできません」みたいなログを出してもいいかも
 					cantStartCount = 60;
@@ -418,7 +419,7 @@ void Game::Draw() {
 	// ルーター描画
 	for (int i = 0; i < routerCount; i++) {
 		if (router[i] != nullptr) {
-			router[i]->DrawRouter(offset); // Routerクラスにある描画関数を呼ぶ
+			router[i]->DrawRouter(offset);// Routerクラスにある描画関数を呼ぶ
 		}
 	}
 

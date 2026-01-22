@@ -80,6 +80,8 @@ void Router::DrawRouter(Vector2 offset) {
 		0xFFFFFF10,
 		kFillModeSolid
 	);
+
+	
 }
 
 

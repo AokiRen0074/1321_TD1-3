@@ -102,6 +102,7 @@ private:
 	int texCliffJump;
 	int texStart;
 	int texStop;
+	int texRouter;
 
 	// 音
 	int soundClick;
