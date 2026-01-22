@@ -11,7 +11,6 @@
 	"iid": "26f1f250-d380-11f0-a915-756c01b8c293",
 	"jsonVersion": "1.5.3",
 	"appBuildId": 473703,
-
 	"nextUid": 50,
 	"identifierStyle": "Capitalize",
 	"toc": [],
@@ -1529,7 +1528,6 @@
 							"__worldY": 3968
 						},
 						{
-
 							"__identifier": "Button",
 							"__grid": [200,245],
 							"__pivot": [0,0],
@@ -2008,7 +2006,22 @@
 							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 50, "__tile": null, "defUid": 49, "realEditorValues": [] }],
 							"__worldX": -320,
 							"__worldY": 544
-
+						},
+						{
+							"__identifier": "Checkpoint",
+							"__grid": [224,154],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#EAD4AA",
+							"iid": "8bac99b0-d380-11f0-8801-f793b23cc025",
+							"width": 128,
+							"height": 32,
+							"defUid": 45,
+							"px": [3584,2464],
+							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 0, "__tile": null, "defUid": 46, "realEditorValues": [] }],
+							"__worldX": 1968,
+							"__worldY": 2464
 						}
 					]
 				},
