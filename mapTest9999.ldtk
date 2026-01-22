@@ -11,6 +11,7 @@
 	"iid": "26f1f250-d380-11f0-a915-756c01b8c293",
 	"jsonVersion": "1.5.3",
 	"appBuildId": 473703,
+
 	"nextUid": 50,
 	"identifierStyle": "Capitalize",
 	"toc": [],
@@ -138,7 +139,7 @@
 			"uiFilterTags": [],
 			"useAsyncRender": false,
 			"intGridValues": [
-				{ "value": 1, "identifier": null, "color": "#000000", "tile": null, "groupUid": 0 },
+				{ "value": 1, "identifier": "_", "color": "#000000", "tile": null, "groupUid": 0 },
 				{ "value": 2, "identifier": null, "color": "#2CE8F5", "tile": null, "groupUid": 0 },
 				{ "value": 3, "identifier": "router", "color": "#63C74D", "tile": null, "groupUid": 0 },
 				{ "value": 4, "identifier": "scrap", "color": "#C901F9", "tile": null, "groupUid": 0 }
@@ -1128,7 +1129,7 @@
 						},
 						{
 							"__identifier": "LiftGimmickBlock",
-							"__grid": [122,89],
+							"__grid": [119,91],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": null,
@@ -1137,15 +1138,15 @@
 							"width": 64,
 							"height": 64,
 							"defUid": 28,
-							"px": [1952,1424],
+							"px": [1904,1456],
 							"fieldInstances": [
 								{ "__identifier": "Integer", "__type": "Int", "__value": 1, "__tile": null, "defUid": 30, "realEditorValues": [{ "id": "V_Int", "params": [1] }] },
 								{ "__identifier": "MoveX", "__type": "Float", "__value": 0, "__tile": null, "defUid": 37, "realEditorValues": [{ "id": "V_Float", "params": [0] }] },
-								{ "__identifier": "MoveY", "__type": "Float", "__value": -200, "__tile": null, "defUid": 38, "realEditorValues": [{ "id": "V_Float", "params": [-200] }] },
+								{ "__identifier": "MoveY", "__type": "Float", "__value": -220, "__tile": null, "defUid": 38, "realEditorValues": [{ "id": "V_Float", "params": [-220] }] },
 								{ "__identifier": "Speed", "__type": "Float", "__value": 2, "__tile": null, "defUid": 39, "realEditorValues": [{ "id": "V_Float", "params": [2] }] }
 							],
-							"__worldX": 336,
-							"__worldY": 1424
+							"__worldX": 288,
+							"__worldY": 1456
 						},
 						{
 							"__identifier": "Water",
@@ -1528,6 +1529,7 @@
 							"__worldY": 3968
 						},
 						{
+
 							"__identifier": "Button",
 							"__grid": [200,245],
 							"__pivot": [0,0],
@@ -2006,6 +2008,7 @@
 							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 50, "__tile": null, "defUid": 49, "realEditorValues": [] }],
 							"__worldX": -320,
 							"__worldY": 544
+
 						}
 					]
 				},
