@@ -6,6 +6,7 @@
 Player::Player() {
 	status_.pos.x = 300.0f;
 	status_.pos.y = 704.0f;
+	soundJump = Novice::LoadAudio("./Sounds/jump.mp3");
 	InitPlayer();
 }
 
@@ -217,6 +218,7 @@ void Player::MovePlayer(char keys[256], char preKeys[256],
 				if (keys[DIK_SPACE] && !preKeys[DIK_SPACE]) {
 					status_.isJumop = true;
 					status_.Velocity.y = -status_.jumpPower;
+					Novice::PlayAudio(soundJump, false, 0.6f);
 				}
 			}
 
@@ -280,6 +282,7 @@ void Player::ActionTryJump() {
 	if (!status_.isJumop) {
 		status_.isJumop = true;
 		status_.Velocity.y = -status_.jumpPower;
+		Novice::PlayAudio(soundJump, false, 0.6f);
 	}
 }
 
