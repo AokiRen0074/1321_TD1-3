@@ -117,11 +117,11 @@ private:
 	enum FadeState { FADE_NONE, FADE_OUT, FADE_IN };
 	FadeState fadeState_ = FADE_NONE;
 	int fadeTimer_ = 0;
-	const int kFadeMax = 120; // 演出にかけるフレーム数（約2秒）
+	const int kFadeMax = 60; // 演出にかけるフレーム数
 
 	// 画面分割の設定
-	const int kBlockSize = 60;
-	const int kCols = (1920 / 60) + 1; // 32列
-	const int kRows = (1080 / 60) + 1; // 18列
+	const int kBlockSize = 120;
+	const int kCols = (1920 / 120) + 1; // 32列
+	const int kRows = (1080 / 120) + 1; // 18列
 };
 

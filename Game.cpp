@@ -129,13 +129,11 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		player->InitPlayer(); // 速度などをゼロにする
 	}
 
-	if (!player->status_.isActive) {
-		// 保存されているリスポーン地点（初期位置 or 最後に触れた旗）に戻す
+	if (!player->status_.isActive && fadeState_ == FADE_NONE) { // フェード中でない場合のみリセット
 		player->status_.pos = respawnPos;
-
 		isRunning = false;
 		cantStartCount = 0;
-		player->InitPlayer(); // 速度などをゼロにする
+		player->InitPlayer();
 	}
 
 	// 例えば Map::Update() や GameScene::Update() などで
@@ -291,33 +289,53 @@ void Game::Update(char keys[256], char preKeys[256]) {
 	}
 
 	// --- フェード中の処理 ---
-	if (fadeState_ == FADE_OUT) {
+	if (fadeState_ != FADE_NONE) {
 		fadeTimer_++;
-		if (fadeTimer_ >= kFadeMax) {
-			// 画面が真っ暗になった瞬間の処理
-			// ここでプレイヤーのワープやカメラの切り替えを行う
-			int nextStage = scrollCamera->GetStageIndex() + 1;
-			scrollCamera->SetStageIndex(nextStage);
-			player->status_.pos.y = scrollCamera->GetStageYPosition(nextStage) - 100.0f;
-			player->status_.Velocity.y = 5.0f;
 
-			fadeState_ = FADE_IN; // 開ける演出へ
+		// プレイヤーをその場で停止させる
+		player->status_.isActive = false;
+		player->status_.Velocity = { 0.0f, 0.0f };
+
+		// --- 暗転が完了した瞬間の処理 ---
+		if (fadeState_ == FADE_OUT) {
+			if (fadeTimer_ >= kFadeMax) {
+				// ステージ番号を更新
+				int nextIdx = scrollCamera->GetStageIndex() + 1;
+				if (nextIdx < 3) {
+					scrollCamera->SetStageIndex(nextIdx);
+
+					// カメラの座標を新しいステージ位置に反映さる
+					scrollCamera->Update(player->status_.pos); 
+
+					// プレイヤーのY座標を新しいステージの「上空」へ
+					float newY = scrollCamera->GetStageYPosition(nextIdx);
+					player->status_.pos.y = newY - 100.0f; 
+				}
+
+				// 次のフェーズ（画面を明るくする）へ
+				fadeState_ = FADE_IN;
+				fadeTimer_ = 0;
+			}
 		}
-		return; // フェード中は他の更新を止める（任意）
-	} else if (fadeState_ == FADE_IN) {
-		fadeTimer_--;
-		if (fadeTimer_ <= 0) {
-			fadeState_ = FADE_NONE;
-			fadeTimer_ = 0;
+		// --- 2. 画面が明るくなる処理 ---
+		else if (fadeState_ == FADE_IN) {
+			if (fadeTimer_ >= kFadeMax) {
+				// 完全に明るくなったら移動再開
+				fadeState_ = FADE_NONE;
+				fadeTimer_ = 0;
+				player->status_.isActive = true; 
+			}
 		}
-		// フェードイン中はプレイヤーを動かしたくない場合はここでreturn
+
+		// フェード中は通常のUpdateをスキップ
+		return; 
 	}
 
-	// --- 既存のステージ切り替え判定を書き換え ---
+	// --- 既存の切り替えトリガー（落下判定） ---
 	Vector2 camOffset = scrollCamera->GetOffset();
-	if (fadeState_ == FADE_NONE && player->status_.pos.y > (camOffset.y + 1200.0f)) {
+	if (player->status_.pos.y > (camOffset.y + 1200.0f)) {
 		if (scrollCamera->GetStageIndex() + 1 < 3) {
-			fadeState_ = FADE_OUT; // 暗転開始！
+			fadeState_ = FADE_OUT; // 暗転開始
 			fadeTimer_ = 0;
 		}
 	}
@@ -326,49 +344,6 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		scrollCamera->SetIsScrollMode(true);
 		// player->status_.pos.y = 2800.0f;
 	}
-
-
-
-
-
-
-
-
-
-
-
-	/*
-	// ステージ切り替えのカメラの設定
-	Vector2 camOffset = scrollCamera->GetOffset();
-
-	// プレイヤーが今の画面の下端（カメラY + 画面1080 + 余裕120）を超えたら
-	if (player->status_.pos.y > (camOffset.y + 1200.0f)) {
-
-		// 次のステージ番号を計算（ここではまだ変えない）
-		int nextStage = scrollCamera->GetStageIndex() + 1;
-
-		if (nextStage < 3) { // 3ステージ（0,1,2）の範囲内なら実行
-
-			// 1. カメラの目標ステージを次の番号に更新
-			scrollCamera->SetStageIndex(nextStage);
-
-			// 2. 次のステージの基準となるY座標を取得
-			float newY = scrollCamera->GetStageYPosition(nextStage);
-
-			// 3. プレイヤーを次のステージへワープさせる
-			// 新しいステージの基準位置(newY)より少し上(100px)から出現させる
-			player->status_.pos.y = newY - 100.0f;
-
-			// 落下速度をリセット（ワープ直後に地面を突き抜けないようにするため）
-			player->status_.Velocity.y = 5.0f;
-		}
-	}
-
-	if (player->status_.pos.y > 3000.0f) {
-		scrollCamera->SetIsScrollMode(true);
-		player->status_.pos.y = 2800.0f;
-	}
-	*/
 
 	// マップ更新(当たり判定など)
 	map->Update(*player);
@@ -496,24 +471,26 @@ void Game::Draw() {
 
 	// --- 暗転ブロックの描画 ---
 	if (fadeState_ != FADE_NONE) {
-		// 右上から左下への斜めラインの合計値の最大
 		int maxDiagonal = kCols + kRows;
+		float progress = 0.0f;
 
-		// 現在のタイマーに基づいた進行度 (0.0 ～ 1.0)
-		float progress = (float)fadeTimer_ / kFadeMax;
+		if (fadeState_ == FADE_OUT) {
+			// FADE_OUT：タイマー 0→Max に向かってブロックが増える
+			progress = (float)fadeTimer_ / kFadeMax;
+		} else {
+			// FADE_IN：タイマー 0→Max に向かってブロックが減る
+			progress = 1.0f - ((float)fadeTimer_ / kFadeMax);
+		}
+
 		int currentThreshold = (int)(maxDiagonal * progress);
 
 		for (int y = 0; y < kRows; y++) {
 			for (int x = 0; x < kCols; x++) {
-				// 右上からの距離を計算 (xが大きければ右上、yが大きければ下)
-				// 右上(x:max, y:0) から 左下(x:0, y:max) へ
-				// 式: (kCols - x) + y  が小さいほど右上
 				int diagonalPos = (kCols - 1 - x) + y;
-
 				if (diagonalPos <= currentThreshold) {
 					Novice::DrawBox(
 						x * kBlockSize, y * kBlockSize,
-						kBlockSize, kBlockSize,
+						kBlockSize + 1, kBlockSize + 1,
 						0.0f, BLACK, kFillModeSolid
 					);
 				}
