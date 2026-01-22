@@ -48,7 +48,8 @@ public:
 		bool isBlet;
 	}status_;//status＿で宣言
 
-
+	// 音
+	int soundJump = -1;
 
 	Player();
 	void InitPlayer();

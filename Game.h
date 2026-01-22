@@ -107,6 +107,10 @@ private:
 	int soundClick;
 	int soundStart;
 	int soundDelete;
+	int soundButtonPress;
+	int soundSceneChange;
+	int voiceSceneChange = -1;
+
 	// 更新
 	void Update();
 

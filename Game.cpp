@@ -79,6 +79,9 @@ void Game::Initialize() {
 	soundStart = Novice::LoadAudio("./Sounds/komandoStart.mp3");
 	soundDelete = Novice::LoadAudio("./Sounds/modosu.mp3");
 
+	soundButtonPress = Novice::LoadAudio("./Sounds/switchOn.mp3");
+	soundSceneChange = Novice::LoadAudio("./Sounds/anten.mp3");
+
 	/*------------------------------
 	ここにレイヤー名をいれるんだ！！
 	-----------------------------*/
@@ -154,7 +157,14 @@ void Game::Update(char keys[256], char preKeys[256]) {
 
 		// プレイヤーがボタンを踏んだら
 		if (IsPlayerHit(player, btn)) {
-			btn.isPressed = true;
+			if (btn.isPressed == false) {
+
+				// 音を鳴らす（ループなし）
+				Novice::PlayAudio(soundButtonPress, false, 1.0f);
+
+				// 押された状態にする
+				btn.isPressed = true;
+			}
 
 			// ★ここで連動！
 			// 「このボタンと同じlinkIdを持つドア」をすべて探して開ける
@@ -274,7 +284,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 			if (isCommandAdded) {
 				
 				if (Novice::IsPlayingAudio(soundClick) == 0 || soundClick != -1) {
-					Novice::PlayAudio(soundClick, false, 1.0f);
+					Novice::PlayAudio(soundClick, false, 0.7f);
 				}
 			}
 
@@ -323,6 +333,13 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		// --- 暗転が完了した瞬間の処理 ---
 		if (fadeState_ == FADE_OUT) {
 			if (fadeTimer_ >= kFadeMax) {
+				if (voiceSceneChange != -1) {
+					if (Novice::IsPlayingAudio(voiceSceneChange)) {
+						Novice::StopAudio(voiceSceneChange);
+					}
+					voiceSceneChange = -1; // 止めたらリセット
+				}
+
 				// ステージ番号を更新
 				int nextIdx = scrollCamera->GetStageIndex() + 1;
 				if (nextIdx < 3) {
@@ -359,6 +376,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 	Vector2 camOffset = scrollCamera->GetOffset();
 	if (player->status_.pos.y > (camOffset.y + 1200.0f)) {
 		if (scrollCamera->GetStageIndex() + 1 < 3) {
+			voiceSceneChange=Novice::PlayAudio(soundSceneChange, false, 1.0f);
 			fadeState_ = FADE_OUT; // 暗転開始
 			fadeTimer_ = 0;
 		}
