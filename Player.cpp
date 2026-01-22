@@ -6,6 +6,7 @@
 Player::Player() {
 	status_.pos.x = 300.0f;
 	status_.pos.y = 704.0f;
+	soundJump = Novice::LoadAudio("./Sounds/jump.mp3");
 	InitPlayer();
 }
 
@@ -41,6 +42,7 @@ void Player::InitPlayer() {
 	cmdIndex = 0;
 
 	status_.waitTimer = 0;
+
 }
 
 void Player::UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHeight][kMapWidth], std::vector<Block>& blocks) {
@@ -216,6 +218,7 @@ void Player::MovePlayer(char keys[256], char preKeys[256],
 				if (keys[DIK_SPACE] && !preKeys[DIK_SPACE]) {
 					status_.isJumop = true;
 					status_.Velocity.y = -status_.jumpPower;
+					Novice::PlayAudio(soundJump, false, 0.6f);
 				}
 			}
 
@@ -279,6 +282,7 @@ void Player::ActionTryJump() {
 	if (!status_.isJumop) {
 		status_.isJumop = true;
 		status_.Velocity.y = -status_.jumpPower;
+		Novice::PlayAudio(soundJump, false, 0.6f);
 	}
 }
 
@@ -819,4 +823,4 @@ void Player::CheckBlockCeiling(std::vector<Block>& blocks) {
 
 
 
-//私はGitを許さない
+//私はGitを許さない　<-!?!!?!?

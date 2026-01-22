@@ -68,6 +68,20 @@ void Game::Initialize() {
 	btnStart = { 1450, 300, 180, 80, "START", (CommandType)-1, (int)WHITE, texStart };
 	btnReset = { 1670, 300, 180, 80, "STOP",  (CommandType)-1, (int)WHITE, texStop };
 
+	/*----------------------------------
+				その他画像
+	-------------------------------------*/
+	texRouter = Novice::LoadTexture("./Images/ruta.png");
+
+	/*------------------------
+				音
+	------------------------*/
+	soundClick = Novice::LoadAudio("./Sounds/komandoCorect.mp3");
+	soundStart = Novice::LoadAudio("./Sounds/komandoStart.mp3");
+	soundDelete = Novice::LoadAudio("./Sounds/modosu.mp3");
+
+	soundButtonPress = Novice::LoadAudio("./Sounds/switchOn.mp3");
+	soundSceneChange = Novice::LoadAudio("./Sounds/anten.mp3");
 
 	/*------------------------------
 	ここにレイヤー名をいれるんだ！！
@@ -144,7 +158,14 @@ void Game::Update(char keys[256], char preKeys[256]) {
 
 		// プレイヤーがボタンを踏んだら
 		if (IsPlayerHit(player, btn)) {
-			btn.isPressed = true;
+			if (btn.isPressed == false) {
+
+				// 音を鳴らす（ループなし）
+				Novice::PlayAudio(soundButtonPress, false, 1.0f);
+
+				// 押された状態にする
+				btn.isPressed = true;
+			}
 
 			// ★ここで連動！
 			// 「このボタンと同じlinkIdを持つドア」をすべて探して開ける
@@ -240,22 +261,33 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		player->CheckBlockGround(map->Blocks);
 		player->CheckBlockWall(map->Blocks);
 		if (isClick) {
+			bool isCommandAdded = false;
 			// 1. パレットのボタンを押してコマンドを追加
 			if (mouseX >= btnRight.x && mouseX <= btnRight.x + btnRight.w && mouseY >= btnRight.y && mouseY <= btnRight.y + btnRight.h) {
 				commandList.push_back(btnRight.cmdType);
+				isCommandAdded = true;
 			}
 
 			if (mouseX >= btnLeft.x && mouseX <= btnLeft.x + btnLeft.w && mouseY >= btnLeft.y && mouseY <= btnLeft.y + btnLeft.h) {
 				commandList.push_back(btnLeft.cmdType);
+				isCommandAdded = true;
 			}
 
 			if (mouseX >= btnWallJump.x && mouseX <= btnWallJump.x + btnWallJump.w && mouseY >= btnWallJump.y && mouseY <= btnWallJump.y + btnWallJump.h) {
 				commandList.push_back(btnWallJump.cmdType);
+				isCommandAdded = true;
 			}
 			if (mouseX >= btnCliffJump.x && mouseX <= btnCliffJump.x + btnCliffJump.w && mouseY >= btnCliffJump.y && mouseY <= btnCliffJump.y + btnCliffJump.h) {
 				commandList.push_back(btnCliffJump.cmdType);
+				isCommandAdded = true;
 			}
 
+			if (isCommandAdded) {
+				
+				if (Novice::IsPlayingAudio(soundClick) == 0 || soundClick != -1) {
+					Novice::PlayAudio(soundClick, false, 0.4f);
+				}
+			}
 
 
 			// 2. スタートボタン
@@ -267,6 +299,8 @@ void Game::Update(char keys[256], char preKeys[256]) {
 					isRunning = true;
 					player->InitPlayer();
 					cantStartCount = 0;
+
+					Novice::PlayAudio(soundStart, false, 0.4f);
 				} else {
 					// (オプション)「ここではスタートできません」みたいなログを出してもいいかも
 					cantStartCount = 60;
@@ -279,6 +313,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 				if (mouseX >= 1450 && mouseX <= 1450 + 400 &&
 					mouseY >= blockY && mouseY <= blockY + 50) {
 
+					Novice::PlayAudio(soundDelete, false, 1.0f);
 					// このコマンドを削除する
 					commandList.erase(commandList.begin() + i);
 					break;
@@ -299,6 +334,13 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		// --- 暗転が完了した瞬間の処理 ---
 		if (fadeState_ == FADE_OUT) {
 			if (fadeTimer_ >= kFadeMax) {
+				if (voiceSceneChange != -1) {
+					if (Novice::IsPlayingAudio(voiceSceneChange)) {
+						Novice::StopAudio(voiceSceneChange);
+					}
+					voiceSceneChange = -1; // 止めたらリセット
+				}
+
 				// ステージ番号を更新
 				int nextIdx = scrollCamera->GetStageIndex() + 1;
 				if (nextIdx < 3) {
@@ -335,6 +377,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 	Vector2 camOffset = scrollCamera->GetOffset();
 	if (player->status_.pos.y > (camOffset.y + 1200.0f)) {
 		if (scrollCamera->GetStageIndex() + 1 < 3) {
+			voiceSceneChange=Novice::PlayAudio(soundSceneChange, false, 1.0f);
 			fadeState_ = FADE_OUT; // 暗転開始
 			fadeTimer_ = 0;
 		}
@@ -376,7 +419,7 @@ void Game::Draw() {
 	// ルーター描画
 	for (int i = 0; i < routerCount; i++) {
 		if (router[i] != nullptr) {
-			router[i]->DrawRouter(offset); // Routerクラスにある描画関数を呼ぶ
+			router[i]->DrawRouter(offset);// Routerクラスにある描画関数を呼ぶ
 		}
 	}
 

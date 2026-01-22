@@ -102,6 +102,15 @@ private:
 	int texCliffJump;
 	int texStart;
 	int texStop;
+	int texRouter;
+
+	// 音
+	int soundClick;
+	int soundStart;
+	int soundDelete;
+	int soundButtonPress;
+	int soundSceneChange;
+	int voiceSceneChange = -1;
 
 	// 更新
 	void Update();

@@ -26,7 +26,8 @@ void Map::Initialize() {
 	-----------------------------*/
 	blockTextures[1] = Novice::LoadTexture("./Images./block.png");
 	blockTextures[2] = Novice::LoadTexture("./halfBlock.png");// ハーフブロック用
-	blockTextures[3] = Novice::LoadTexture("./halfBlock.png");// ルーター用
+	blockTextures[3] = Novice::LoadTexture("./Images./ruta.png");// <-だれかルーター書いて；；
+
 
 	buttonOffTexture = Novice::LoadTexture("./Images/Switch-Push-Blue.png");
 	buttonOnTexture = Novice::LoadTexture("./Images/Switch-Blue.png");
@@ -262,7 +263,7 @@ void Map::Update(Player& player) {
 				if (block.linkId == 50) {
 					// ベルトの向きに合わせて移動
 					if (blet.isReversed) {
-						block.pos.x -= blet.speed*0.01f;
+						block.pos.x -= blet.speed*0.04f;
 					}
 					else {
 						block.pos.x += blet.speed;
@@ -323,13 +324,11 @@ void Map::Draw(Vector2 offset) {
 
 			// --- ルーターのデバッグ表示 (ID: 3) ---
 			if (id == 3) {
-				Novice::DrawBox(
+				Novice::DrawSprite(
 					(int)(x * kTileSize - offset.x),
 					(int)(y * kTileSize - offset.y),
-					kTileSize, kTileSize,
-					0.0f,
-					RED,
-					kFillModeSolid
+					blockTextures[id],
+					1.0f, 1.0f, 0.0f, 0xFFFFFFFF
 				);
 			}
 
