@@ -513,7 +513,7 @@ void Map::Draw(Vector2 offset) {
 		int drawY = (int)(Block.pos.y - offset.y);
 
 		// 押されているかどうかの色分け（押されたら黄色、未踏なら赤）
-		unsigned int color = Block.isActive ? 0xFFFF00FF : 0x00FF00FF;
+		unsigned int color = Block.isActive ? 0xFFFF00FF : 0xFFFFFFFF;
 
 		// ボタンは少し小さく表示して、ドアと区別しやすくする
 		int btnSize = kTileSize;

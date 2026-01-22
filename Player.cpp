@@ -778,17 +778,24 @@ void Player::CheckBlockWall(std::vector<Block>& blocks) {
 
 
 void Player::CheckBlockGround(std::vector<Block>& blocks) {
-	if (status_.Velocity.y < 0) return; // 上昇中は無視
+	if (status_.Velocity.y < 0) return;
 
 	for (auto& block : blocks) {
-		// X軸の範囲内か
-		if (status_.pos.x + status_.width > block.pos.x && status_.pos.x < block.pos.x + kTileSize) {
-			// 足元が「上面」を貫通した瞬間を捕まえる
-			if (status_.pos.y + status_.height > block.pos.y && status_.pos.y + status_.height < block.pos.y + 20.0f) {
+		// X座標がブロックの範囲内か
+		if (status_.pos.x + status_.width > block.pos.x + 5.0f &&
+			status_.pos.x < block.pos.x + kTileSize - 5.0f) {
+
+			// ★ここが「動いている時」の補正判定
+			// isActiveなら40pxの厚みで足元をキャッチ、止まってれば20px
+			float hitThreshold = block.isActive ? 40.0f : 20.0f;
+
+			if (status_.pos.y + status_.height > block.pos.y &&
+				status_.pos.y + status_.height < block.pos.y + hitThreshold) {
+
 				status_.pos.y = block.pos.y - status_.height;
 				status_.Velocity.y = 0.0f;
 				status_.isJumop = false;
-				status_.isBlet = true;
+				status_.isBlet = true; // 動く床に乗っている状態
 			}
 		}
 	}
