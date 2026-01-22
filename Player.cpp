@@ -809,3 +809,7 @@ void Player::CheckBlockCeiling(std::vector<Block>& blocks) {
 		}
 	}
 }
+
+
+
+//私はGitを許さない
