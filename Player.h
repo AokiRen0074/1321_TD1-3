@@ -49,6 +49,7 @@ public:
 	}status_;//status＿で宣言
 
 
+
 	Player();
 	void InitPlayer();
 	void UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHeight][kMapWidth], std::vector<Block>& blocks);
