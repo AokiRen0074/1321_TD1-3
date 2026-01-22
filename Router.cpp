@@ -82,3 +82,5 @@ void Router::DrawRouter(Vector2 offset) {
 	);
 }
 
+
+//Gitは俺を嫌っている
