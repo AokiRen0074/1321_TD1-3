@@ -10,8 +10,8 @@ enum TileType {
 	BLOCK = 1,
 	HALF_FLOOR = 2,
 	ROUTER = 3,
-	SCRAPMACHINE=4,
-	WATER=5
+	SCRAPMACHINE = 4,
+	WATER = 5
 };
 
 class Player
@@ -51,9 +51,11 @@ public:
 
 	Player();
 	void InitPlayer();
-	void UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHeight][kMapWidth]);
+	void UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHeight][kMapWidth], std::vector<Block>& blocks);
 	// コマンドで動かせる
-	void UpdateByCommands(const std::vector<CommandType>& commands, int mapData[kMapHeight][kMapWidth], std::vector<Beltconveyor>& Beltconveyors);	void DrawPlayer(Vector2 offset);
+	void UpdateByCommands(const std::vector<CommandType>& commands, int mapData[kMapHeight][kMapWidth],
+		std::vector<Beltconveyor>& Beltconveyors, std::vector<Block>& blocks);
+	void DrawPlayer(Vector2 offset);
 
 	// 今どのコマンドを実行中か
 	int GetCurrentCommandIndex() const { return cmdIndex; }
@@ -65,7 +67,9 @@ public:
 	void CheckWaterCollision(std::vector<Water>& waters);
 	void CheckBeltCollision(std::vector<Beltconveyor>& Beltconveyors);
 	void CheckFlooCollision(std::vector< VanishingFloor>& VanishingFloors);
-private:
+	void CheckBlockWall(std::vector<Block>& blocks);
+	void CheckBlockGround(std::vector<Block>& blocks);
+	void CheckBlockCeiling(std::vector<Block>& blocks);
 
 	void MovePlayer(char keys[256], char preKeys[256], int  mapData[kMapHeight][kMapWidth]);
 	void Gravity();
@@ -76,11 +80,11 @@ private:
 	void ActionTryJump();
 
 	// センサー関数
-	bool IsWallAhead(int mapData[kMapHeight][kMapWidth]);
+	bool IsWallAhead(int mapData[kMapHeight][kMapWidth], std::vector<Block>& blocks);
 	bool IsCliffAhead(int mapData[kMapHeight][kMapWidth], const std::vector<Beltconveyor>& Beltconveyors);
 
 	// マップの当たり判定関数
-	void isGrounded(int mapData[kMapHeight][kMapWidth],int mapId);
+	void isGrounded(int mapData[kMapHeight][kMapWidth], int mapId);
 	void isRightWall(int mapData[kMapHeight][kMapWidth], int mapId);
 	void isLeftWall(int mapData[kMapHeight][kMapWidth], int mapId);
 	void isTopWall(int mapData[kMapHeight][kMapWidth], int mapId);

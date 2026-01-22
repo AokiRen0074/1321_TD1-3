@@ -114,19 +114,21 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 				// ここにギミックを追加する処理を書く
 				if (id == "Door") {
 					Door newDoor;
-					newDoor.pos = {px, py};
+					newDoor.pos = { px, py };
 					newDoor.linkId = linkId;
 					newDoor.isOpen = false;
 					doors.push_back(newDoor);
-				} else if (id == "Button") {
+				}
+				else if (id == "Button") {
 					ButtonA newButton;
-					newButton.pos = {px, py};
+					newButton.pos = { px, py };
 					newButton.linkId = linkId;
 					newButton.isPressed = false;
 					buttons.push_back(newButton);
-				} else if (id == "Water") {
+				}
+				else if (id == "Water") {
 					Water newWater;
-					newWater.pos = {px, py};
+					newWater.pos = { px, py };
 					newWater.linkId = linkId;
 					newWater.isActive = true;
 					waters.push_back(newWater);
@@ -134,7 +136,7 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 				else if (id == "Beltconveyor") {
 
 					Beltconveyor nweBeltconveyor;
-					nweBeltconveyor.pos={ px,py };
+					nweBeltconveyor.pos = { px,py };
 					nweBeltconveyor.speed = 6.0f;
 					nweBeltconveyor.linkId = linkId;
 					nweBeltconveyor.isReversed = true;
@@ -156,6 +158,15 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					nweVanishingFloor.linkId = linkId;
 					nweVanishingFloor.isActive = true;
 					VanishingFloors.push_back(nweVanishingFloor);
+
+				}
+				else if (id == "Block") {
+
+					Block nweBlocks;
+					nweBlocks.pos = { px,py };
+					nweBlocks.linkId = linkId;
+					nweBlocks.isActive = false;
+					Blocks.push_back(nweBlocks);
 
 				}
 
@@ -194,14 +205,14 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					// --- ここを新しい引数に合わせて修正 ---
 					LiftGimmickBlock newLift;
 					// 引数：座標, ID, 移動制限(Vector2), スピード(float)
-					newLift.Initialize({px, py}, linkId, moveLimit, speed); 
+					newLift.Initialize({ px, py }, linkId, moveLimit, speed);
 					liftBlocks.push_back(newLift);
 				}
 
 				if (id == "LiftGimmickButton") {
 					LiftGimmickButton newLiftButton;
 					// 初期化（linkIdは既存の読み込み処理で取得済みのものを使用）
-					newLiftButton.Initialize({px, py}, {32.0f, 32.0f}, linkId);
+					newLiftButton.Initialize({ px, py }, { 32.0f, 32.0f }, linkId);
 					liftButtons.push_back(newLiftButton);
 				}
 			}
@@ -233,14 +244,34 @@ void Map::Update(Player& player) {
 		lift.CheckCollision(player); // ここで各リフトとプレイヤーを判定
 	}
 
-	for (auto& blet : Beltconveyors) {
+	// --- ブロックとベルトの連動処理 ---
+// --- ブロックとベルトの連動処理 ---
+	for (auto& block : Blocks) {
+		// LDtk読み込み時にfalseにしているので、デバッグ用に一旦チェックを外すか、
+		// LDtk側で初期状態を制御できるようにしてください。
+		// if (!block.isActive) continue; 
 
-		if (blet.linkId == 100) {
+		for (auto& blet : Beltconveyors) {
+		
 
+	
+
+			// 【重要】当たり判定：ブロックの底面がベルトの上面に触れているか
+			if (block.isActive) {
+
+				if (block.linkId == 50) {
+					// ベルトの向きに合わせて移動
+					if (blet.isReversed) {
+						block.pos.x -= blet.speed*0.01f;
+					}
+					else {
+						block.pos.x += blet.speed;
+					}
+				}
+
+			}
 		}
-
 	}
-
 }
 
 void Map::Draw(Vector2 offset) {
@@ -416,7 +447,7 @@ void Map::Draw(Vector2 offset) {
 		int btnSize = kTileSize;
 
 		Novice::DrawBox(
-			drawX-5, drawY, // 少しずらして中央に
+			drawX - 5, drawY, // 少しずらして中央に
 			btnSize * 16, btnSize,
 			0.0f,
 			color,
@@ -441,7 +472,7 @@ void Map::Draw(Vector2 offset) {
 
 		Novice::DrawBox(
 			drawX, drawY, // 少しずらして中央に
-			btnSize*2, btnSize/2,
+			btnSize * 2, btnSize / 2,
 			0.0f,
 			color,
 			kFillModeSolid
@@ -475,6 +506,29 @@ void Map::Draw(Vector2 offset) {
 		// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
 	}
 
+
+	for (const auto& Block : Blocks) {
+		// 描画座標の計算
+		int drawX = (int)(Block.pos.x - offset.x);
+		int drawY = (int)(Block.pos.y - offset.y);
+
+		// 押されているかどうかの色分け（押されたら黄色、未踏なら赤）
+		unsigned int color = Block.isActive ? 0xFFFF00FF : 0x00FF00FF;
+
+		// ボタンは少し小さく表示して、ドアと区別しやすくする
+		int btnSize = kTileSize;
+
+		Novice::DrawBox(
+			drawX, drawY, // 少しずらして中央に
+			btnSize, btnSize,
+			0.0f,
+			color,
+			kFillModeSolid
+		);
+
+		// デバッグ用: リンクIDを確認したい場合
+		// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
+	}
 
 	// Map.cpp の Draw内に追加してデバッグ
 	Novice::ScreenPrintf(0, 100, "MapData[10][10]: %d", mapData[10][10]);

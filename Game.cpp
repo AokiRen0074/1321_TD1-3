@@ -173,6 +173,13 @@ void Game::Update(char keys[256], char preKeys[256]) {
 					floor.isActive = false; // ドアオープン！
 				}
 			}
+
+			for (auto& block : map->Blocks) {
+				if (block.linkId == btn.linkId) {
+					block.isActive = true; // ドアオープン！
+				}
+			}
+
 		}
 	}
 
@@ -201,11 +208,13 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		player->CheckWaterCollision(map->waters);
 		player->CheckBeltCollision(map->Beltconveyors);
 		player->CheckFlooCollision(map->VanishingFloors);
-
+		player->CheckBlockGround(map->Blocks);
+		player->CheckBlockWall(map->Blocks);
 		if (isArrived) {
 			isRunning = false;
-		} else {
-			player->UpdateByCommands(commandList, map->mapData, map->Beltconveyors);
+		}
+		else {
+			player->UpdateByCommands(commandList, map->mapData, map->Beltconveyors,map->Blocks);
 		}
 
 		// ストップボタン判定
@@ -216,9 +225,12 @@ void Game::Update(char keys[256], char preKeys[256]) {
 				player->InitPlayer();
 			}
 		}
-	} else {
+		player->CheckBlockGround(map->Blocks);
+		player->CheckBlockWall(map->Blocks);
+	}
+	else {
 		// --- 編集モード ---
-		player->UpdatePlayer(keys, preKeys, map->mapData);
+		player->UpdatePlayer(keys, preKeys, map->mapData,map->Blocks);
 		//player->CheckRouter(router, 250);
 		bool isInsideRouter = player->CheckRouter(router, 250);
 
@@ -227,7 +239,8 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		player->CheckWaterCollision(map->waters);
 		player->CheckBeltCollision(map->Beltconveyors);
 		player->CheckFlooCollision(map->VanishingFloors);
-
+		player->CheckBlockGround(map->Blocks);
+		player->CheckBlockWall(map->Blocks);
 		if (isClick) {
 			// 1. パレットのボタンを押してコマンドを追加
 			if (mouseX >= btnRight.x && mouseX <= btnRight.x + btnRight.w && mouseY >= btnRight.y && mouseY <= btnRight.y + btnRight.h) {
@@ -363,7 +376,8 @@ void Game::Update(char keys[256], char preKeys[256]) {
 	// スクロールカメラ
 	// プレイヤーの座標を渡してカメラを更新
 	scrollCamera->Update(player->status_.pos);
-
+	player->CheckBlockGround(map->Blocks);
+	player->CheckBlockWall(map->Blocks);
 }
 
 void Game::Draw() {

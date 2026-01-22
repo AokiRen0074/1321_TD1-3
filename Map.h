@@ -47,6 +47,12 @@ struct VanishingFloor {
 	bool isActive;  // 開いているか
 };
 
+struct Block {
+	Vector2 pos;  // 座標
+	int linkId;   // LDtkで設定したIntegerの値
+	bool isActive;  // 開いているか
+};
+
 class Map {
 public:
 	// マップデータ
@@ -70,6 +76,7 @@ public:
 	std::vector<Beltconveyor> Beltconveyors;
 	std::vector< Checkpoint>Checkpoints;//チェックポイント
 	std::vector< VanishingFloor>VanishingFloors;//チェックポイント
+	std::vector< Block>Blocks;//チェックポイント
 
 	// 初期化
 	void Initialize();
