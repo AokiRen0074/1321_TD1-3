@@ -15,6 +15,8 @@ public:
 	
 	}router_;
 	int id_;
+	int electricGraphHandles[4];
+	int frameCounter; // アニメーション用
 
 	Router(int id, int mapData[kMapHeight][kMapWidth]);
 	void InitRouter(int id, int mapData[kMapHeight][kMapWidth]);
