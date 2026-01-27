@@ -434,29 +434,113 @@ void Map::Draw(Vector2 offset) {
 
 
 	// (Map.hで定義した belt リストをループ)
+	// (Map.hで定義した belt リストをループ)
+	// ★ここから書き換え
+
+	// (Map.hで定義した belt リストをループ)
+	// ★ここから書き換え（リアル版）
+
+	// (Map.hで定義した belt リストをループ)
+	// ★ここから書き換え（デザイン維持・車輪優先表示版）
+
+	// アニメーション用のタイマー
+	static float beltAnimTimer = 0.0f;
+	beltAnimTimer += 1.0f;
+
+	// --- カラーパレット（前回のデザインを維持） ---
+	const unsigned int kColorFrameDark = 0x333344FF;  // フレーム暗部
+	const unsigned int kColorFrameLight = 0x666677FF; // フレーム明部
+	const unsigned int kColorBeltBase = 0x222222FF;   // ベルト地
+	const unsigned int kColorTreadDark = 0x444444FF;  // トレッド暗部
+	const unsigned int kColorTreadLight = 0x777777FF; // トレッド明部
+	const unsigned int kColorRollerRim = 0x888899FF;  // 車輪の縁
+	const unsigned int kColorRollerHub = 0x222233FF;  // 車輪の軸
+
 	for (const auto& Beltconveyor : Beltconveyors) {
-		// 描画座標の計算
-		int drawX = (int)(Beltconveyor.pos.x - offset.x);
-		int drawY = (int)(Beltconveyor.pos.y - offset.y);
+		float drawX = Beltconveyor.pos.x - offset.x;
+		float drawY = Beltconveyor.pos.y - offset.y;
+		float width = kTileSize * 16.0f;
+		float height = kTileSize;
+		float rollerRadius = height / 2.0f;
 
-		// 押されているかどうかの色分け（押されたら黄色、未踏なら赤）
-		unsigned int color = Beltconveyor.isReversed ? 0x00FF00FF : 0x0000FFFF;
+		// 逆回転ならマイナス、通常ならプラス
+		float direction = Beltconveyor.isReversed ? -1.0f : 1.0f;
+		float currentSpeed = Beltconveyor.speed * 0.8f;
 
-		// ボタンは少し小さく表示して、ドアと区別しやすくする
-		int btnSize = kTileSize;
+		// =================================================
+		// 1. 支持フレーム（一番奥）
+		// =================================================
+		Novice::DrawBox((int)drawX, (int)drawY, (int)width, (int)height, 0.0f, kColorFrameDark, kFillModeSolid);
+		Novice::DrawBox((int)drawX, (int)drawY, (int)width, 4, 0.0f, kColorFrameLight, kFillModeSolid);
+		Novice::DrawBox((int)drawX, (int)(drawY + height - 4), (int)width, 4, 0.0f, BLACK, kFillModeSolid);
 
-		Novice::DrawBox(
-			drawX - 5, drawY, // 少しずらして中央に
-			btnSize * 16, btnSize,
-			0.0f,
-			color,
-			kFillModeSolid
-		);
+		// =================================================
+		// 2. ベルト表面（真ん中）
+		// =================================================
+		// 車輪の少し内側からベルトを描画（車輪と馴染ませる）
+		float beltMargin = rollerRadius * 0.5f;
+		float beltSurfaceY = drawY + 4.0f;
+		float beltSurfaceH = height - 8.0f;
+		float beltStartX = drawX + beltMargin;
+		float beltEndX = drawX + width - beltMargin;
+		float beltSurfaceW = beltEndX - beltStartX;
 
-		// デバッグ用: リンクIDを確認したい場合
-		// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
+		// 地の色
+		Novice::DrawBox((int)beltStartX, (int)beltSurfaceY, (int)beltSurfaceW, (int)beltSurfaceH, 0.0f, kColorBeltBase, kFillModeSolid);
+
+		// 流れるトレッド
+		float treadSpacing = 48.0f;
+		float treadWidth = 24.0f;
+		float animOffset = fmodf(beltAnimTimer * currentSpeed * direction, treadSpacing);
+		if (animOffset < 0) animOffset += treadSpacing;
+
+		for (float i = -treadSpacing; i < beltSurfaceW + treadSpacing; i += treadSpacing) {
+			float treadX = beltStartX + i + animOffset;
+
+			// 範囲チェック
+			if (treadX + treadWidth < beltStartX || treadX > beltEndX) continue;
+
+			float drawStartX = max(treadX, beltStartX);
+			float drawEndX = min(treadX + treadWidth, beltEndX);
+			float drawW = drawEndX - drawStartX;
+
+			if (drawW > 0) {
+				Novice::DrawBox((int)drawStartX, (int)beltSurfaceY, (int)drawW, (int)beltSurfaceH, 0.0f, kColorTreadDark, kFillModeSolid);
+				float highlightX = (direction > 0) ? drawStartX : drawEndX - 2;
+				Novice::DrawBox((int)highlightX, (int)beltSurfaceY, 2, (int)beltSurfaceH, 0.0f, kColorTreadLight, kFillModeSolid);
+			}
+		}
+
+		// ベルト全体の影
+		Novice::DrawBox((int)drawX, (int)(drawY + height / 2.0f), (int)width, (int)(height / 2.0f), 0.0f, 0x00000044, kFillModeSolid);
+
+		// =================================================
+		// 3. 回転する車輪（一番手前！）
+		// =================================================
+		// これを最後に描くことで、車輪がベルトの上に表示され、回転がはっきり見えます
+		auto DrawRotatingRoller = [&](float centerX, float centerY) {
+			// 車輪のベース
+			Novice::DrawEllipse((int)centerX, (int)centerY, (int)rollerRadius, (int)rollerRadius, 0.0f, kColorRollerRim, kFillModeSolid);
+			Novice::DrawEllipse((int)centerX, (int)centerY, (int)(rollerRadius * 0.6f), (int)(rollerRadius * 0.6f), 0.0f, kColorRollerHub, kFillModeSolid);
+			Novice::DrawEllipse((int)centerX, (int)centerY, (int)rollerRadius, (int)rollerRadius, 0.0f, BLACK, kFillModeWireFrame);
+
+			// 回転アニメーション（スポーク）
+			float angleBase = beltAnimTimer * currentSpeed * direction * 0.05f;
+			for (int i = 0; i < 4; i++) { // 4本に増やして回転を分かりやすく
+				float angle = angleBase + (i * 2.0f * 3.14159f / 4.0f);
+				float endX = centerX + cosf(angle) * (rollerRadius * 0.85f);
+				float endY = centerY + sinf(angle) * (rollerRadius * 0.85f);
+				// スポークを目立つ色で描画
+				Novice::DrawLine((int)centerX, (int)centerY, (int)endX, (int)endY, kColorFrameLight);
+			}
+			};
+
+		// 左車輪
+		DrawRotatingRoller(drawX + rollerRadius, drawY + rollerRadius);
+		// 右車輪
+		DrawRotatingRoller(drawX + width - rollerRadius, drawY + rollerRadius);
 	}
-
+	// ★書き換えここまで
 
 	for (const auto& Checkpoint : Checkpoints) {
 		// 描画座標の計算
