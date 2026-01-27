@@ -351,38 +351,43 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		// --- 暗転が完了した瞬間の処理 ---
 		if (fadeState_ == FADE_OUT) {
 			if (fadeTimer_ >= kFadeMax) {
+				// 音の停止処理などはそのまま
 				if (voiceSceneChange != -1) {
 					if (Novice::IsPlayingAudio(voiceSceneChange)) {
 						Novice::StopAudio(voiceSceneChange);
 					}
-					voiceSceneChange = -1; // 止めたらリセット
+					voiceSceneChange = -1;
 				}
 
+				// --- ここから修正 ---
 				if (isGameOver) {
-		
+					// 【死亡リスポーンの場合】
 					player->status_.pos = respawnPos;
 					player->InitPlayer();
-
-					isGameOver = false; 
+					isGameOver = false;
 					cantStartCount = 0;
-					isRunning = false;  
-					// 即再開したい場合は isRunning = true; にしてください
+					isRunning = false;
+
+					// 重要：死亡時はステージIndexを更新しない。カメラを今のステージ位置に合わせるだけ。
+					scrollCamera->Update(player->status_.pos);
+
 				}
+				else {
+					// 【落下によるステージ進行の場合】
+					int nextIdx = scrollCamera->GetStageIndex() + 1;
+					if (nextIdx < 3) {
+						scrollCamera->SetStageIndex(nextIdx);
 
-				// ステージ番号を更新
-				int nextIdx = scrollCamera->GetStageIndex() + 1;
-				if (nextIdx < 3) {
-					scrollCamera->SetStageIndex(nextIdx);
+						// カメラの座標を新しいステージ位置に反映させる
+						scrollCamera->Update(player->status_.pos);
 
-					// カメラの座標を新しいステージ位置に反映さる
-					scrollCamera->Update(player->status_.pos); 
-
-					// プレイヤーのY座標を新しいステージの「上空」へ
-					float newY = scrollCamera->GetStageYPosition(nextIdx);
-					player->status_.pos.y = newY - 200.0f; 
+						// プレイヤーのY座標を新しいステージの「上空」へ
+						float newY = scrollCamera->GetStageYPosition(nextIdx);
+						player->status_.pos.y = newY - 200.0f;
+					}
 				}
+				// --- 修正ここまで ---
 
-				// 次のフェーズ（画面を明るくする）へ
 				fadeState_ = FADE_IN;
 				fadeTimer_ = 0;
 			}

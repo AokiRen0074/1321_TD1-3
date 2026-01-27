@@ -25,6 +25,7 @@ void Player::InitPlayer() {
 	status_.scale.y = 64.0f;
 
 	status_.isActive = true;
+	status_.isAlive = true;
 	status_.isJumop = false;
 	status_.jumpPower = 20.0f;
 	status_.radius = 64.0f;
@@ -622,6 +623,7 @@ void Player::CheckWaterCollision(std::vector<Water>& waters) {
 			//ここに数位没処理をかく
 			//ここもチャックポイントの変数を入れて戻せる要確認
 			status_.isActive = false;
+			status_.isAlive = false;
 		}
 	}
 }

@@ -36,6 +36,7 @@ public:
 		float width;
 
 		bool isActive;//生存フラグ
+		bool isAlive;
 		float jumpPower;//ジャンプ力
 		bool isJumop;//ジャンプフラグ
 		float radius;
