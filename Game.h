@@ -48,7 +48,9 @@ public:
 	// 描画
 	void Draw();
 
-
+	bool isGameOver = false;
+	int gameOverTimer = 0;
+	const int kGameOverTimeMax = 240;
 
 private:
 	// screen
