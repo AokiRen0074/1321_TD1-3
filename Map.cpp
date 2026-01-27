@@ -119,22 +119,19 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					newDoor.linkId = linkId;
 					newDoor.isOpen = false;
 					doors.push_back(newDoor);
-				}
-				else if (id == "Button") {
+				} else if (id == "Button") {
 					ButtonA newButton;
 					newButton.pos = { px, py };
 					newButton.linkId = linkId;
 					newButton.isPressed = false;
 					buttons.push_back(newButton);
-				}
-				else if (id == "Water") {
+				} else if (id == "Water") {
 					Water newWater;
 					newWater.pos = { px, py };
 					newWater.linkId = linkId;
 					newWater.isActive = true;
 					waters.push_back(newWater);
-				}
-				else if (id == "Beltconveyor") {
+				} else if (id == "Beltconveyor") {
 
 					Beltconveyor nweBeltconveyor;
 					nweBeltconveyor.pos = { px,py };
@@ -142,8 +139,7 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					nweBeltconveyor.linkId = linkId;
 					nweBeltconveyor.isReversed = true;
 					Beltconveyors.push_back(nweBeltconveyor);
-				}
-				else if (id == "Checkpoint") {
+				} else if (id == "Checkpoint") {
 
 					Checkpoint nweCheckpoint;
 					nweCheckpoint.pos = { px,py };
@@ -151,8 +147,7 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					nweCheckpoint.isActive = true;
 					Checkpoints.push_back(nweCheckpoint);
 
-				}
-				else if (id == "VanishingFloor") {
+				} else if (id == "VanishingFloor") {
 
 					VanishingFloor nweVanishingFloor;
 					nweVanishingFloor.pos = { px,py };
@@ -160,8 +155,7 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					nweVanishingFloor.isActive = true;
 					VanishingFloors.push_back(nweVanishingFloor);
 
-				}
-				else if (id == "Block") {
+				} else if (id == "Block") {
 
 					Block nweBlocks;
 					nweBlocks.pos = { px,py };
@@ -185,18 +179,15 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 							if (!field["__value"].is_null()) {
 								linkId = field["__value"];
 							}
-						}
-						else if (fieldName == "MoveX") { // 横移動量
+						} else if (fieldName == "MoveX") { // 横移動量
 							if (!field["__value"].is_null()) {
 								moveLimit.x = field["__value"];
 							}
-						}
-						else if (fieldName == "MoveY") { // 縦移動量
+						} else if (fieldName == "MoveY") { // 縦移動量
 							if (!field["__value"].is_null()) {
 								moveLimit.y = field["__value"];
 							}
-						}
-						else if (fieldName == "Speed") { // スピード
+						} else if (fieldName == "Speed") { // スピード
 							if (!field["__value"].is_null()) {
 								speed = field["__value"];
 							}
@@ -253,9 +244,9 @@ void Map::Update(Player& player) {
 		// if (!block.isActive) continue; 
 
 		for (auto& blet : Beltconveyors) {
-		
 
-	
+
+
 
 			// 【重要】当たり判定：ブロックの底面がベルトの上面に触れているか
 			if (block.isActive) {
@@ -263,9 +254,8 @@ void Map::Update(Player& player) {
 				if (block.linkId == 50) {
 					// ベルトの向きに合わせて移動
 					if (blet.isReversed) {
-						block.pos.x -= blet.speed*0.04f;
-					}
-					else {
+						block.pos.x -= blet.speed * 0.04f;
+					} else {
 						block.pos.x += blet.speed;
 					}
 				}
@@ -332,16 +322,67 @@ void Map::Draw(Vector2 offset) {
 				);
 			}
 
-			// --- 追加ブロック (ID: 4) ---
+			// --- 追加ブロック (ID: 4) - 床から突き出るスパイク/クラッシャー ---
 			if (id == 4) {
-				Novice::DrawBox(
-					(int)(x * kTileSize - offset.x),
-					(int)(y * kTileSize - offset.y),
-					kTileSize, kTileSize,
-					0.0f,
-					0xFFFFFFFF,
-					kFillModeSolid
-				);
+				int drawX = (int)(x * kTileSize - offset.x);
+				int drawY = (int)(y * kTileSize - offset.y);
+				int w = kTileSize;
+				int h = kTileSize;
+
+				unsigned int cBody = 0x555555FF;      // 本体
+				unsigned int cShadow = 0x222222FF;    // 影
+				unsigned int cHighlight = 0x888888FF; // ハイライト
+				unsigned int cBlade = 0xAAAAAAFF;     // 刃
+
+				// 1. 本体部分（下側に配置）
+				int bodyH = (int)(h * 0.65f);
+				int bodyY = drawY + (h - bodyH); // Y座標を下にずらす
+
+				// ベース
+				Novice::DrawBox(drawX, bodyY, w, bodyH, 0.0f, cBody, kFillModeSolid);
+				Novice::DrawBox(drawX, bodyY, w, bodyH, 0.0f, cShadow, kFillModeWireFrame);
+
+				// ディテール（溝やボルト）
+				Novice::DrawLine(drawX, bodyY + 1, drawX + w - 1, bodyY + 1, cHighlight);
+				Novice::DrawLine(drawX, bodyY + bodyH / 2, drawX + w, bodyY + bodyH / 2, cShadow);
+
+				int boltSize = 4;
+				Novice::DrawBox(drawX + 4, bodyY + bodyH - 8, boltSize, boltSize, 0.0f, cShadow, kFillModeSolid);
+				Novice::DrawBox(drawX + w - 8, bodyY + bodyH - 8, boltSize, boltSize, 0.0f, cShadow, kFillModeSolid);
+
+
+				// 2. 刃部分（上側に配置・上向き△）
+				int toothCount = 3;
+				float toothW = (float)w / toothCount;
+				int toothH = h - bodyH;
+				int startYA = drawY; // 一番上から描画開始
+
+				for (int i = 0; i < toothCount; ++i) {
+					int currentX = drawX + (int)(i * toothW);
+
+					// 上向きの三角形（スパイク）
+					Novice::DrawTriangle(
+						currentX + (int)(toothW / 2), startYA,           // 上先端
+						currentX, startYA + toothH,                      // 左下
+						currentX + (int)toothW, startYA + toothH,        // 右下
+						cBlade,
+						kFillModeSolid
+					);
+					// 輪郭線
+					Novice::DrawTriangle(
+						currentX + (int)(toothW / 2), startYA,
+						currentX, startYA + toothH,
+						currentX + (int)toothW, startYA + toothH,
+						cShadow,
+						kFillModeWireFrame
+					);
+					// ハイライト（中央線）
+					Novice::DrawLine(
+						currentX + (int)(toothW / 2), startYA + 2,
+						currentX + (int)(toothW / 2), startYA + toothH,
+						cHighlight
+					);
+				}
 			}
 		}
 	}
@@ -433,16 +474,7 @@ void Map::Draw(Vector2 offset) {
 	}
 
 
-	// (Map.hで定義した belt リストをループ)
-	// (Map.hで定義した belt リストをループ)
-	// ★ここから書き換え
-
-	// (Map.hで定義した belt リストをループ)
-	// ★ここから書き換え（リアル版）
-
-	// (Map.hで定義した belt リストをループ)
-	// ★ここから書き換え（デザイン維持・車輪優先表示版）
-
+	
 	// アニメーション用のタイマー
 	static float beltAnimTimer = 0.0f;
 	beltAnimTimer += 1.0f;
@@ -617,5 +649,28 @@ void Map::Draw(Vector2 offset) {
 	Novice::ScreenPrintf(0, 100, "MapData[10][10]: %d", mapData[10][10]);
 }
 
+/*
+　 　 　 　 　 　 　 　 ┏━━━┳━━━┓
+　 　 　 　 　 　 　 　 ┃ 　♎ 　┃ ♍ ┃
+　 　 　 　 　 　 　 　 ┃天秤宮┃処女宮┃
+　 　 　 　 ┏━━━╋━━━┻━━━╋━━━┓
+　 　 　 　 ┃ 　♏ 　┃　 　 　 　 　 　  ┃ 　♌ ┃
+　 　 　 　 ┃天蝎宮┃　 　 　 　 　 　 　 ┃獅子宮┃
+	┏━━━╋━━━┛　 　 　 　 　 　    ┗━━━╋━━━┓
+	┃ 　♐	 ┃　 　 　 　 　 　 　 　 　 　 　 　 ┃ 　♋ ┃
+	┃人馬宮┃　 　 　 　 　 　 　 　 　 　  　 　 ┃巨蟹宮┃
+	┣━━━┫　 　 　 　 　  　 　 　 　 　 　 　 ┣━━━┫
+	┃ 　♑ ┃　 　 　 　 　  　 　 　 　 　 　 　 ┃ 　♊ ┃
+	┃磨羯宮┃　 　 　  　 　 　 　 　 　 　 　 　 ┃双子宮┃
+	┗━━━╋━━━┓　 　 　 　 　 　 　 ┏━━━╋━━━┛
+　 　 　 　 ┃ 　♒ 　┃　 　 　 　 　 　 　┃ 　♉ ┃
+　 　 　 　 ┃宝瓶宮┃　 　 　 　 　 　     ┃金牛宮┃
+　 　 　 　 ┗━━━╋━━━┳━━━╋━━━┛
+　 　 　 　 　 　 　┃ 　♓ ┃ 　♈ 
+　 　 　 　 　 　 　┃双魚宮┃白羊宮┃
+　 　 　 　 　 　 　┗━━━┻━━━┛
+
+黄道十二宮配置図
 
 
+  */
