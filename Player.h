@@ -55,6 +55,7 @@ public:
 		bool isCommandMove;//コマンドで動かす範囲
 		bool isWaitingForLanding;//着地待ちフラグ
 		bool isBlet;
+		bool isBlack;
 	}status_;//status＿で宣言
 
 	// 音
@@ -106,7 +107,7 @@ public:
 
 	// センサー関数
 	bool IsWallAhead(int mapData[kMapHeight][kMapWidth], std::vector<Block>& blocks);
-	bool IsCliffAhead(int mapData[kMapHeight][kMapWidth], const std::vector<Beltconveyor>& Beltconveyors);
+	bool IsCliffAhead(int mapData[kMapHeight][kMapWidth], const std::vector<Beltconveyor>& Beltconveyors, const std::vector<Block>& blocks);
 
 	// マップの当たり判定関数
 	void isGrounded(int mapData[kMapHeight][kMapWidth], int mapId);

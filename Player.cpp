@@ -4,8 +4,37 @@
 #include "const.h"
 #include "json.hpp" 
 
+
 float EaseOutExpo(float x) {
 	return x == 1.0f ? 1.0f : 1.0f - powf(2.0f, -10.0f * x);
+}
+
+
+// HSVから0xRRGGBBAA形式に変換する関数
+// これをEnemy.cppなどの上の方にコピー＆ペーストしてください
+unsigned int HSVToRGBA(float h, float s, float v, unsigned char alpha) {
+	float r, g, b;
+
+	int i = (int)(h / 60.0f) % 6;
+	float f = (h / 60.0f) - (int)(h / 60.0f);
+	float p = v * (1.0f - s);
+	float q = v * (1.0f - f * s);
+	float t = v * (1.0f - (1.0f - f) * s);
+
+	switch (i) {
+	case 0: r = v; g = t; b = p; break;
+	case 1: r = q; g = v; b = p; break;
+	case 2: r = p; g = v; b = t; break;
+	case 3: r = p; g = q; b = v; break;
+	case 4: r = t; g = p; b = v; break;
+	case 5: r = v; g = p; b = q; break;
+	default: r = 0; g = 0; b = 0; break;
+	}
+
+	return ((unsigned int)(r * 255) << 24) |
+		((unsigned int)(g * 255) << 16) |
+		((unsigned int)(b * 255) << 8) |
+		alpha;
 }
 
 
@@ -45,6 +74,7 @@ void Player::InitPlayer() {
 	status_.isMoveFree = true;
 	status_.isCommandMove = true;
 	status_.isBlet = false;
+	status_.isBlack = false;
 	status_.isWaitingForLanding = false;
 	cmdIndex = 0;
 
@@ -161,10 +191,10 @@ void Player::DrawRespawnAnim(Vector2 offset) {
 
 void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapData[kMapHeight][kMapWidth],
 	std::vector<Beltconveyor>& Beltconveyors, std::vector<Block>& blocks) {
-	// ★重要：コマンド処理の「前」に一旦フラグをリセットしてベルト判定を行う
-	// これにより、コマンド移動前の正しい接地状態がセットされる
-	CheckBeltCollision(Beltconveyors);
-	bool wallFoundNow = IsWallAhead(mapData, blocks);
+
+	// 冒頭でのフラグ初期化
+	status_.isBlet = false;
+	status_.isBlack = false;
 
 	if (cmdIndex < commands.size()) {
 		CommandType currentCmd = commands[cmdIndex];
@@ -181,126 +211,144 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 			break;
 
 		case CommandType::CheckWallJump:
-			// ① まず左右に移動
+			// 1. まず移動させる
 			status_.pos.x += status_.Speed * status_.moveDir;
 
-			// ② ★ここが重要！移動直後に「壁の押し戻し」を呼ぶ
-			// これを使わないと、次の wallFoundNow が「めり込み」のせいで正しく判定できません
+			// 2. 移動した「後」に、壁や床の押し戻しを確定させる
 			CheckBlockWall(blocks);
 			CheckBeltCollision(Beltconveyors);
+			CheckBlockGround(blocks);
 			CheckBlockCeiling(blocks);
 
-			// ③ 壁の表面に座標が固定された状態で、壁があるかチェック
-			wallFoundNow = IsWallAhead(mapData, blocks);
-
-			if (status_.isWaitingForLanding) {
-				if (!status_.isJumop) {
-					status_.isWaitingForLanding = false;
-					cmdIndex++;
-				}
+			// 3. 特殊床ならジャンプせず次へ（ break で switch を抜ける）
+			if (status_.isBlet || status_.isBlack) {
+				status_.isWaitingForLanding = false;
+				status_.isJumop = false;
+				status_.Velocity.y = 0;
+				cmdIndex++;
+				break;
 			}
-			else {
-				// ④ ここで「空中ジャンプが暴発する」のを防ぐため、
-				// 「本当に地面にいるか」も条件に追加します
-				if (!status_.isJumop && wallFoundNow) {
+
+			// 4. 壁があるかチェック（押し戻された後の最終位置で判定）
+			// wallFoundNow はこの直前で再取得する
+			if (IsWallAhead(mapData, blocks)) {
+				if (!status_.isJumop && !status_.isWaitingForLanding) {
 					ActionTryJump();
 					status_.isWaitingForLanding = true;
 				}
 			}
+
+			// 5. 着地待ち処理
+			if (status_.isWaitingForLanding && !status_.isJumop) {
+				status_.isWaitingForLanding = false;
+				cmdIndex++;
+			}
 			break;
 
-
 		case CommandType::CheckCliffJump:
-
-			// 1. まず移動
 			status_.pos.x += status_.Speed * status_.moveDir;
-			// 2. 「今」ベルトに乗っているかを即座に確定させる
-			CheckBeltCollision(Beltconveyors);
+
 			CheckBlockWall(blocks);
+			CheckBeltCollision(Beltconveyors);
+			CheckBlockGround(blocks);
 			CheckBlockCeiling(blocks);
 
-			// 3. ベルトに乗っているなら、崖なんて関係ない。ジャンプもせず次へ
-			if (status_.isBlet) {
+			if (status_.isBlet || status_.isBlack) {
 				status_.isWaitingForLanding = false;
 				status_.isJumop = false;
 				status_.Velocity.y = 0;
-				cmdIndex++; // 「この場所の崖（ベルト）は攻略した」とみなして次のコマンドへ
+				cmdIndex++;
 				break;
 			}
-			// 4. ベルトに乗っていない場合のみ、通常の着地待ち or 崖チェック
-			if (!status_.isBlet) {
-				if (status_.isWaitingForLanding) {
-					if (!status_.isJumop) {
-						status_.isWaitingForLanding = false;
-						cmdIndex++;
-					}
+
+			if (IsCliffAhead(mapData, Beltconveyors, blocks)) {
+				if (!status_.isJumop && !status_.isWaitingForLanding) {
+					ActionTryJump();
+					status_.isWaitingForLanding = true;
 				}
-				else {
-					// ここでも isBlet をチェック（念のため）
-					if (!status_.isJumop && !status_.isBlet && IsCliffAhead(mapData, Beltconveyors)) {
-						ActionTryJump(); // ジャンプ開始
-						status_.isWaitingForLanding = true;
-					}
-				}
+			}
+
+			if (status_.isWaitingForLanding && !status_.isJumop) {
+				status_.isWaitingForLanding = false;
+				cmdIndex++;
 			}
 			break;
 		}
 	}
 	else {
+		// コマンド終了後の慣性移動
 		status_.pos.x += status_.Speed * status_.moveDir;
 		CheckBeltCollision(Beltconveyors);
+		CheckBlockGround(blocks);
 	}
-	// --- 物理処理 ---
+
+	// --- 物理処理（共通） ---
+	// ここで mapData に対する押し戻しを行う
 	isRightWall(mapData, BLOCK);
 	isLeftWall(mapData, BLOCK);
-	// ★Gravity の前に isBlet が確定している必要がある
 
 	Gravity();
-	// ★接地判定（ベルトに乗っていない時だけ重力や接地を通常処理する）
-	if (!status_.isBlet) {
+
+	if (!status_.isBlet && !status_.isBlack) {
 		isGrounded(mapData, BLOCK);
 		isGrounded(mapData, HALF_FLOOR);
 		isGrounded(mapData, SCRAPMACHINE);
 	}
-
 	else {
-		// ベルトに乗っているなら空中フラグを折る（ダメ押し）
 		status_.isJumop = false;
 		status_.Velocity.y = 0;
 	}
 	isTopWall(mapData, BLOCK);
-	// --- UpdateByCommands の一番最後 ---
-	// 1. 全ての移動が終わった「最終的な座標」で、もう一度ベルト判定を上書きする
-	CheckBeltCollision(Beltconveyors);
-	// 2. もし最終的にベルトに乗っているなら、このフレームで発生したジャンプを「なかったこと」にする
-	if (status_.isBlet) {
-		status_.isJumop = false;
-		status_.Velocity.y = 0;
-		// もしジャンプ待ち状態に入ってしまっていたら、それも解除してコマンドを進める
-		if (status_.isWaitingForLanding) {
-			status_.isWaitingForLanding = false;
-			cmdIndex++;
-
-		}
-	}
-	CheckBlockCeiling(blocks);
-
-	CheckBlockGround(blocks);
 }
-
 
 void Player::DrawPlayer(Vector2 offset) {
 	if (status_.isActive) {
+		// --- プレイヤーの描画処理（DrawPlayer内） ---
 
-		Novice::DrawBox(
-			static_cast<int>(status_.pos.x - offset.x),
-			static_cast<int>(status_.pos.y - offset.y),
-			static_cast<int>(status_.scale.x),
-			static_cast<int>(status_.scale.y),
-			0.0f, WHITE, kFillModeSolid
-		);
+		float playerHue = 180.0f; // 鮮やかなシアン
+		unsigned int pColor = HSVToRGBA(playerHue, 0.8f, 1.0f, 0xFF);
+
+		// 描画用の座標計算
+		int px = static_cast<int>(status_.pos.x - offset.x);
+		int py = static_cast<int>(status_.pos.y - offset.y);
+		int pw = static_cast<int>(status_.scale.x);
+		int ph = static_cast<int>(status_.scale.y);
+
+		// 1. 外枠（四角形の4辺）
+		Novice::DrawLine(px, py, px + pw, py, pColor);
+		Novice::DrawLine(px, py + ph, px + pw, py + ph, pColor);
+		Novice::DrawLine(px, py, px, py + ph, pColor);
+		Novice::DrawLine(px + pw, py, px + pw, py + ph, pColor);
+
+		// 2. 内側のコア（斜めライン）
+		unsigned int pCoreCol = HSVToRGBA(playerHue, 0.5f, 0.7f, 0x88);
+		Novice::DrawLine(px, py, px + pw, py + ph, pCoreCol);
+		Novice::DrawLine(px + pw, py, px, py + ph, pCoreCol);
+
+		// 3. 複数スキャンライン（上から下へ流れる）
+		static float pTimer = 0.0f;
+		pTimer += 0.05f;
+
+		int pLineCount = 3; // 線の本数
+		for (int i = 0; i < pLineCount; i++) {
+			// 四角形の高さ（ph）の中でループするように計算
+			float offset_ = fmodf(pTimer * 40.0f + (i * (ph / (float)pLineCount)), (float)ph);
+			int pScanY = py + static_cast<int>(offset_);
+
+			// 中央付近が一番明るく、端にいくほど少しだけ薄くなるように（任意）
+			unsigned char pAlpha = (unsigned char)(200);
+
+			// スキャンライン描画（白に近いシアン）
+			Novice::DrawLine(
+				px, pScanY,
+				px + pw, pScanY,
+				HSVToRGBA(playerHue, 0.3f, 1.0f, pAlpha)
+			);
+		}
 	}
 	Novice::ScreenPrintf(0, 400, "isBlet%d", status_.isBlet);
+	Novice::ScreenPrintf(0, 440, "isBlack%d", status_.isBlack);
+
 
 }
 
@@ -313,6 +361,10 @@ void Player::MovePlayer(char keys[256], char preKeys[256],
 	int mapData[kMapHeight][kMapWidth]) {
 	if (status_.isActive) {
 		if (status_.isMoveFree) {
+
+			status_.isBlet = false;
+			status_.isBlack = false;
+
 			// ジャンプ（押した瞬間）
 			if (!status_.isJumop) {
 				if (keys[DIK_SPACE] && !preKeys[DIK_SPACE]) {
@@ -371,11 +423,10 @@ void Player::ActionMoveRight() {
 }
 
 void Player::ActionTryJump() {
-	// ★鉄壁のガード
-	// どんな理由があろうと、ベルトの上ならジャンプ入力を「無効」にする
-	if (status_.isBlet) {
+	// どんな理由があろうと、特殊な床の上ならジャンプ処理そのものを「抹消」する
+	if (status_.isBlet || status_.isBlack) {
 		status_.isJumop = false;
-		status_.Velocity.y = 0;
+		status_.Velocity.y = 0.0f; // 速度を殺す
 		return;
 	}
 
@@ -424,39 +475,51 @@ bool Player::IsWallAhead(int mapData[kMapHeight][kMapWidth], std::vector<Block>&
 
 // 足元が崖かチェック
 // 引数に Beltconveyors を追加
-bool Player::IsCliffAhead(int mapData[kMapHeight][kMapWidth], const std::vector<Beltconveyor>& Beltconveyors) {
-	// 1. ベルトに乗っている最中なら、先がどうあれ今はジャンプしない
-	if (status_.isBlet) return false;
+bool Player::IsCliffAhead(int mapData[kMapHeight][kMapWidth],
+	const std::vector<Beltconveyor>& Beltconveyors,
+	const std::vector<Block>& blocks) { // ★引数を追加
 
-	// 2. チェックする座標を計算
+	// 1. 特殊な床に乗っている最中なら、先がどうあれ今はジャンプしない
+	if (status_.isBlet || status_.isBlack) return false;
+
+	// 2. チェックする足元の座標を計算
 	float checkWorldX = status_.pos.x + (status_.moveDir > 0 ? status_.width + 5.0f : -5.0f);
-	float checkWorldY = status_.pos.y + status_.height + 5.0f; // 足元より少し下
+	float checkWorldY = status_.pos.y + status_.height + 5.0f;
 
 	int tileX = (int)(checkWorldX / kTileSize);
 	int tileY = (int)(checkWorldY / kTileSize);
 
-	// 3. マップチップが「空」であることを確認
-	bool isMapEmpty = false;
+	// 3. マップチップ（静止壁）の確認
+	bool isMapEmpty = true;
 	if (tileX >= 0 && tileX < kMapWidth && tileY >= 0 && tileY < kMapHeight) {
-		if (mapData[tileY][tileX] == 0) {
-			isMapEmpty = true;
+		if (mapData[tileY][tileX] != 0) {
+			isMapEmpty = false; // 何か床がある
 		}
 	}
 
-	// 4. マップが空の時、そこに「ベルトのエミッター」がないか確認する
+	// マップチップが空なら、動体（ベルトやブロック）をチェックする
 	if (isMapEmpty) {
+		// 4. ベルトコンベアの確認
 		for (const auto& belt : Beltconveyors) {
-			float beltWidth = (float)kTileSize * 16; // エミッターの幅
+			float beltWidth = (float)kTileSize * 16;
 			float beltHeight = (float)kTileSize;
-
-			// チェック地点がベルトの矩形内に入っているか？
 			if (checkWorldX >= belt.pos.x && checkWorldX <= belt.pos.x + beltWidth &&
 				checkWorldY >= belt.pos.y && checkWorldY <= belt.pos.y + beltHeight) {
-				// ベルトがある！そこは崖ではない！
-				return false;
+				return false; // ベルトがあるから崖じゃない
 			}
 		}
-		// マップも空で、ベルトもなかったら、そこは本物の崖！
+
+		// 5. ★追加：動くブロックの確認
+		for (const auto& block : blocks) {
+			float blockWidth = (float)kTileSize;
+			float blockHeight = (float)kTileSize;
+			if (checkWorldX >= block.pos.x && checkWorldX <= block.pos.x + blockWidth &&
+				checkWorldY >= block.pos.y && checkWorldY <= block.pos.y + blockHeight) {
+				return false; // ブロックがあるから崖じゃない
+			}
+		}
+
+		// どこにも床がなかったら本物の崖
 		return true;
 	}
 
@@ -729,7 +792,6 @@ void Player::CheckWaterCollision(std::vector<Water>& waters) {
 
 
 void Player::CheckBeltCollision(std::vector<Beltconveyor>& Beltconveyors) {
-	status_.isBlet = false;
 
 	for (auto& belt : Beltconveyors) {
 		float beltWidth = (float)kTileSize * 16;
@@ -784,6 +846,7 @@ void Player::CheckBeltCollision(std::vector<Beltconveyor>& Beltconveyors) {
 				status_.Velocity.y = 0.0f;
 			}
 		}
+		
 	}
 }
 
@@ -886,12 +949,9 @@ void Player::CheckBlockGround(std::vector<Block>& blocks) {
 	if (status_.Velocity.y < 0) return;
 
 	for (auto& block : blocks) {
-		// X座標がブロックの範囲内か
 		if (status_.pos.x + status_.width > block.pos.x + 5.0f &&
 			status_.pos.x < block.pos.x + kTileSize - 5.0f) {
 
-			// ★ここが「動いている時」の補正判定
-			// isActiveなら40pxの厚みで足元をキャッチ、止まってれば20px
 			float hitThreshold = block.isActive ? 40.0f : 20.0f;
 
 			if (status_.pos.y + status_.height > block.pos.y &&
@@ -900,10 +960,14 @@ void Player::CheckBlockGround(std::vector<Block>& blocks) {
 				status_.pos.y = block.pos.y - status_.height;
 				status_.Velocity.y = 0.0f;
 				status_.isJumop = false;
-				status_.isBlet = true; // 動く床に乗っている状態
+				status_.isBlack = true; // 当たった時だけ true
+				return; // 1つ当たれば十分なので抜ける
 			}
 		}
 	}
+	// ここまで来たら当たっていないということだが、
+	// 呼び出し元の UpdateByCommands の冒頭で false にしているので、
+	// ここで敢えて false に書かなくても大丈夫なはずです。
 }
 
 
@@ -917,7 +981,9 @@ void Player::CheckBlockCeiling(std::vector<Block>& blocks) {
 			if (status_.pos.y < block.pos.y + kTileSize && status_.pos.y > block.pos.y + kTileSize - 25.0f) {
 				status_.pos.y = block.pos.y + kTileSize;
 				status_.Velocity.y = 0.0f;
+
 			}
+			
 		}
 	}
 }
