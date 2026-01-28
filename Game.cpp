@@ -689,8 +689,10 @@ void Game::Draw() {
 	// 実行中などのステータス表示
 	if (isRunning) {
 		Novice::ScreenPrintf(10, 10, "RUNNING...");
-		// 画面全体に枠を表示して実行中っぽくする
-		Novice::DrawBox(0, 0, 1400, 1080, 0.0f, 0xFF000044, kFillModeSolid);
+		if (!player->IsRespawning()) {
+			// 実行中の赤いフィルター
+			Novice::DrawBox(0, 0, 1400, 1080, 0.0f, 0xFF000044, kFillModeSolid);
+		}
 	} else {
 		Novice::ScreenPrintf(10, 10, "EDIT MODE");
 	}
