@@ -3,6 +3,12 @@
 #include "Map.h"
 #include "const.h"
 #include "json.hpp" 
+
+float EaseOutExpo(float x) {
+	return x == 1.0f ? 1.0f : 1.0f - powf(2.0f, -10.0f * x);
+}
+
+
 Player::Player() {
 	status_.pos.x = 300.0f;
 	status_.pos.y = 704.0f;
@@ -56,6 +62,99 @@ void Player::UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHe
 	}
 }
 
+// ---------------------------------------------------------
+// 復活演出の開始（粒子をばら撒く準備）
+// ---------------------------------------------------------
+void Player::StartRespawnAnim(Vector2 centerPos) {
+	isRespawning = true;
+	respawnTimer = 0;
+	status_.isActive = false; // 演出中は本体の当たり判定や描画を消す
+	status_.pos = centerPos;  // 座標はセットしておく
+
+	particles.clear();
+
+	// プレイヤーのサイズ（64x64）を 8x8 くらいのブロックに分割して粒子にする
+	float pSize = 8.0f; // 粒子のサイズ
+	int cols = (int)(status_.width / pSize);
+	int rows = (int)(status_.height / pSize);
+
+	for (int y = 0; y < rows; y++) {
+		for (int x = 0; x < cols; x++) {
+			RespawnParticle p;
+
+			// ゴール地点（プレイヤーの形状通りに並んだ位置）
+			// ※ centerPos を基準に計算
+			p.targetPos.x = centerPos.x + (x * pSize);
+			p.targetPos.y = centerPos.y + (y * pSize);
+
+			// スタート地点（周囲にランダムに散らばらせる）
+			// 角度をランダムに決める
+			float angle = (float)(rand() % 360) * (3.14159f / 180.0f);
+			// 距離（300px 〜 500px 離れたところから飛んでくる）
+			float dist = 300.0f + (float)(rand() % 200);
+
+			p.startPos.x = p.targetPos.x + cosf(angle) * dist;
+			p.startPos.y = p.targetPos.y + sinf(angle) * dist;
+
+			p.currentPos = p.startPos;
+			p.size = pSize;
+
+			// 色（白やシアンなどを混ぜるとサイバー感が出る）
+			if (rand() % 2 == 0) p.color = 0xFFFFFFFF; // 白
+			else p.color = 0x00FFFFFF; // シアン
+
+			particles.push_back(p);
+		}
+	}
+}
+
+// ---------------------------------------------------------
+// 復活演出の更新（粒子を集める）
+// ---------------------------------------------------------
+void Player::UpdateRespawnAnim() {
+	if (!isRespawning) return;
+
+	respawnTimer++;
+
+	// 進行度 (0.0 〜 1.0)
+	float t = (float)respawnTimer / (float)kRespawnTimeMax;
+	if (t > 1.0f) t = 1.0f;
+
+	// イージング適用（シュッ！と集まる動き）
+	float easeT = EaseOutExpo(t);
+
+	for (auto& p : particles) {
+		// 線形補間: Start + (End - Start) * t
+		p.currentPos.x = p.startPos.x + (p.targetPos.x - p.startPos.x) * easeT;
+		p.currentPos.y = p.startPos.y + (p.targetPos.y - p.startPos.y) * easeT;
+	}
+
+	// 演出終了
+	if (respawnTimer >= kRespawnTimeMax) {
+		isRespawning = false;
+		status_.isActive = true; // プレイヤー本体を出現させる
+		particles.clear();       // 粒子はもう不要
+
+		// 復活時の着地音とか鳴らすと気持ちいい
+		// Novice::PlayAudio(soundLand, ...); 
+	}
+}
+
+// ---------------------------------------------------------
+// 復活演出の描画
+// ---------------------------------------------------------
+void Player::DrawRespawnAnim(Vector2 offset) {
+	if (!isRespawning) return;
+
+	for (const auto& p : particles) {
+		Novice::DrawBox(
+			(int)(p.currentPos.x - offset.x),
+			(int)(p.currentPos.y - offset.y),
+			(int)p.size, (int)p.size,
+			0.0f, p.color, kFillModeSolid
+		);
+	}
+}
 
 
 // コマンドで動かせるプレイヤー
