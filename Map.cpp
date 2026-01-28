@@ -518,29 +518,92 @@ void Map::Draw(Vector2 offset) {
 		button.Draw(offset);
 	}
 
-	// (Map.hで定義した buttons リストをループ)
+	// (Map.hで定義した waters リストをループ)
+	// ★ここから書き換え（電気ビリビリ版）
+
+	// アニメーション用タイマー（乱数のシード代わりにもなる）
+	static int elecTimer = 0;
+	elecTimer++;
+
 	for (const auto& water : waters) {
-		// 描画座標の計算
+		// 描画座標
 		int drawX = (int)(water.pos.x - offset.x);
 		int drawY = (int)(water.pos.y - offset.y);
 
-		// 押されているかどうかの色分け（押されたら黄色、未踏なら赤）
-		unsigned int color = water.isActive ? 0x00FF00FF : 0x00FF0000;
+		// サイズ（前のコードに合わせて横幅8ブロック分としていますが、必要に応じて変えてください）
+		int w = kTileSize * 8;
+		int h = kTileSize;
 
-		// ボタンは少し小さく表示して、ドアと区別しやすくする
-		int btnSize = kTileSize;
+		// OFF（isActive == false）なら描画しない
+		if (!water.isActive) continue;
 
-		Novice::DrawBox(
-			drawX, drawY, // 少しずらして中央に
-			btnSize * 8, btnSize,
-			0.0f,
-			color,
-			kFillModeSolid
-		);
+		// --- カラーパレット ---
+		// 電気の色（シアン〜白）
+		unsigned int cElecCore = 0xFFFFFFFF;    // 中心の白（コア）
+		unsigned int cElecGlow = 0x00FFFFCC;    // 周りの輝き（シアン、少し透明）
+
+		// 1. 背景の明滅（電気エネルギーが充満している感じ）
+		// sin波でアルファ値（透明度）を高速に揺らす
+		int alpha = 60 + (int)(sinf(elecTimer * 0.5f) * 40.0f); // 20~100くらいの透明度
+		if (alpha < 0) alpha = 0;
+		unsigned int cBg = (0x00FFFF00) | alpha; // RGB=シアン, A=変動
+
+		Novice::DrawBox(drawX, drawY, w, h, 0.0f, cBg, kFillModeSolid);
+
+
+		// 2. 枠線のビリビリ
+		// 枠の色を高速で切り替えて、不安定な感じを出す
+		unsigned int cFrame = (elecTimer % 4 < 2) ? cElecGlow : WHITE;
+		Novice::DrawBox(drawX, drawY, w, h, 0.0f, cFrame, kFillModeWireFrame);
+
+
+		// 3. 放電（稲妻ライン）の描画 
+		// ランダムなジグザグ線を横方向に走らせる
+		int numBolts = 2; // 稲妻の本数
+
+		for (int k = 0; k < numBolts; k++) {
+			// 稲妻の始点（左端のどこか）
+			float currentX = (float)drawX;
+			float currentY = (float)drawY + (rand() % h);
+
+			// 右端までジグザグに進むループ
+			while (currentX < drawX + w) {
+				// 次の点の座標（Xは10~30px進む、Yはランダムに振れる）
+				float nextX = currentX + (rand() % 20 + 10);
+				if (nextX > drawX + w) nextX = (float)(drawX + w); // はみ出し防止
+
+				// Y座標の振れ幅（大きくすると激しい）
+				float nextY = currentY + (rand() % 30 - 15);
+
+				// 上下からはみ出さないように制限
+				if (nextY < drawY) nextY = (float)drawY;
+				if (nextY > drawY + h) nextY = (float)(drawY + h);
+
+				// 線を描く（太く見せるために少しずらして2回描く）
+				Novice::DrawLine((int)currentX, (int)currentY, (int)nextX, (int)nextY, cElecCore);
+				Novice::DrawLine((int)currentX, (int)currentY + 1, (int)nextX, (int)nextY + 1, cElecGlow);
+
+				// 次の始点へ更新
+				currentX = nextX;
+				currentY = nextY;
+			}
+		}
+
+		// 4. バチバチする火花パーティクル（簡易的な点描画）
+		// ランダムな位置に四角い火花を散らす
+		int numSparks = 4;
+		for (int i = 0; i < numSparks; i++) {
+			int sx = drawX + (rand() % w);
+			int sy = drawY + (rand() % h);
+			int size = rand() % 3 + 2; // 2~4px
+			Novice::DrawBox(sx, sy, size, size, 0.0f, cElecCore, kFillModeSolid);
+		}
+	}
+	// ★書き換えここまで
 
 		// デバッグ用: リンクIDを確認したい場合
 		// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
-	}
+	
 
 
 	
