@@ -263,7 +263,7 @@ void Map::Update(Player& player) {
 				if (block.linkId == 50) {
 					// ベルトの向きに合わせて移動
 					if (blet.isReversed) {
-						block.pos.x -= blet.speed*0.04f;
+						block.pos.x -= blet.speed*0.01f;
 					}
 					else {
 						block.pos.x += blet.speed;
