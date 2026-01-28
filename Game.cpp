@@ -28,9 +28,9 @@ Game::~Game() {
 
 void Game::Initialize() {
 	// エリア定義
-	gameArea = {0, 0, 1400, 1080};
-	paletteArea = {1400, 0, 580, 400};     // 右上：パレット
-	programArea = {1400, 400, 580, 680};   // 右下：プログラム置き場
+	gameArea = { 0, 0, 1400, 1080 };
+	paletteArea = { 1400, 0, 580, 400 };     // 右上：パレット
+	programArea = { 1400, 400, 580, 680 };   // 右下：プログラム置き場
 
 	isRunning = false;
 	player->InitPlayer();
@@ -63,7 +63,7 @@ void Game::Initialize() {
 	float btnW = 400;
 	float btnH = 50;
 
-	btnLeft = { btnX, 50,  btnW, btnH, "Left",  CommandType::MoveLeft,(int) WHITE, texLeft };
+	btnLeft = { btnX, 50,  btnW, btnH, "Left",  CommandType::MoveLeft,(int)WHITE, texLeft };
 	btnRight = { btnX, 110, btnW, btnH, "Right", CommandType::MoveRight,(int)WHITE, texRight };
 	btnWallJump = { btnX, 170, btnW, btnH, "Wall",  CommandType::CheckWallJump,(int)WHITE, texWallJump };
 	btnCliffJump = { btnX, 230, btnW, btnH, "Cliff", CommandType::CheckCliffJump,(int)WHITE, texCliffJump };
@@ -89,7 +89,7 @@ void Game::Initialize() {
 	/*------------------------------
 	ここにレイヤー名をいれるんだ！！
 	-----------------------------*/
-	std::vector<std::string> layers = {"IntGrid", "HalfBlock"};
+	std::vector<std::string> layers = { "IntGrid", "HalfBlock" };
 
 	map->LoadMapFromLDtk("./mapTest9999.ldtk", layers);
 
@@ -237,20 +237,24 @@ void Game::Update(char keys[256], char preKeys[256]) {
 	// モード分岐
 	// ==========================================
 	if (isRunning) {
-		// --- 実行モード ---
-		bool isArrived = player->CheckRouter(router, 250);
-		//ドアと水とベルトの当たり判定とかの処理
-		player->CheckDoorCollision(map->doors);
-		player->CheckWaterCollision(map->waters);
-		player->CheckBeltCollision(map->Beltconveyors);
-		player->CheckFlooCollision(map->VanishingFloors);
-		player->CheckBlockGround(map->Blocks);
-		player->CheckBlockWall(map->Blocks);
-		if (isArrived) {
-			isRunning = false;
-		}
-		else {
-			player->UpdateByCommands(commandList, map->mapData, map->Beltconveyors,map->Blocks);
+
+		if (player->IsRespawning()) {
+			player->UpdateRespawnAnim(); // 粒子の計算だけする
+		} else {
+			// --- 実行モード ---
+			bool isArrived = player->CheckRouter(router, 250);
+			//ドアと水とベルトの当たり判定とかの処理
+			player->CheckDoorCollision(map->doors);
+			player->CheckWaterCollision(map->waters);
+			player->CheckBeltCollision(map->Beltconveyors);
+			player->CheckFlooCollision(map->VanishingFloors);
+			player->CheckBlockGround(map->Blocks);
+			player->CheckBlockWall(map->Blocks);
+			if (isArrived) {
+				isRunning = false;
+			} else {
+				player->UpdateByCommands(commandList, map->mapData, map->Beltconveyors, map->Blocks);
+			}
 		}
 
 		// ストップボタン判定
@@ -263,10 +267,9 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		}
 		player->CheckBlockGround(map->Blocks);
 		player->CheckBlockWall(map->Blocks);
-	}
-	else {
+	} else {
 		// --- 編集モード ---
-		player->UpdatePlayer(keys, preKeys, map->mapData,map->Blocks);
+		player->UpdatePlayer(keys, preKeys, map->mapData, map->Blocks);
 		//player->CheckRouter(router, 250);
 		bool isInsideRouter = player->CheckRouter(router, 250);
 
@@ -300,7 +303,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 			}
 
 			if (isCommandAdded) {
-				
+
 				if (Novice::IsPlayingAudio(soundClick) == 0 || soundClick != -1) {
 					Novice::PlayAudio(soundClick, false, 0.4f);
 				}
@@ -362,17 +365,21 @@ void Game::Update(char keys[256], char preKeys[256]) {
 				// --- ここから修正 ---
 				if (isGameOver) {
 					// 【死亡リスポーンの場合】
-					player->status_.pos = respawnPos;
-					player->InitPlayer();
+					player->status_.pos = respawnPos; // リスポーン位置へ
+					player->InitPlayer();             // ステータスリセット
+
+
+					player->StartRespawnAnim(respawnPos);
+
 					isGameOver = false;
 					cantStartCount = 0;
-					isRunning = false;
 
-					// 重要：死亡時はステージIndexを更新しない。カメラを今のステージ位置に合わせるだけ。
+					isRunning = true;
+
+
 					scrollCamera->Update(player->status_.pos);
 
-				}
-				else {
+				} else {
 					// 【落下によるステージ進行の場合】
 					int nextIdx = scrollCamera->GetStageIndex() + 1;
 					if (nextIdx < 3) {
@@ -398,19 +405,19 @@ void Game::Update(char keys[256], char preKeys[256]) {
 				// 完全に明るくなったら移動再開
 				fadeState_ = FADE_NONE;
 				fadeTimer_ = 0;
-				player->status_.isActive = true; 
+				player->status_.isActive = true;
 			}
 		}
 
 		// フェード中は通常のUpdateをスキップ
-		return; 
+		return;
 	}
 
 	// --- 既存の切り替えトリガー（落下判定） ---
 	Vector2 camOffset = scrollCamera->GetOffset();
 	if (player->status_.pos.y > (camOffset.y + 1200.0f)) {
 		if (scrollCamera->GetStageIndex() + 1 < 3) {
-			voiceSceneChange=Novice::PlayAudio(soundSceneChange, false, 1.0f);
+			voiceSceneChange = Novice::PlayAudio(soundSceneChange, false, 1.0f);
 			fadeState_ = FADE_OUT; // 暗転開始
 			fadeTimer_ = 0;
 		}
@@ -464,7 +471,7 @@ void Game::Draw() {
 	// プレイヤー描画
 	player->DrawPlayer(offset);
 
-
+	player->DrawRespawnAnim(offset);
 
 	// 警告メッセージの表示
 	if (cantStartCount > 0) {

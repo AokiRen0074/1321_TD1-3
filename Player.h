@@ -14,6 +14,14 @@ enum TileType {
 	WATER = 5
 };
 
+struct RespawnParticle {
+	Vector2 startPos;  // スタート地
+	Vector2 targetPos; // ゴール地点
+	Vector2 currentPos;// 現在地
+	float size;        // 粒子の大きさ
+	unsigned int color;// 色
+};
+
 class Player
 {
 
@@ -52,6 +60,20 @@ public:
 
 	// 音
 	int soundJump = -1;
+	bool isRespawning = false;       // 演出中フラグ
+	int respawnTimer = 0;            // タイマー
+	const int kRespawnTimeMax = 60;  // 演出にかかる時間（1秒）
+	std::vector<RespawnParticle> particles;
+
+	// ★追加: 復活演出を開始する関数
+	void StartRespawnAnim(Vector2 centerPos);
+
+	// ★追加: 復活演出の更新と描画
+	void UpdateRespawnAnim();
+	void DrawRespawnAnim(Vector2 offset);
+
+	// ★追加: 演出中かどうか
+	bool IsRespawning() { return isRespawning; }
 
 	Player();
 	void InitPlayer();
