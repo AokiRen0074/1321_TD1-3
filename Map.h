@@ -12,6 +12,7 @@ struct Door {
 	Vector2 pos;  // 座標
 	int linkId;   // LDtkで設定したIntegerの値
 	bool isOpen;  // 開いているか
+	float openRatio = 0.0f;
 };
 
 struct ButtonA {
