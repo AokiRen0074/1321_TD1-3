@@ -253,7 +253,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 			if (isArrived) {
 				isRunning = false;
 			} else {
-				player->UpdateByCommands(commandList, map->mapData, map->Beltconveyors, map->Blocks);
+				player->UpdateByCommands(commandList, map->mapData, map->Beltconveyors, map->Blocks, map->liftBlocks);
 			}
 		}
 

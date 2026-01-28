@@ -56,6 +56,7 @@ public:
 		bool isWaitingForLanding;//着地待ちフラグ
 		bool isBlet;
 		bool isBlack;
+		bool isLift;
 	}status_;//status＿で宣言
 
 	// 音
@@ -80,7 +81,7 @@ public:
 	void UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHeight][kMapWidth], std::vector<Block>& blocks);
 	// コマンドで動かせる
 	void UpdateByCommands(const std::vector<CommandType>& commands, int mapData[kMapHeight][kMapWidth],
-		std::vector<Beltconveyor>& Beltconveyors, std::vector<Block>& blocks);
+		std::vector<Beltconveyor>& Beltconveyors, std::vector<Block>& blocks, std::vector<LiftGimmickBlock>& liftBlocks);
 	void DrawPlayer(Vector2 offset);
 
 	// 今どのコマンドを実行中か
@@ -96,6 +97,7 @@ public:
 	void CheckBlockWall(std::vector<Block>& blocks);
 	void CheckBlockGround(std::vector<Block>& blocks);
 	void CheckBlockCeiling(std::vector<Block>& blocks);
+	void CheckLiftCollision(std::vector<LiftGimmickBlock>& liftBlocks); // リフトとの当たり判定
 
 	void MovePlayer(char keys[256], char preKeys[256], int  mapData[kMapHeight][kMapWidth]);
 	void Gravity();
@@ -107,7 +109,7 @@ public:
 
 	// センサー関数
 	bool IsWallAhead(int mapData[kMapHeight][kMapWidth], std::vector<Block>& blocks);
-	bool IsCliffAhead(int mapData[kMapHeight][kMapWidth], const std::vector<Beltconveyor>& Beltconveyors, const std::vector<Block>& blocks);
+	bool IsCliffAhead(int mapData[kMapHeight][kMapWidth], const std::vector<Beltconveyor>& Beltconveyors, const std::vector<Block>& blocks, const std::vector<LiftGimmickBlock>& liftBlocks);
 
 	// マップの当たり判定関数
 	void isGrounded(int mapData[kMapHeight][kMapWidth], int mapId);

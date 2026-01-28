@@ -190,11 +190,12 @@ void Player::DrawRespawnAnim(Vector2 offset) {
 // コマンドで動かせるプレイヤー
 
 void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapData[kMapHeight][kMapWidth],
-	std::vector<Beltconveyor>& Beltconveyors, std::vector<Block>& blocks) {
+	std::vector<Beltconveyor>& Beltconveyors, std::vector<Block>& blocks, std::vector<LiftGimmickBlock>& liftBlocks) {
 
 	// 冒頭でのフラグ初期化
 	status_.isBlet = false;
 	status_.isBlack = false;
+	status_.isLift = false;
 
 	if (cmdIndex < commands.size()) {
 		CommandType currentCmd = commands[cmdIndex];
@@ -217,6 +218,7 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 			// 2. 移動した「後」に、壁や床の押し戻しを確定させる
 			CheckBlockWall(blocks);
 			CheckBeltCollision(Beltconveyors);
+			CheckLiftCollision(liftBlocks);
 			CheckBlockGround(blocks);
 			CheckBlockCeiling(blocks);
 
@@ -250,10 +252,12 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 
 			CheckBlockWall(blocks);
 			CheckBeltCollision(Beltconveyors);
+			CheckLiftCollision(liftBlocks);
 			CheckBlockGround(blocks);
 			CheckBlockCeiling(blocks);
 
-			if (status_.isBlet || status_.isBlack) {
+			// 特殊床ならジャンプをスキップ
+			if (status_.isBlet || status_.isBlack || status_.isLift) {
 				status_.isWaitingForLanding = false;
 				status_.isJumop = false;
 				status_.Velocity.y = 0;
@@ -261,7 +265,7 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 				break;
 			}
 
-			if (IsCliffAhead(mapData, Beltconveyors, blocks)) {
+			if (IsCliffAhead(mapData, Beltconveyors, blocks, liftBlocks)) {
 				if (!status_.isJumop && !status_.isWaitingForLanding) {
 					ActionTryJump();
 					status_.isWaitingForLanding = true;
@@ -279,6 +283,7 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 		// コマンド終了後の慣性移動
 		status_.pos.x += status_.Speed * status_.moveDir;
 		CheckBeltCollision(Beltconveyors);
+		CheckLiftCollision(liftBlocks);
 		CheckBlockGround(blocks);
 	}
 
@@ -346,9 +351,11 @@ void Player::DrawPlayer(Vector2 offset) {
 			);
 		}
 	}
+
+	// デバッグ処理
 	Novice::ScreenPrintf(0, 400, "isBlet%d", status_.isBlet);
 	Novice::ScreenPrintf(0, 440, "isBlack%d", status_.isBlack);
-
+	Novice::ScreenPrintf(0, 480, "isLift%d", status_.isLift);
 
 }
 
@@ -424,7 +431,7 @@ void Player::ActionMoveRight() {
 
 void Player::ActionTryJump() {
 	// どんな理由があろうと、特殊な床の上ならジャンプ処理そのものを「抹消」する
-	if (status_.isBlet || status_.isBlack) {
+	if (status_.isBlet || status_.isBlack || status_.isLift) {
 		status_.isJumop = false;
 		status_.Velocity.y = 0.0f; // 速度を殺す
 		return;
@@ -475,9 +482,7 @@ bool Player::IsWallAhead(int mapData[kMapHeight][kMapWidth], std::vector<Block>&
 
 // 足元が崖かチェック
 // 引数に Beltconveyors を追加
-bool Player::IsCliffAhead(int mapData[kMapHeight][kMapWidth],
-	const std::vector<Beltconveyor>& Beltconveyors,
-	const std::vector<Block>& blocks) { // ★引数を追加
+bool Player::IsCliffAhead(int mapData[kMapHeight][kMapWidth], const std::vector<Beltconveyor>& Beltconveyors, const std::vector<Block>& blocks, const std::vector<LiftGimmickBlock>& liftBlocks) { // ★引数を追加
 
 	// 1. 特殊な床に乗っている最中なら、先がどうあれ今はジャンプしない
 	if (status_.isBlet || status_.isBlack) return false;
@@ -516,6 +521,14 @@ bool Player::IsCliffAhead(int mapData[kMapHeight][kMapWidth],
 			if (checkWorldX >= block.pos.x && checkWorldX <= block.pos.x + blockWidth &&
 				checkWorldY >= block.pos.y && checkWorldY <= block.pos.y + blockHeight) {
 				return false; // ブロックがあるから崖じゃない
+			}
+		}
+
+		// リフトの確認
+		for (const auto& lift : liftBlocks) {
+			if (checkWorldX >= lift.pos_.x && checkWorldX <= lift.pos_.x + lift.size_.x &&
+				checkWorldY >= lift.pos_.y && checkWorldY <= lift.pos_.y + lift.size_.y) {
+				return false; // リフトがあるから崖じゃない
 			}
 		}
 
@@ -988,6 +1001,13 @@ void Player::CheckBlockCeiling(std::vector<Block>& blocks) {
 	}
 }
 
-
-
 //私はGitを許さない　<-!?!!?!?
+
+// 俺が革命を起こす
+
+// リフトとの当たり判定の実装
+void Player::CheckLiftCollision(std::vector<LiftGimmickBlock>& liftBlocks) {
+	for (auto& lift : liftBlocks) {
+		lift.CheckCollision(*this); // Gimmick.cpp内の判定を呼ぶ
+	}
+}
