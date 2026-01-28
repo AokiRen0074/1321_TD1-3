@@ -118,6 +118,7 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					newDoor.pos = { px, py };
 					newDoor.linkId = linkId;
 					newDoor.isOpen = false;
+					newDoor.openRatio = 0.0f;
 					doors.push_back(newDoor);
 				} else if (id == "Button") {
 					ButtonA newButton;
@@ -226,6 +227,22 @@ void Map::Update(Player& player) {
 			if (lift.linkId_ == button.linkId_ && button.isPressed_) {
 				linkedButtonIsPressed = true;
 				break;
+			}
+		}
+
+		// ドアの開閉アニメーション
+		for (auto& door : doors) {
+			float speed = 0.1f; // ドアが開く速さ
+
+			if (door.isOpen) {
+		
+				door.openRatio += speed;
+				if (door.openRatio > 1.0f) door.openRatio = 1.0f;
+			} else {
+				door.openRatio -= speed;
+				if (door.openRatio < 0.0f) {
+					door.openRatio = 0.0f;
+				}
 			}
 		}
 
@@ -388,25 +405,77 @@ void Map::Draw(Vector2 offset) {
 	}
 
 
+	// ドアの描画
 	for (const auto& door : doors) {
-		// 描画座標の計算（ワールド座標 - カメラオフセット）
 		int drawX = (int)(door.pos.x - offset.x);
 		int drawY = (int)(door.pos.y - offset.y);
+		int w = kTileSize;
+		int h = kTileSize * 2;
 
-		// 開いているかどうかの色分け（開いたら緑、閉じてたら青）
-		// ※ Noviceで定義されている色定数を使っています
-		unsigned int color = door.isOpen ? GREEN : BLUE;
+		// カラーパレット（壁と同化するような重い色）
+		unsigned int cPassage = 0x050510FF;   // 開いた奥の暗闇
+		unsigned int cWall = 0x444455FF;   // 壁（ドア本体）の色
+		unsigned int cShadow = 0x222233FF;   // 影・溝
+		unsigned int cStripe = 0xDDCC00FF;   // 警告色
+		unsigned int cLampRed = 0xFF0000FF;   // ロック中ランプ
+		unsigned int cLampGreen = 0x00FF00FF; // 解除ランプ
 
-		Novice::DrawBox(
-			drawX, drawY,
-			kTileSize, kTileSize * 2, // タイルと同じ大きさ
-			0.0f,
-			color,
-			kFillModeSolid
-		);
+		// ==========================================
+		// 1. 背景
+		// ==========================================
+		// ドアの後ろにある暗い空間。ドアが持ち上がるとこれが見える。
+		Novice::DrawBox(drawX, drawY, w, h, 0.0f, cPassage, kFillModeSolid);
 
-		// デバッグ用: リンクIDを画面左上に表示して確認したい場合
-		// Novice::ScreenPrintf(0, 0, "Door ID:%d at (%d,%d)", door.linkId, (int)door.pos.x, (int)door.pos.y);
+		// 奥へ続く床のガイド線（遠近感）
+		Novice::DrawLine(drawX + 10, drawY + h, drawX + 20, drawY + h - 20, 0x004400FF);
+		Novice::DrawLine(drawX + w - 10, drawY + h, drawX + w - 20, drawY + h - 20, 0x004400FF);
+
+
+		// ==========================================
+		//  「動く壁」の描画
+		// ==========================================
+
+		float currentHeight = h * (1.0f - door.openRatio);
+
+		if (door.openRatio > 0.0f && currentHeight < 10.0f) currentHeight = 10.0f;
+
+		if (currentHeight > 0) {
+			// 壁
+			Novice::DrawBox(drawX, drawY, w, (int)currentHeight, 0.0f, cWall, kFillModeSolid);
+
+			// 枠線
+			Novice::DrawBox(drawX, drawY, w, (int)currentHeight, 0.0f, cShadow, kFillModeWireFrame);
+
+			// --- ディテール：重厚感を出すための横溝 ---
+			for (int i = 20; i < h; i += 20) {
+				if (i < currentHeight) {
+					Novice::DrawLine(drawX + 5, drawY + i, drawX + w - 5, drawY + i, cShadow);
+				}
+			}
+
+	
+			int stripeH = 10;
+			int bottomY = drawY + (int)currentHeight - stripeH;
+
+			if (currentHeight > stripeH) {
+				// 黄色い帯
+				Novice::DrawBox(drawX, bottomY, w, stripeH, 0.0f, cStripe, kFillModeSolid);
+
+				// 黒い縞模様を入れる
+				for (int i = 0; i < w; i += 8) {
+					Novice::DrawLine(drawX + i, bottomY, drawX + i, bottomY + stripeH, cShadow);
+				}
+				// 帯の上のライン
+				Novice::DrawLine(drawX, bottomY, drawX + w, bottomY, cShadow);
+			}
+		}
+
+		unsigned int lampColor = (door.openRatio > 0.5f) ? cLampGreen : cLampRed;
+
+		// ランプの土台
+		Novice::DrawBox(drawX + w / 2 - 8, drawY, 16, 6, 0.0f, cShadow, kFillModeSolid);
+		// 光る部分
+		Novice::DrawBox(drawX + w / 2 - 6, drawY + 1, 12, 4, 0.0f, lampColor, kFillModeSolid);
 	}
 
 
