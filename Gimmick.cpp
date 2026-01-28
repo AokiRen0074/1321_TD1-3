@@ -69,15 +69,93 @@ void LiftGimmickBlock::Update() {
 }
 
 void LiftGimmickBlock::Draw(Vector2 offset) {
-	Novice::DrawBox(
-		(int)(pos_.x - offset.x),
-		(int)(pos_.y - offset.y),
-		(int)size_.x,
-		(int)size_.y,
-		0.0f,
-		0xFFFF00FF,
-		kFillModeSolid
-	);
+    int drawX = (int)(pos_.x - offset.x);
+    int drawY = (int)(pos_.y - offset.y);
+    int w = (int)size_.x;
+    int h = (int)size_.y;
+
+
+    unsigned int cFrame = 0x444455FF; // 外枠・鉄骨
+    unsigned int cDarkBg = 0x111115FF; // 鉄骨の隙間（奥の暗がり）
+    unsigned int cStripe = 0xDDCC00FF; // 警告色
+    unsigned int cShadow = 0x222233FF; // 影・ディテール
+    unsigned int cHighlight = 0x777788FF; // 上面の光沢
+
+    // =================================================
+    // ベース
+    // =================================================
+    // 中が詰まった箱ではなく「枠組み」に見せるため、ベースを暗くする
+    Novice::DrawBox(drawX, drawY, w, h, 0.0f, cDarkBg, kFillModeSolid);
+
+    // =================================================
+    // 内部のトラス構造
+    // =================================================
+
+
+
+    int beamThick = 4; // 梁の太さ
+
+    // 左上から右下への斜め材
+    Novice::DrawLine(drawX, drawY, drawX + w, drawY + h, cFrame);
+    Novice::DrawLine(drawX + beamThick, drawY, drawX + w, drawY + h - beamThick, cFrame); // 太らせる
+    Novice::DrawLine(drawX, drawY + beamThick, drawX + w - beamThick, drawY + h, cFrame); // 太らせる
+
+    // 右上から左下への斜め材
+    Novice::DrawLine(drawX + w, drawY, drawX, drawY + h, cFrame);
+    Novice::DrawLine(drawX + w - beamThick, drawY, drawX, drawY + h - beamThick, cFrame);
+    Novice::DrawLine(drawX + w, drawY + beamThick, drawX + beamThick, drawY + h, cFrame);
+
+    // =================================================
+    // 外枠
+    // =================================================
+    int frameW = 4; // 枠の太さ
+
+    // 上下の枠
+    Novice::DrawBox(drawX, drawY, w, frameW, 0.0f, cFrame, kFillModeSolid); // 上
+    Novice::DrawBox(drawX, drawY + h - frameW, w, frameW, 0.0f, cFrame, kFillModeSolid); // 下
+
+    // 左右の枠（支柱）
+    Novice::DrawBox(drawX, drawY, frameW, h, 0.0f, cFrame, kFillModeSolid); // 左
+    Novice::DrawBox(drawX + w - frameW, drawY, frameW, h, 0.0f, cFrame, kFillModeSolid); // 右
+
+    // 枠の内側に影を入れて立体感を出す
+    Novice::DrawBox(drawX + frameW, drawY + frameW, w - frameW * 2, h - frameW * 2, 0.0f, cShadow, kFillModeWireFrame);
+
+
+    int stripeY = drawY + h - frameW;
+
+    Novice::DrawBox(drawX, stripeY, w, frameW, 0.0f, cStripe, kFillModeSolid);
+    for (int i = 0; i < w; i += 8) {
+        Novice::DrawLine(drawX + i, stripeY, drawX + i, stripeY + frameW, cShadow);
+    }
+    // ストライプの枠
+    Novice::DrawBox(drawX, stripeY, w, frameW, 0.0f, cShadow, kFillModeWireFrame);
+
+    // =================================================
+    // 上面の踏み板
+    // =================================================
+    // 上のフレーム部分に滑り止めのディテールを入れる
+    int topY = drawY;
+    for (int i = 4; i < w; i += 12) {
+        Novice::DrawBox(drawX + i, topY + 1, 2, 2, 0.0f, cHighlight, kFillModeSolid);
+    }
+
+    // 一番上のハイライト線（エッジ）
+    Novice::DrawLine(drawX, drawY, drawX + w, drawY, 0xFFFFFFFF);
+
+
+    // 角を太くして頑丈に見せる
+    int cornerSize = 8;
+    Novice::DrawBox(drawX, drawY, cornerSize, cornerSize, 0.0f, cFrame, kFillModeSolid);
+    Novice::DrawBox(drawX + w - cornerSize, drawY, cornerSize, cornerSize, 0.0f, cFrame, kFillModeSolid);
+    Novice::DrawBox(drawX, drawY + h - cornerSize, cornerSize, cornerSize, 0.0f, cFrame, kFillModeSolid);
+    Novice::DrawBox(drawX + w - cornerSize, drawY + h - cornerSize, cornerSize, cornerSize, 0.0f, cFrame, kFillModeSolid);
+
+    // 角のリベット
+    Novice::DrawBox(drawX + 2, drawY + 2, 2, 2, 0.0f, cShadow, kFillModeSolid);
+    Novice::DrawBox(drawX + w - 4, drawY + 2, 2, 2, 0.0f, cShadow, kFillModeSolid);
+    Novice::DrawBox(drawX + 2, drawY + h - 4, 2, 2, 0.0f, cShadow, kFillModeSolid);
+    Novice::DrawBox(drawX + w - 4, drawY + h - 4, 2, 2, 0.0f, cShadow, kFillModeSolid);
 }
 
 void LiftGimmickBlock::CheckCollision(Player& player) {
