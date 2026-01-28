@@ -118,23 +118,21 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					newDoor.pos = { px, py };
 					newDoor.linkId = linkId;
 					newDoor.isOpen = false;
+					newDoor.openRatio = 0.0f;
 					doors.push_back(newDoor);
-				}
-				else if (id == "Button") {
+				} else if (id == "Button") {
 					ButtonA newButton;
 					newButton.pos = { px, py };
 					newButton.linkId = linkId;
 					newButton.isPressed = false;
 					buttons.push_back(newButton);
-				}
-				else if (id == "Water") {
+				} else if (id == "Water") {
 					Water newWater;
 					newWater.pos = { px, py };
 					newWater.linkId = linkId;
 					newWater.isActive = true;
 					waters.push_back(newWater);
-				}
-				else if (id == "Beltconveyor") {
+				} else if (id == "Beltconveyor") {
 
 					Beltconveyor nweBeltconveyor;
 					nweBeltconveyor.pos = { px,py };
@@ -142,8 +140,7 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					nweBeltconveyor.linkId = linkId;
 					nweBeltconveyor.isReversed = true;
 					Beltconveyors.push_back(nweBeltconveyor);
-				}
-				else if (id == "Checkpoint") {
+				} else if (id == "Checkpoint") {
 
 					Checkpoint nweCheckpoint;
 					nweCheckpoint.pos = { px,py };
@@ -151,8 +148,7 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					nweCheckpoint.isActive = true;
 					Checkpoints.push_back(nweCheckpoint);
 
-				}
-				else if (id == "VanishingFloor") {
+				} else if (id == "VanishingFloor") {
 
 					VanishingFloor nweVanishingFloor;
 					nweVanishingFloor.pos = { px,py };
@@ -160,8 +156,7 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					nweVanishingFloor.isActive = true;
 					VanishingFloors.push_back(nweVanishingFloor);
 
-				}
-				else if (id == "Block") {
+				} else if (id == "Block") {
 
 					Block nweBlocks;
 					nweBlocks.pos = { px,py };
@@ -185,18 +180,15 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 							if (!field["__value"].is_null()) {
 								linkId = field["__value"];
 							}
-						}
-						else if (fieldName == "MoveX") { // 横移動量
+						} else if (fieldName == "MoveX") { // 横移動量
 							if (!field["__value"].is_null()) {
 								moveLimit.x = field["__value"];
 							}
-						}
-						else if (fieldName == "MoveY") { // 縦移動量
+						} else if (fieldName == "MoveY") { // 縦移動量
 							if (!field["__value"].is_null()) {
 								moveLimit.y = field["__value"];
 							}
-						}
-						else if (fieldName == "Speed") { // スピード
+						} else if (fieldName == "Speed") { // スピード
 							if (!field["__value"].is_null()) {
 								speed = field["__value"];
 							}
@@ -238,6 +230,22 @@ void Map::Update(Player& player) {
 			}
 		}
 
+		// ドアの開閉アニメーション
+		for (auto& door : doors) {
+			float speed = 0.1f; // ドアが開く速さ
+
+			if (door.isOpen) {
+		
+				door.openRatio += speed;
+				if (door.openRatio > 1.0f) door.openRatio = 1.0f;
+			} else {
+				door.openRatio -= speed;
+				if (door.openRatio < 0.0f) {
+					door.openRatio = 0.0f;
+				}
+			}
+		}
+
 		// ボタンが押されている間だけリフトをアクティブにする
 		lift.isActive_ = linkedButtonIsPressed;
 
@@ -253,9 +261,9 @@ void Map::Update(Player& player) {
 		// if (!block.isActive) continue; 
 
 		for (auto& blet : Beltconveyors) {
-		
 
-	
+
+
 
 			// 【重要】当たり判定：ブロックの底面がベルトの上面に触れているか
 			if (block.isActive) {
@@ -266,6 +274,7 @@ void Map::Update(Player& player) {
 						block.pos.x -= blet.speed*0.01f;
 					}
 					else {
+
 						block.pos.x += blet.speed;
 					}
 				}
@@ -332,40 +341,143 @@ void Map::Draw(Vector2 offset) {
 				);
 			}
 
-			// --- 追加ブロック (ID: 4) ---
+			// --- 追加ブロック (ID: 4) - 床から突き出るスパイク/クラッシャー ---
 			if (id == 4) {
-				Novice::DrawBox(
-					(int)(x * kTileSize - offset.x),
-					(int)(y * kTileSize - offset.y),
-					kTileSize, kTileSize,
-					0.0f,
-					0xFFFFFFFF,
-					kFillModeSolid
-				);
+				int drawX = (int)(x * kTileSize - offset.x);
+				int drawY = (int)(y * kTileSize - offset.y);
+				int w = kTileSize;
+				int h = kTileSize;
+
+				unsigned int cBody = 0x555555FF;      // 本体
+				unsigned int cShadow = 0x222222FF;    // 影
+				unsigned int cHighlight = 0x888888FF; // ハイライト
+				unsigned int cBlade = 0xAAAAAAFF;     // 刃
+
+				// 1. 本体部分（下側に配置）
+				int bodyH = (int)(h * 0.65f);
+				int bodyY = drawY + (h - bodyH); // Y座標を下にずらす
+
+				// ベース
+				Novice::DrawBox(drawX, bodyY, w, bodyH, 0.0f, cBody, kFillModeSolid);
+				Novice::DrawBox(drawX, bodyY, w, bodyH, 0.0f, cShadow, kFillModeWireFrame);
+
+				// ディテール（溝やボルト）
+				Novice::DrawLine(drawX, bodyY + 1, drawX + w - 1, bodyY + 1, cHighlight);
+				Novice::DrawLine(drawX, bodyY + bodyH / 2, drawX + w, bodyY + bodyH / 2, cShadow);
+
+				int boltSize = 4;
+				Novice::DrawBox(drawX + 4, bodyY + bodyH - 8, boltSize, boltSize, 0.0f, cShadow, kFillModeSolid);
+				Novice::DrawBox(drawX + w - 8, bodyY + bodyH - 8, boltSize, boltSize, 0.0f, cShadow, kFillModeSolid);
+
+
+				// 2. 刃部分（上側に配置・上向き△）
+				int toothCount = 3;
+				float toothW = (float)w / toothCount;
+				int toothH = h - bodyH;
+				int startYA = drawY; // 一番上から描画開始
+
+				for (int i = 0; i < toothCount; ++i) {
+					int currentX = drawX + (int)(i * toothW);
+
+					// 上向きの三角形（スパイク）
+					Novice::DrawTriangle(
+						currentX + (int)(toothW / 2), startYA,           // 上先端
+						currentX, startYA + toothH,                      // 左下
+						currentX + (int)toothW, startYA + toothH,        // 右下
+						cBlade,
+						kFillModeSolid
+					);
+					// 輪郭線
+					Novice::DrawTriangle(
+						currentX + (int)(toothW / 2), startYA,
+						currentX, startYA + toothH,
+						currentX + (int)toothW, startYA + toothH,
+						cShadow,
+						kFillModeWireFrame
+					);
+					// ハイライト（中央線）
+					Novice::DrawLine(
+						currentX + (int)(toothW / 2), startYA + 2,
+						currentX + (int)(toothW / 2), startYA + toothH,
+						cHighlight
+					);
+				}
 			}
 		}
 	}
 
 
+	// ドアの描画
 	for (const auto& door : doors) {
-		// 描画座標の計算（ワールド座標 - カメラオフセット）
 		int drawX = (int)(door.pos.x - offset.x);
 		int drawY = (int)(door.pos.y - offset.y);
+		int w = kTileSize;
+		int h = kTileSize * 2;
 
-		// 開いているかどうかの色分け（開いたら緑、閉じてたら青）
-		// ※ Noviceで定義されている色定数を使っています
-		unsigned int color = door.isOpen ? GREEN : BLUE;
+		// カラーパレット（壁と同化するような重い色）
+		unsigned int cPassage = 0x050510FF;   // 開いた奥の暗闇
+		unsigned int cWall = 0x444455FF;   // 壁（ドア本体）の色
+		unsigned int cShadow = 0x222233FF;   // 影・溝
+		unsigned int cStripe = 0xDDCC00FF;   // 警告色
+		unsigned int cLampRed = 0xFF0000FF;   // ロック中ランプ
+		unsigned int cLampGreen = 0x00FF00FF; // 解除ランプ
 
-		Novice::DrawBox(
-			drawX, drawY,
-			kTileSize, kTileSize * 2, // タイルと同じ大きさ
-			0.0f,
-			color,
-			kFillModeSolid
-		);
+		// ==========================================
+		// 1. 背景
+		// ==========================================
+		// ドアの後ろにある暗い空間。ドアが持ち上がるとこれが見える。
+		Novice::DrawBox(drawX, drawY, w, h, 0.0f, cPassage, kFillModeSolid);
 
-		// デバッグ用: リンクIDを画面左上に表示して確認したい場合
-		// Novice::ScreenPrintf(0, 0, "Door ID:%d at (%d,%d)", door.linkId, (int)door.pos.x, (int)door.pos.y);
+		// 奥へ続く床のガイド線（遠近感）
+		Novice::DrawLine(drawX + 10, drawY + h, drawX + 20, drawY + h - 20, 0x004400FF);
+		Novice::DrawLine(drawX + w - 10, drawY + h, drawX + w - 20, drawY + h - 20, 0x004400FF);
+
+
+		// ==========================================
+		//  「動く壁」の描画
+		// ==========================================
+
+		float currentHeight = h * (1.0f - door.openRatio);
+
+		if (door.openRatio > 0.0f && currentHeight < 10.0f) currentHeight = 10.0f;
+
+		if (currentHeight > 0) {
+			// 壁
+			Novice::DrawBox(drawX, drawY, w, (int)currentHeight, 0.0f, cWall, kFillModeSolid);
+
+			// 枠線
+			Novice::DrawBox(drawX, drawY, w, (int)currentHeight, 0.0f, cShadow, kFillModeWireFrame);
+
+			// --- ディテール：重厚感を出すための横溝 ---
+			for (int i = 20; i < h; i += 20) {
+				if (i < currentHeight) {
+					Novice::DrawLine(drawX + 5, drawY + i, drawX + w - 5, drawY + i, cShadow);
+				}
+			}
+
+	
+			int stripeH = 10;
+			int bottomY = drawY + (int)currentHeight - stripeH;
+
+			if (currentHeight > stripeH) {
+				// 黄色い帯
+				Novice::DrawBox(drawX, bottomY, w, stripeH, 0.0f, cStripe, kFillModeSolid);
+
+				// 黒い縞模様を入れる
+				for (int i = 0; i < w; i += 8) {
+					Novice::DrawLine(drawX + i, bottomY, drawX + i, bottomY + stripeH, cShadow);
+				}
+				// 帯の上のライン
+				Novice::DrawLine(drawX, bottomY, drawX + w, bottomY, cShadow);
+			}
+		}
+
+		unsigned int lampColor = (door.openRatio > 0.5f) ? cLampGreen : cLampRed;
+
+		// ランプの土台
+		Novice::DrawBox(drawX + w / 2 - 8, drawY, 16, 6, 0.0f, cShadow, kFillModeSolid);
+		// 光る部分
+		Novice::DrawBox(drawX + w / 2 - 6, drawY + 1, 12, 4, 0.0f, lampColor, kFillModeSolid);
 	}
 
 
@@ -408,41 +520,95 @@ void Map::Draw(Vector2 offset) {
 		button.Draw(offset);
 	}
 
-	// (Map.hで定義した buttons リストをループ)
+	// (Map.hで定義した waters リストをループ)
+	// ★ここから書き換え（電気ビリビリ版）
+
+	// アニメーション用タイマー（乱数のシード代わりにもなる）
+	static int elecTimer = 0;
+	elecTimer++;
+
 	for (const auto& water : waters) {
-		// 描画座標の計算
+		// 描画座標
 		int drawX = (int)(water.pos.x - offset.x);
 		int drawY = (int)(water.pos.y - offset.y);
 
-		// 押されているかどうかの色分け（押されたら黄色、未踏なら赤）
-		unsigned int color = water.isActive ? 0x00FF00FF : 0x00FF0000;
+		// サイズ（前のコードに合わせて横幅8ブロック分としていますが、必要に応じて変えてください）
+		int w = kTileSize * 8;
+		int h = kTileSize;
 
-		// ボタンは少し小さく表示して、ドアと区別しやすくする
-		int btnSize = kTileSize;
+		// OFF（isActive == false）なら描画しない
+		if (!water.isActive) continue;
 
-		Novice::DrawBox(
-			drawX, drawY, // 少しずらして中央に
-			btnSize * 8, btnSize,
-			0.0f,
-			color,
-			kFillModeSolid
-		);
+		// --- カラーパレット ---
+		// 電気の色（シアン〜白）
+		unsigned int cElecCore = 0xFFFFFFFF;    // 中心の白（コア）
+		unsigned int cElecGlow = 0x00FFFFCC;    // 周りの輝き（シアン、少し透明）
+
+		// 1. 背景の明滅（電気エネルギーが充満している感じ）
+		// sin波でアルファ値（透明度）を高速に揺らす
+		int alpha = 60 + (int)(sinf(elecTimer * 0.5f) * 40.0f); // 20~100くらいの透明度
+		if (alpha < 0) alpha = 0;
+		unsigned int cBg = (0x00FFFF00) | alpha; // RGB=シアン, A=変動
+
+		Novice::DrawBox(drawX, drawY, w, h, 0.0f, cBg, kFillModeSolid);
+
+
+		// 2. 枠線のビリビリ
+		// 枠の色を高速で切り替えて、不安定な感じを出す
+		unsigned int cFrame = (elecTimer % 4 < 2) ? cElecGlow : WHITE;
+		Novice::DrawBox(drawX, drawY, w, h, 0.0f, cFrame, kFillModeWireFrame);
+
+
+		// 3. 放電（稲妻ライン）の描画 
+		// ランダムなジグザグ線を横方向に走らせる
+		int numBolts = 2; // 稲妻の本数
+
+		for (int k = 0; k < numBolts; k++) {
+			// 稲妻の始点（左端のどこか）
+			float currentX = (float)drawX;
+			float currentY = (float)drawY + (rand() % h);
+
+			// 右端までジグザグに進むループ
+			while (currentX < drawX + w) {
+				// 次の点の座標（Xは10~30px進む、Yはランダムに振れる）
+				float nextX = currentX + (rand() % 20 + 10);
+				if (nextX > drawX + w) nextX = (float)(drawX + w); // はみ出し防止
+
+				// Y座標の振れ幅（大きくすると激しい）
+				float nextY = currentY + (rand() % 30 - 15);
+
+				// 上下からはみ出さないように制限
+				if (nextY < drawY) nextY = (float)drawY;
+				if (nextY > drawY + h) nextY = (float)(drawY + h);
+
+				// 線を描く（太く見せるために少しずらして2回描く）
+				Novice::DrawLine((int)currentX, (int)currentY, (int)nextX, (int)nextY, cElecCore);
+				Novice::DrawLine((int)currentX, (int)currentY + 1, (int)nextX, (int)nextY + 1, cElecGlow);
+
+				// 次の始点へ更新
+				currentX = nextX;
+				currentY = nextY;
+			}
+		}
+
+		// 4. バチバチする火花パーティクル（簡易的な点描画）
+		// ランダムな位置に四角い火花を散らす
+		int numSparks = 4;
+		for (int i = 0; i < numSparks; i++) {
+			int sx = drawX + (rand() % w);
+			int sy = drawY + (rand() % h);
+			int size = rand() % 3 + 2; // 2~4px
+			Novice::DrawBox(sx, sy, size, size, 0.0f, cElecCore, kFillModeSolid);
+		}
+	}
+	// ★書き換えここまで
 
 		// デバッグ用: リンクIDを確認したい場合
 		// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
-	}
+	
 
 
-	// (Map.hで定義した belt リストをループ)
-	// (Map.hで定義した belt リストをループ)
-	// ★ここから書き換え
-
-	// (Map.hで定義した belt リストをループ)
-	// ★ここから書き換え（リアル版）
-
-	// (Map.hで定義した belt リストをループ)
-	// ★ここから書き換え（デザイン維持・車輪優先表示版）
-
+	
 	// アニメーション用のタイマー
 	static float beltAnimTimer = 0.0f;
 	beltAnimTimer += 1.0f;
@@ -617,5 +783,28 @@ void Map::Draw(Vector2 offset) {
 	Novice::ScreenPrintf(0, 100, "MapData[10][10]: %d", mapData[10][10]);
 }
 
+/*
+　 　 　 　 　 　 　 　 ┏━━━┳━━━┓
+　 　 　 　 　 　 　 　 ┃ 　♎ 　┃ ♍ ┃
+　 　 　 　 　 　 　 　 ┃天秤宮┃処女宮┃
+　 　 　 　 ┏━━━╋━━━┻━━━╋━━━┓
+　 　 　 　 ┃ 　♏ 　┃　 　 　 　 　 　  ┃ 　♌ ┃
+　 　 　 　 ┃天蝎宮┃　 　 　 　 　 　 　 ┃獅子宮┃
+	┏━━━╋━━━┛　 　 　 　 　 　    ┗━━━╋━━━┓
+	┃ 　♐	 ┃　 　 　 　 　 　 　 　 　 　 　 　 ┃ 　♋ ┃
+	┃人馬宮┃　 　 　 　 　 　 　 　 　 　  　 　 ┃巨蟹宮┃
+	┣━━━┫　 　 　 　 　  　 　 　 　 　 　 　 ┣━━━┫
+	┃ 　♑ ┃　 　 　 　 　  　 　 　 　 　 　 　 ┃ 　♊ ┃
+	┃磨羯宮┃　 　 　  　 　 　 　 　 　 　 　 　 ┃双子宮┃
+	┗━━━╋━━━┓　 　 　 　 　 　 　 ┏━━━╋━━━┛
+　 　 　 　 ┃ 　♒ 　┃　 　 　 　 　 　 　┃ 　♉ ┃
+　 　 　 　 ┃宝瓶宮┃　 　 　 　 　 　     ┃金牛宮┃
+　 　 　 　 ┗━━━╋━━━┳━━━╋━━━┛
+　 　 　 　 　 　 　┃ 　♓ ┃ 　♈ 
+　 　 　 　 　 　 　┃双魚宮┃白羊宮┃
+　 　 　 　 　 　 　┗━━━┻━━━┛
+
+黄道十二宮配置図
 
 
+  */
