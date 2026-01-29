@@ -17,7 +17,7 @@
 // (^▽^)/あ
 // (^▽^)/あ
 
-const char kWindowTitle[] = "TD1_3";
+const char kWindowTitle[] = "1321_ゲームタイトル";
 
 //////////
 /// 構造体
