@@ -756,27 +756,51 @@ void Map::Draw(Vector2 offset) {
 	}
 
 
-	for (const auto& Block : Blocks) {
+	for (const auto& block : Blocks) {
 		// 描画座標の計算
-		int drawX = (int)(Block.pos.x - offset.x);
-		int drawY = (int)(Block.pos.y - offset.y);
+		int drawX = (int)(block.pos.x - offset.x);
+		int drawY = (int)(block.pos.y - offset.y);
+		int size = kTileSize;
 
-		// 押されているかどうかの色分け（押されたら黄色、未踏なら赤）
-		unsigned int color = Block.isActive ? 0xFFFF00FF : 0xFFFFFFFF;
+		// --- カラーパレット ---
+		unsigned int cFrame = 0x444455FF;      // 外枠（重厚な金属）
+		unsigned int cInner = 0x222233FF;      // 内側パネル
+		unsigned int cLine = 0x00AAAAFF;       // 発光ライン（シアン）
+		unsigned int cCore = block.isActive ? 0x00FFFFFF : 0x005555FF; // コア（アクティブなら白く光る）
 
-		// ボタンは少し小さく表示して、ドアと区別しやすくする
-		int btnSize = kTileSize;
+		// 1. ベース（外枠）
+		Novice::DrawBox(drawX, drawY, size, size, 0.0f, cFrame, kFillModeSolid);
 
-		Novice::DrawBox(
-			drawX, drawY, // 少しずらして中央に
-			btnSize, btnSize,
-			0.0f,
-			color,
-			kFillModeSolid
-		);
+		// 2. 内側パネル（少し小さくして段差を作る）
+		int margin = 4;
+		Novice::DrawBox(drawX + margin, drawY + margin, size - margin * 2, size - margin * 2, 0.0f, cInner, kFillModeSolid);
 
-		// デバッグ用: リンクIDを確認したい場合
-		// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
+		// 3. 電子回路風の溝（四隅にL字のライン）
+		int lineL = 8;
+		// 左上
+		Novice::DrawLine(drawX + 6, drawY + 6, drawX + 6 + lineL, drawY + 6, cLine);
+		Novice::DrawLine(drawX + 6, drawY + 6, drawX + 6, drawY + 6 + lineL, cLine);
+		// 右下
+		Novice::DrawLine(drawX + size - 6, drawY + size - 6, drawX + size - 6 - lineL, drawY + size - 6, cLine);
+		Novice::DrawLine(drawX + size - 6, drawY + size - 6, drawX + size - 6, drawY + size - 6 - lineL, cLine);
+
+		// 4. 中央のエネルギーコア
+		// isActive に応じて明るさを変える
+		static float corePulse = 0.0f;
+		corePulse += 0.1f;
+		int pulseSize = (int)(sinf(corePulse) * 2.0f); // 呼吸するように光る演出
+
+		int coreX = drawX + size / 2;
+		int coreY = drawY + size / 2;
+		int coreR = 6 + (block.isActive ? pulseSize : 0);
+
+		// コアの外光
+		Novice::DrawEllipse(coreX, coreY, coreR + 4, coreR + 4, 0.0f, cLine & 0xFFFFFF66, kFillModeSolid);
+		// コア本体
+		Novice::DrawEllipse(coreX, coreY, coreR, coreR, 0.0f, cCore, kFillModeSolid);
+
+		// 5. 仕上げの枠線
+		Novice::DrawBox(drawX, drawY, size, size, 0.0f, BLACK, kFillModeWireFrame);
 	}
 
 	// Map.cpp の Draw内に追加してデバッグ
