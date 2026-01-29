@@ -407,6 +407,201 @@ void Map::Draw(Vector2 offset) {
 	}
 
 
+	// ==========================================
+	// チュートリアル看板：移動 & ジャンプ
+	// ==========================================
+
+	// --- 1. 共通で使う描画関数（ラムダ式）の定義 ---
+
+	// ドット文字を描画する関数
+	auto DrawDotText = [&](float x, float y, const char* str, float size, unsigned int color) {
+		int startX = (int)x;
+		int startY = (int)y;
+		int spacing = (int)(size * 6.0f); // 文字間隔
+
+		for (int k = 0; str[k] != '\0'; k++) {
+			char c = str[k];
+			int px = startX + k * spacing;
+			int py = startY;
+
+			// 5x5 ドットパターン (1:描画)
+			int p[5][5] = { 0 };
+
+			switch (c) {
+			case 'M': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][1] = 1; p[1][3] = 1; p[1][4] = 1; p[2][0] = 1; p[2][2] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][0] = 1; p[4][4] = 1; break;
+			case 'O': p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'V': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][4] = 1; p[3][1] = 1; p[3][3] = 1; p[4][2] = 1; break;
+			case 'E': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[3][0] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'J': p[0][4] = 1; p[1][4] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'U': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'P': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[1][0] = 1; p[1][3] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[3][0] = 1; p[4][0] = 1; break;
+			case 'D': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[1][0] = 1; p[1][3] = 1; p[2][0] = 1; p[2][4] = 1; p[3][0] = 1; p[3][3] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; break;
+			case 'L': p[0][0] = 1; p[1][0] = 1; p[2][0] = 1; p[3][0] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'T': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[0][4] = 1; p[1][2] = 1; p[2][2] = 1; p[3][2] = 1; p[4][2] = 1; break;
+			case 'S': p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[2][1] = 1; p[2][2] = 1; p[3][4] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'C': p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[3][0] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'A': p[0][2] = 1; p[1][1] = 1; p[1][3] = 1; p[2][0] = 1; p[2][4] = 1; p[3][0] = 1; p[3][1] = 1; p[3][2] = 1; p[3][3] = 1; p[3][4] = 1; p[4][0] = 1; p[4][4] = 1; break;
+			case 'N': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][1] = 1; p[1][4] = 1; p[2][0] = 1; p[2][2] = 1; p[2][4] = 1; p[3][0] = 1; p[3][3] = 1; p[3][4] = 1; p[4][0] = 1; p[4][4] = 1; break;
+			case '!': p[0][2] = 1; p[1][2] = 1; p[2][2] = 1; p[4][2] = 1; break;
+			//case '\'': p[0][2] = 1; p[1][1] = 1; break;
+			
+			
+			}
+
+			// 描画
+			for (int i = 0; i < 5; i++) {
+				for (int j = 0; j < 5; j++) {
+					if (p[i][j] == 1) {
+						Novice::DrawBox((int)(px + j * size), (int)(py + i * size), (int)size, (int)size, 0.0f, color, kFillModeSolid);
+					}
+				}
+			}
+		}
+		};
+
+	// キーを描画する関数
+	auto DrawKey = [&](float x, float y, char keySymbol, bool isPressed, float widthRatio) {
+		float baseSize = 80.0f;
+		float w = baseSize * widthRatio;
+		float h = baseSize;
+		float depth = 15.0f;
+
+		unsigned int cBody = isPressed ? 0x666677FF : 0x333344FF;
+		unsigned int cSide = 0x111122FF;
+		unsigned int cLine = isPressed ? 0x00FFFFFF : 0x008888FF;
+
+		float dy = y + (isPressed ? depth : 0);
+
+		// 側面
+		if (!isPressed) Novice::DrawBox((int)x, (int)(y + h), (int)w, (int)depth, 0.0f, cSide, kFillModeSolid);
+		// 上面
+		Novice::DrawBox((int)x, (int)dy, (int)w, (int)h, 0.0f, cBody, kFillModeSolid);
+		Novice::DrawBox((int)x, (int)dy, (int)w, (int)h, 0.0f, cLine, kFillModeWireFrame);
+		// 内枠
+		Novice::DrawBox((int)(x + 4), (int)(dy + 4), (int)(w - 8), (int)(h - 8), 0.0f, cLine, kFillModeWireFrame);
+
+		// キーの文字 (A, D, S=Spaceなど)
+		// 簡易的にDrawDotTextを流用せず、これまで通りのライン描画で見やすくする
+		int cx = (int)(x + w / 2);
+		int cy = (int)(dy + h / 2);
+
+		if (keySymbol == 'A') {
+			Novice::DrawLine(cx, cy - 20, cx - 15, cy + 20, cLine);
+			Novice::DrawLine(cx, cy - 20, cx + 15, cy + 20, cLine);
+			Novice::DrawLine(cx - 8, cy + 5, cx + 8, cy + 5, cLine);
+		} else if (keySymbol == 'D') {
+			Novice::DrawLine(cx - 10, cy - 20, cx - 10, cy + 20, cLine);
+			Novice::DrawLine(cx - 10, cy - 20, cx + 5, cy - 20, cLine);
+			Novice::DrawLine(cx - 10, cy + 20, cx + 5, cy + 20, cLine);
+			Novice::DrawLine(cx + 5, cy - 20, cx + 15, cy, cLine);
+			Novice::DrawLine(cx + 5, cy + 20, cx + 15, cy, cLine);
+		} else if (keySymbol == 'S') { // Space Bar
+			Novice::DrawLine(cx - 40, cy + 10, cx + 40, cy + 10, cLine);
+			Novice::DrawLine(cx - 40, cy + 10, cx - 40, cy - 5, cLine);
+			Novice::DrawLine(cx + 40, cy + 10, cx + 40, cy - 5, cLine);
+		}
+		};
+
+	// 矢印を描画する関数
+	auto DrawArrow = [&](float x, float y, int dir) { // dir 0:左, 1:右, 2:上
+		unsigned int c = 0xFFFF00FF;
+		int bx = (int)x;
+		int by = (int)y;
+
+		if (dir == 0) { // 左
+			Novice::DrawTriangle(bx, by + 20, bx + 30, by, bx + 30, by + 40, c, kFillModeSolid);
+			Novice::DrawBox(bx + 30, by + 10, 40, 20, 0.0f, c, kFillModeSolid);
+		} else if (dir == 1) { // 右
+			Novice::DrawBox(bx, by + 10, 40, 20, 0.0f, c, kFillModeSolid);
+			Novice::DrawTriangle(bx + 70, by + 20, bx + 40, by, bx + 40, by + 40, c, kFillModeSolid);
+		} else if (dir == 2) { // 上 (ジャンプ)
+			Novice::DrawTriangle(bx + 20, by, bx, by + 30, bx + 40, by + 30, c, kFillModeSolid);
+			Novice::DrawBox(bx + 10, by + 30, 20, 40, 0.0f, c, kFillModeSolid);
+		}
+		};
+
+
+
+	static int tutTimer = 0;
+	tutTimer++;
+
+	// --- [A][D] MOVE ---
+	float moveX = 150.0f;
+	float moveY = 450.0f;
+
+	if (moveX - offset.x > -400 && moveX - offset.x < 1500) {
+		float dx = moveX - offset.x;
+		float dy = moveY - offset.y;
+		bool pressA = (tutTimer / 60) % 2 == 0;
+
+		// 文字 "MOVE"
+		DrawDotText(dx + 20, dy - 80, "MOVE", 10.0f, 0xFFFFFFDD);
+
+		// キー
+		DrawKey(dx, dy, 'A', pressA, 1.0f);
+		DrawKey(dx + 100, dy, 'D', !pressA, 1.0f);
+
+		// 矢印
+		if (pressA) DrawArrow(dx - 90, dy + 20, 0); // 左
+		else        DrawArrow(dx + 200, dy + 20, 1); // 右
+	}
+
+	// --- [SPACE] JUMP ---
+	float jumpX = 2000.0f;
+	float jumpY = 450.0f;
+
+	if (jumpX - offset.x > -400 && jumpX - offset.x < 1500) {
+		float dx = jumpX - offset.x;
+		float dy = jumpY - offset.y;
+		bool pressSpace = (tutTimer / 60) % 2 == 0;
+
+		// 文字 "JUMP"
+		DrawDotText(dx + 20, dy - 80, "JUMP", 10.0f, 0xFFFFFFDD);
+
+		// スペースキー (横長 widthRatio=3.0)
+		DrawKey(dx, dy, 'S', pressSpace, 3.5f);
+
+		// 上矢印 (キーの上に配置)
+		if (pressSpace) {
+			// キーの上から飛び出すイメージ
+			float arrowY = dy - 20 - (tutTimer % 20); // 少し上に動く
+			DrawArrow(dx + 120, arrowY, 2);
+		}
+	}
+
+	// --- [LETS COMMAND!] 看板 ---
+	float letsX = 3200.0f;
+	float letsY = 330.0f;
+
+	if (letsX - offset.x > -800 && letsX - offset.x < 1500) { 
+		float dx = letsX - offset.x;
+		float dy = letsY - offset.y;
+
+		// 点滅アニメーション
+		bool blink = (tutTimer / 40) % 2 == 0;
+		unsigned int cText = 0xFFFFFFDD; // 白
+		unsigned int cHighlight = 0x00FFFFFF; // シアン（強調色）
+
+
+		Novice::DrawBox((int)dx - 20, (int)dy - 100, 800, 240, 0.0f, 0x00000088, kFillModeSolid);
+		Novice::DrawBox((int)dx - 20, (int)dy - 100, 800, 240, 0.0f, 0x00AAAAFF, kFillModeWireFrame);
+
+
+		DrawDotText(dx, dy - 60, "LETS", 12.0f, cText);
+
+
+		// 少し大きく、色を変えて強調
+		if (blink) {
+			DrawDotText(dx, dy + 40, "COMMAND !", 12.0f, cHighlight);
+			// ★修正2：アンダーラインも幅に合わせて長く (480 -> 700)
+			Novice::DrawBox((int)dx, (int)dy + 120, 700, 8, 0.0f, cHighlight, kFillModeSolid);
+		} else {
+			DrawDotText(dx, dy + 40, "COMMAND !", 12.0f, cText);
+		}
+	}
+	
+
+
 	// ドアの描画
 	for (const auto& door : doors) {
 		int drawX = (int)(door.pos.x - offset.x);
@@ -479,6 +674,14 @@ void Map::Draw(Vector2 offset) {
 		// 光る部分
 		Novice::DrawBox(drawX + w / 2 - 6, drawY + 1, 12, 4, 0.0f, lampColor, kFillModeSolid);
 	}
+
+
+
+
+
+
+
+
 
 
 	// ボタンの描画
