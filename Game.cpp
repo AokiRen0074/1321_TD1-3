@@ -28,10 +28,11 @@ Game::~Game() {
 
 void Game::Initialize() {
 	// エリア定義
-	gameArea = { 0, 0, 1400, 1080 };
-	paletteArea = { 1400, 0, 580, 400 };     // 右上：パレット
-	programArea = { 1400, 400, 580, 680 };   // 右下：プログラム置き場
+	gameArea = {0, 0, 1400, 1080};
+	paletteArea = {1400, 0, 580, 400};     // 右上：パレット
+	programArea = {1400, 400, 580, 680};   // 右下：プログラム置き場
 
+	// 変数をリセット
 	isRunning = false;
 	player->InitPlayer();
 	commandList.clear();
@@ -39,15 +40,20 @@ void Game::Initialize() {
 	isGameClear = false;
 	gameClearTimer = 0;
 
-
 	isGameOver = false;
-	gameOverTimer = 0;
+	//gameOverTimer = 0;
 
 	map->Initialize();
+
 	if (respawnPos.x == 0 && respawnPos.y == 0) {
 		respawnPos.x = 300.0f;
 		respawnPos.y = 704.0f;
 	}
+
+	// プレイヤーの位置を最後に保存したチェックポイントへ移動させる
+	player->status_.pos = respawnPos;
+
+	fadeState_ = FADE_NONE;
 
 	/*---------------------------------
 	コマンドUIのリソース
@@ -67,13 +73,13 @@ void Game::Initialize() {
 	float btnW = 400;
 	float btnH = 50;
 
-	btnLeft = { btnX, 50,  btnW, btnH, "Left",  CommandType::MoveLeft,(int)WHITE, texLeft };
-	btnRight = { btnX, 110, btnW, btnH, "Right", CommandType::MoveRight,(int)WHITE, texRight };
-	btnWallJump = { btnX, 170, btnW, btnH, "Wall",  CommandType::CheckWallJump,(int)WHITE, texWallJump };
-	btnCliffJump = { btnX, 230, btnW, btnH, "Cliff", CommandType::CheckCliffJump,(int)WHITE, texCliffJump };
+	btnLeft = {btnX, 50, btnW, btnH, "Left", CommandType::MoveLeft, (int)WHITE, texLeft};
+	btnRight = {btnX, 110, btnW, btnH, "Right", CommandType::MoveRight, (int)WHITE, texRight};
+	btnWallJump = {btnX, 170, btnW, btnH, "Wall", CommandType::CheckWallJump, (int)WHITE, texWallJump};
+	btnCliffJump = {btnX, 230, btnW, btnH, "Cliff", CommandType::CheckCliffJump, (int)WHITE, texCliffJump};
 	// スタート・リセット
-	btnStart = { 1450, 300, 180, 80, "START", (CommandType)-1, (int)WHITE, texStart };
-	btnReset = { 1670, 300, 180, 80, "STOP",  (CommandType)-1, (int)WHITE, texStop };
+	btnStart = {1450, 300, 180, 80, "START", (CommandType)-1, (int)WHITE, texStart};
+	btnReset = {1670, 300, 180, 80, "STOP", (CommandType)-1, (int)WHITE, texStop};
 
 	/*----------------------------------
 				その他画像
@@ -93,7 +99,7 @@ void Game::Initialize() {
 	/*------------------------------
 	ここにレイヤー名をいれるんだ！！
 	-----------------------------*/
-	std::vector<std::string> layers = { "IntGrid", "HalfBlock" };
+	std::vector<std::string> layers = {"IntGrid", "HalfBlock"};
 
 	map->LoadMapFromLDtk("./mapTest9999.ldtk", layers);
 
@@ -117,10 +123,8 @@ void Game::Initialize() {
 			}
 		}
 	}
-
-
-
 }
+
 // プレイヤーとボタンの当たり判定を行う関数を追加
 bool IsPlayerHit(Player* player, const ButtonA& button) {
 	// プレイヤーの位置とボタンの位置を比較して当たり判定を行う
@@ -151,28 +155,15 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		player->InitPlayer(); // 速度などをゼロにする
 	}
 
-
-
+	// ゲームオーバー判定
 	if (!player->status_.isActive && !isGameOver && fadeState_ == FADE_NONE) {
 		isGameOver = true;
-		gameOverTimer = 0;
+		// gameOverTimer = 0; // 削除
 		player->status_.Velocity = { 0.0f, 0.0f };
-	}
 
-	// ゲームオーバー演出中の更新
-	if (isGameOver) {
-		gameOverTimer++;
-
-		if (gameOverTimer >= kGameOverTimeMax) {
-			// ここでフェードアウトを開始させる
-			if (fadeState_ == FADE_NONE) {
-				Novice::PlayAudio(soundSceneChange, false, 1.0f);
-				fadeState_ = FADE_OUT;
-				fadeTimer_ = 0;
-			}
-		}
+		// 音を鳴らすならここで
+		Novice::PlayAudio(soundSceneChange, false, 1.0f);
 	}
-	// 例えば Map::Update() や GameScene::Update() などで
 
 // 全部のボタンをチェック
 	for (auto& btn : map->buttons) {
@@ -389,7 +380,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 
 		// プレイヤーをその場で停止させる
 		player->status_.isActive = false;
-		player->status_.Velocity = { 0.0f, 0.0f };
+		player->status_.Velocity = {0.0f, 0.0f};
 
 		// --- 暗転が完了した瞬間の処理 ---
 		if (fadeState_ == FADE_OUT) {
@@ -405,17 +396,22 @@ void Game::Update(char keys[256], char preKeys[256]) {
 				// --- ここから修正 ---
 				if (isGameOver) {
 					// 【死亡リスポーンの場合】
-					player->status_.pos = respawnPos; // リスポーン位置へ
-					player->InitPlayer();             // ステータスリセット
+					//player->status_.pos = respawnPos; // リスポーン位置へ
+					//player->InitPlayer();             // ステータスリセット
 
 
-					player->StartRespawnAnim(respawnPos);
+					//player->StartRespawnAnim(respawnPos);
 
-					isGameOver = false;
-					cantStartCount = 0;
+					//isGameOver = false;
+					//cantStartCount = 0;
 
-					isRunning = true;
+					//isRunning = true;
 
+					//return Scene::GAMEOVER;
+
+					/*if (gameOverTimer < kGameOverTimeMax) {
+						gameOverTimer++;
+					}*/
 
 					scrollCamera->Update(player->status_.pos);
 
@@ -553,146 +549,6 @@ void Game::Draw() {
 
 	// ... (ボタン描画などの後) ...
 
-	if (isGameOver) {
-		// 背景を少し暗く
-		Novice::DrawBox(0, 0, 1400, 1080, 0.0f, 0x000000AA, kFillModeSolid);
-
-		// 4秒（約240フレーム）かけてアニメーション
-		const float kAnimDuration = 240.0f;
-		float globalProgress = (float)gameOverTimer / kAnimDuration;
-		if (globalProgress > 1.0f) globalProgress = 1.0f;
-
-		// 基準位置とサイズ
-		float cx = 1400.0f / 2.0f - 300.0f; // 画面中央より少し左から開始
-		float cy = 1080.0f / 2.0f;
-		float size = 60.0f;     // 文字の大きさ
-		float spacing = 140.0f; // 文字の間隔
-
-		// ---------------------------------------------------------
-		// 線が伸びて文字になる描画関数 (ラムダ式)
-		// ---------------------------------------------------------
-		auto DrawAnimatedChar = [&](char c, float x, float y, float s, float progress, unsigned int color) {
-
-			// 線の「始点」と「終点」のリスト
-			struct LineSeg { float lx, ly, rx, ry; };
-			std::vector<LineSeg> segments;
-
-			// 文字の形を定義（一筆書き順）
-			switch (c) {
-			case 'G':
-				segments = {
-					{x + s, y - s, x - s, y - s}, // 上
-					{x - s, y - s, x - s, y + s}, // 左
-					{x - s, y + s, x + s, y + s}, // 下
-					{x + s, y + s, x + s, y},     // 右下
-					{x + s, y,     x,     y}      // 中
-				};
-				break;
-			case 'A':
-				segments = {
-					{x - s, y + s, x,     y - s}, // 左斜め上
-					{x,     y - s, x + s, y + s}, // 右斜め下
-					{x - s / 2, y, x + s / 2, y}  // 横棒
-				};
-				break;
-			case 'M':
-				segments = {
-					{x - s, y + s, x - s, y - s}, // 左縦
-					{x - s, y - s, x,     y},     // 斜め下
-					{x,     y,     x + s, y - s}, // 斜め上
-					{x + s, y - s, x + s, y + s}  // 右縦
-				};
-				break;
-			case 'E':
-				segments = {
-					{x + s, y - s, x - s, y - s}, // 上
-					{x - s, y - s, x - s, y + s}, // 左縦
-					{x - s, y + s, x + s, y + s}, // 下
-					{x - s, y,     x + s / 2, y}  // 中
-				};
-				break;
-			case 'O':
-				segments = {
-					{x - s, y - s, x + s, y - s}, // 上
-					{x + s, y - s, x + s, y + s}, // 右
-					{x + s, y + s, x - s, y + s}, // 下
-					{x - s, y + s, x - s, y - s}  // 左
-				};
-				break;
-			case 'V':
-				segments = {
-					{x - s, y - s, x,     y + s}, // 左斜め下
-					{x,     y + s, x + s, y - s}  // 右斜め上
-				};
-				break;
-			case 'R':
-				segments = {
-					{x - s, y + s, x - s, y - s}, // 左縦
-					{x - s, y - s, x + s, y - s}, // 上
-					{x + s, y - s, x + s, y},     // 右丸み
-					{x + s, y,     x - s, y},     // 中
-					{x - s, y,     x + s, y + s}  // 斜め払い
-				};
-				break;
-			}
-
-			// --- 線を徐々に描く計算 ---
-			float totalSegs = (float)segments.size();
-			float progressPerSeg = 1.0f / totalSegs;
-
-			for (int i = 0; i < segments.size(); i++) {
-				// この線を描き始めるタイミング
-				float startThreshold = i * progressPerSeg;
-				// この線を描き終わるタイミング
-				float endThreshold = (i + 1) * progressPerSeg;
-
-				// まだ描く時間じゃないならスキップ
-				if (progress < startThreshold) continue;
-
-				// 完全に描き終わっている場合
-				if (progress >= endThreshold) {
-					Novice::DrawLine((int)segments[i].lx, (int)segments[i].ly, (int)segments[i].rx, (int)segments[i].ry, color);
-				}
-				// 描いている途中（補間）
-				else {
-					// 現在の線の中での進行度 (0.0 ~ 1.0)
-					float localT = (progress - startThreshold) / progressPerSeg;
-
-					float currentX = segments[i].lx + (segments[i].rx - segments[i].lx) * localT;
-					float currentY = segments[i].ly + (segments[i].ry - segments[i].ly) * localT;
-
-					Novice::DrawLine((int)segments[i].lx, (int)segments[i].ly, (int)currentX, (int)currentY, color);
-				}
-			}
-			};
-
-		// ---------------------------------------------------------
-		// 文字を描画（ウェーブさせる）
-		// ---------------------------------------------------------
-		const char* str = "GAMEOVER";
-		int len = 8;
-		unsigned int col = RED; // 文字色
-
-		for (int i = 0; i < len; i++) {
-			// 文字ごとにタイミングをずらす (0.08秒ずつ遅らせる)
-			float charStart = i * 0.08f;
-			// 1文字が完成するのにかかる時間割合 (全体の40%)
-			float charDuration = 0.4f;
-
-			// 全体の進行度から、この文字の進行度を計算
-			float localProgress = (globalProgress - charStart) / charDuration;
-
-			if (localProgress < 0.0f) localProgress = 0.0f;
-			if (localProgress > 1.0f) localProgress = 1.0f;
-
-			// 表示位置（GAMEOVER の O以降は少し隙間をあける）
-			float offsetX = (float)i * spacing;
-			if (i >= 4) offsetX += 40.0f;
-
-			DrawAnimatedChar(str[i], cx + offsetX, cy, size, localProgress, col);
-		}
-	}
-
 	// --- プログラムリストのブロック描画 ---
 	Novice::ScreenPrintf(1420, 410, "--- YOUR PROGRAM (Click to Delete) ---");
 
@@ -709,18 +565,18 @@ void Game::Draw() {
 
 		switch (commandList[i]) {
 
-		case CommandType::MoveRight:
-			currentTex = texRight;
-			break;
-		case CommandType::MoveLeft:
-			currentTex = texLeft;
-			break;
-		case CommandType::CheckWallJump:
-			currentTex = texWallJump;
-			break;
-		case CommandType::CheckCliffJump:
-			currentTex = texCliffJump;
-			break;
+			case CommandType::MoveRight:
+				currentTex = texRight;
+				break;
+			case CommandType::MoveLeft:
+				currentTex = texLeft;
+				break;
+			case CommandType::CheckWallJump:
+				currentTex = texWallJump;
+				break;
+			case CommandType::CheckCliffJump:
+				currentTex = texCliffJump;
+				break;
 
 		}
 
@@ -786,7 +642,7 @@ void Game::Draw() {
 			}
 		}
 	}
-	
+
 	int mx, my;
 	Novice::GetMousePosition(&mx, &my);
 	Novice::ScreenPrintf(0, 0, "Mouse: %d, %d", mx, my);
@@ -864,39 +720,39 @@ void Game::Draw() {
 
 			// --- 図形で文字を描く関数（パターン追加版） ---
 			auto DrawBlockChar = [&](char c, float x, float y, float size, unsigned int color) {
-				int pattern[5][5] = { 0 };
+				int pattern[5][5] = {0};
 
 
 				switch (c) {
 					// --- 既存の文字 ---
-				case 'M': pattern[0][0] = 1; pattern[0][4] = 1; pattern[1][0] = 1; pattern[1][1] = 1; pattern[1][3] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[2][2] = 1; pattern[2][4] = 1; pattern[3][0] = 1; pattern[3][4] = 1; pattern[4][0] = 1; pattern[4][4] = 1; break;
-				case 'I': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][2] = 1; pattern[2][2] = 1; pattern[3][2] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
-				case 'S': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[3][4] = 1; pattern[4][0] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
-				case 'O': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[2][4] = 1; pattern[3][0] = 1; pattern[3][4] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
-				case 'N': pattern[0][0] = 1; pattern[0][4] = 1; pattern[1][0] = 1; pattern[1][1] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[2][2] = 1; pattern[2][4] = 1; pattern[3][0] = 1; pattern[3][3] = 1; pattern[3][4] = 1; pattern[4][0] = 1; pattern[4][4] = 1; break;
-				case 'C': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[3][0] = 1; pattern[3][4] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
-				case 'L': pattern[0][0] = 1; pattern[1][0] = 1; pattern[2][0] = 1; pattern[3][0] = 1; pattern[4][0] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
-				case 'E': pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[2][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[3][0] = 1; pattern[4][0] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
-				case 'P': pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1; pattern[1][0] = 1; pattern[1][3] = 1; pattern[2][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[3][0] = 1; pattern[4][0] = 1; break;
-				case 'T': pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[0][4] = 1; pattern[1][2] = 1; pattern[2][2] = 1; pattern[3][2] = 1; pattern[4][2] = 1; break;
+					case 'M': pattern[0][0] = 1; pattern[0][4] = 1; pattern[1][0] = 1; pattern[1][1] = 1; pattern[1][3] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[2][2] = 1; pattern[2][4] = 1; pattern[3][0] = 1; pattern[3][4] = 1; pattern[4][0] = 1; pattern[4][4] = 1; break;
+					case 'I': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][2] = 1; pattern[2][2] = 1; pattern[3][2] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+					case 'S': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[3][4] = 1; pattern[4][0] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+					case 'O': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[2][4] = 1; pattern[3][0] = 1; pattern[3][4] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+					case 'N': pattern[0][0] = 1; pattern[0][4] = 1; pattern[1][0] = 1; pattern[1][1] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[2][2] = 1; pattern[2][4] = 1; pattern[3][0] = 1; pattern[3][3] = 1; pattern[3][4] = 1; pattern[4][0] = 1; pattern[4][4] = 1; break;
+					case 'C': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[3][0] = 1; pattern[3][4] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+					case 'L': pattern[0][0] = 1; pattern[1][0] = 1; pattern[2][0] = 1; pattern[3][0] = 1; pattern[4][0] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+					case 'E': pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[2][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[3][0] = 1; pattern[4][0] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+					case 'P': pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1; pattern[1][0] = 1; pattern[1][3] = 1; pattern[2][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[3][0] = 1; pattern[4][0] = 1; break;
+					case 'T': pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[0][4] = 1; pattern[1][2] = 1; pattern[2][2] = 1; pattern[3][2] = 1; pattern[4][2] = 1; break;
 
-					// --- ★追加した文字（R TO RETURN用）---
-				case 'R':
-					pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1;
-					pattern[1][0] = 1; pattern[1][3] = 1;
-					pattern[2][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1;
-					pattern[3][0] = 1; pattern[3][2] = 1;
-					pattern[4][0] = 1; pattern[4][3] = 1;
-					break;
-				case 'U':
-					pattern[0][0] = 1; pattern[0][4] = 1;
-					pattern[1][0] = 1; pattern[1][4] = 1;
-					pattern[2][0] = 1; pattern[2][4] = 1;
-					pattern[3][0] = 1; pattern[3][4] = 1;
-					pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1;
-					break;
-				case ' ': // スペース（何もしない）
-					break;
+						// --- ★追加した文字（R TO RETURN用）---
+					case 'R':
+						pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1;
+						pattern[1][0] = 1; pattern[1][3] = 1;
+						pattern[2][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1;
+						pattern[3][0] = 1; pattern[3][2] = 1;
+						pattern[4][0] = 1; pattern[4][3] = 1;
+						break;
+					case 'U':
+						pattern[0][0] = 1; pattern[0][4] = 1;
+						pattern[1][0] = 1; pattern[1][4] = 1;
+						pattern[2][0] = 1; pattern[2][4] = 1;
+						pattern[3][0] = 1; pattern[3][4] = 1;
+						pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1;
+						break;
+					case ' ': // スペース（何もしない）
+						break;
 				}
 
 				for (int i = 0; i < 5; i++) {

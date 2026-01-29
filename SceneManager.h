@@ -2,11 +2,12 @@
 // 各シーンをインクルード
 #include "Title.h"
 #include "Game.h"
+#include "GameOver.h"
 
 enum class Scene {
 	TITLE,
 	GAME,
-
+	
 	CREDIT,
 	SETTINGS,
 	TUTORIAL,
@@ -15,6 +16,9 @@ enum class Scene {
 	GAMEOVER,
 	EXIT_GAME,
 };
+
+// 前方宣言
+//class GameOver;
 
 class SceneManager {
 public:
@@ -25,6 +29,7 @@ public:
 	~SceneManager();
 
 	void Run(); // mainのループ内で呼ぶメイン処理
+	void ChangeScene(Scene nextScene); // シーン切り替え
 	
 private:
 	// シーンの更新
@@ -32,6 +37,7 @@ private:
 	// 各シーンのポインタ
 	Title* titleScene;
 	Game* gameScene;
+	GameOver* gameOverScene;
 
 	// キー入力を受け取るための変数(Novice用)
 	char keys[256] = {0};

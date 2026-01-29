@@ -49,7 +49,7 @@ public:
 	void Draw();
 
 	bool isGameOver = false;
-	int gameOverTimer = 0;
+	//int gameOverTimer = 0;
 
 	bool isGameClear = false;      // クリアしたかどうか
 	int gameClearTimer = 0;   
