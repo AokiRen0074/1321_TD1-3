@@ -98,29 +98,28 @@ void Player::UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHe
 void Player::StartRespawnAnim(Vector2 centerPos) {
 	isRespawning = true;
 	respawnTimer = 0;
-	status_.isActive = false; // 演出中は本体の当たり判定や描画を消す
-	status_.pos = centerPos;  // 座標はセットしておく
+	status_.isActive = false;
+	status_.pos = centerPos;
 
 	particles.clear();
 
-	// プレイヤーのサイズ（64x64）を 8x8 くらいのブロックに分割して粒子にする
-	float pSize = 8.0f; // 粒子のサイズ
+	float pSize = 8.0f;
 	int cols = (int)(status_.width / pSize);
 	int rows = (int)(status_.height / pSize);
+
+	// --- オレンジ系のカラーパレット ---
+	unsigned int color1 = 0xE6B422FF; // メインの重機イエロー/オレンジ
+	unsigned int color2 = 0xFF8C00FF; // ダークオレンジ
+	unsigned int color3 = 0xFFFFFFFF; // ハイライト（白）
 
 	for (int y = 0; y < rows; y++) {
 		for (int x = 0; x < cols; x++) {
 			RespawnParticle p;
 
-			// ゴール地点（プレイヤーの形状通りに並んだ位置）
-			// ※ centerPos を基準に計算
 			p.targetPos.x = centerPos.x + (x * pSize);
 			p.targetPos.y = centerPos.y + (y * pSize);
 
-			// スタート地点（周囲にランダムに散らばらせる）
-			// 角度をランダムに決める
 			float angle = (float)(rand() % 360) * (3.14159f / 180.0f);
-			// 距離（300px 〜 500px 離れたところから飛んでくる）
 			float dist = 300.0f + (float)(rand() % 200);
 
 			p.startPos.x = p.targetPos.x + cosf(angle) * dist;
@@ -129,9 +128,11 @@ void Player::StartRespawnAnim(Vector2 centerPos) {
 			p.currentPos = p.startPos;
 			p.size = pSize;
 
-			// 色（白やシアンなどを混ぜるとサイバー感が出る）
-			if (rand() % 2 == 0) p.color = 0xFFFFFFFF; // 白
-			else p.color = 0x00FFFFFF; // シアン
+			// --- 色の決定（オレンジ系でランダムに散らす） ---
+			int r = rand() % 10;
+			if (r < 6)      p.color = color1; // 60% はメインのオレンジ
+			else if (r < 9) p.color = color2; // 30% は濃いオレンジ
+			else            p.color = color3; // 10% は輝き（白）
 
 			particles.push_back(p);
 		}
@@ -185,51 +186,50 @@ void Player::DrawRespawnAnim(Vector2 offset) {
 	float pillarAlpha = (t < 0.2f) ? (t * 5.0f) : (1.0f - t);
 
 	if (pillarAlpha > 0.0f) {
-		float playerHue = 180.0f; // シアン
+		// --- 色の設定 ---
+		float playerHue = 35.0f; // ★シアン(180)からオレンジ/ゴールド(35)に変更
 
 		int centerX = (int)(status_.pos.x + status_.width / 2.0f - offset.x);
 		int centerY = (int)(status_.pos.y + status_.height / 2.0f - offset.y);
 
-		// --- 1. 光の柱 ---
-		int auraWidth = (int)(status_.width * 1.2f * pillarAlpha);
-		unsigned int auraColor = HSVToRGBA(playerHue, 0.6f, 1.0f, (unsigned char)(pillarAlpha * 100));
-		unsigned int coreColor = HSVToRGBA(playerHue, 0.1f, 1.0f, (unsigned char)(pillarAlpha * 255));
+		// --- 1. 光の柱（熱気を感じるオレンジの光） ---
+		int auraWidth = (int)(status_.width * 1.5f * pillarAlpha);
+		// 外側のオーラ（オレンジ）
+		unsigned int auraColor = HSVToRGBA(playerHue, 0.8f, 1.0f, (unsigned char)(pillarAlpha * 120));
+		// 中心コア（白に近いイエロー）
+		unsigned int coreColor = HSVToRGBA(playerHue - 5.0f, 0.3f, 1.0f, (unsigned char)(pillarAlpha * 255));
 
 		Novice::DrawBox(centerX - auraWidth / 2, centerY, auraWidth, -2000, 0.0f, auraColor, kFillModeSolid);
-		Novice::DrawBox(centerX - 2, centerY, 4, -2000, 0.0f, coreColor, kFillModeSolid);
+		Novice::DrawBox(centerX - 4, centerY, 8, -2000, 0.0f, coreColor, kFillModeSolid);
 
-		// --- 2. 大量の環境パーティクル演出（追加！） ---
-		// 復活タイマーをシードにして、大量の粒子を「その場」で計算して描画
-		const int kEnvParticleCount = 40; // 粒子の数（重ければ調整してね）
+		// --- 2. 大量の環境パーティクル（火花のような演出） ---
+		const int kEnvParticleCount = 45;
 
 		for (int i = 0; i < kEnvParticleCount; i++) {
-			// i を使って粒子ごとに固有の動きを作る
-			// 縦方向の上昇アニメーション（ループするように計算）
-			float pOffsetT = fmodf(t * 2.0f + (float)i / kEnvParticleCount, 1.0f);
+			float pOffsetT = fmodf(t * 1.5f + (float)i / kEnvParticleCount, 1.0f);
 
-			// 柱の範囲内でランダムなX位置
-			float pX = (float)centerX + sinf((float)i * 0.5f) * (auraWidth * 0.8f);
-			// 下から上へ移動するY位置
-			float pY = (float)centerY - (pOffsetT * 600.0f);
+			// 少しだけ左右の振れ幅を大きくして「熱のゆらぎ」を表現
+			float pX = (float)centerX + sinf((float)i * 0.8f + t * 5.0f) * (auraWidth * 0.6f);
+			float pY = (float)centerY - (pOffsetT * 800.0f);
 
-			// 粒子のサイズ（上に行くほど小さく、消えそうにする）
-			float pSize = (1.0f - pOffsetT) * 4.0f + 1.0f;
+			float pSize = (1.0f - pOffsetT) * 5.0f + 1.0f;
 
-			// 粒子の色（シアン〜白）
-			unsigned int pColor = HSVToRGBA(playerHue, 0.2f, 1.0f, (unsigned char)(pillarAlpha * (1.0f - pOffsetT) * 255));
+			// 火花のような色（オレンジ〜赤みのあるオレンジ）
+			unsigned int pColor = HSVToRGBA(playerHue - (pOffsetT * 10.0f), 0.7f, 1.0f, (unsigned char)(pillarAlpha * (1.0f - pOffsetT) * 255));
 
-			// 小さな矩形として描画
-			Novice::DrawBox((int)pX, (int)pY, (int)pSize, (int)pSize, pOffsetT * 3.14f, pColor, kFillModeSolid);
+			Novice::DrawBox((int)pX, (int)pY, (int)pSize, (int)pSize, pOffsetT * 6.28f, pColor, kFillModeSolid);
 
-			// 豪華にするための「光の粉」
-			if (i % 3 == 0) {
-				Novice::DrawBox((int)pX + 2, (int)pY - 20, 2, 2, 0.0f, 0xFFFFFFFF, kFillModeSolid);
+			// 豪華にするための「高温の火花」（白）
+			if (i % 4 == 0) {
+				Novice::DrawBox((int)pX + 1, (int)pY, 2, 2, 0.0f, 0xFFFFFFFF, kFillModeSolid);
 			}
 		}
 	}
 
-	// --- 3. プレイヤー本体を形作る粒子（既存） ---
-	for (const auto& p : particles) {
+	// --- 3. プレイヤー本体を形作る粒子 ---
+	for (auto& p : particles) {
+		// 粒子自体の色もオレンジ系にする（StartRespawnAnimで設定された色をここで上書きする場合）
+		// もし StartRespawnAnim 側で色を決めているなら、そちらの修正も必要です。
 		Novice::DrawBox(
 			(int)(p.currentPos.x - offset.x),
 			(int)(p.currentPos.y - offset.y),
@@ -361,55 +361,62 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 
 void Player::DrawPlayer(Vector2 offset) {
 	if (status_.isActive) {
-		// --- プレイヤーの描画処理（DrawPlayer内） ---
+		// --- 1. テクスチャの読み込み（通常はInitでやるのが理想ですが、一旦ここで） ---
+		static int tex = Novice::LoadTexture("./Images/player.png");
 
-		float playerHue = 180.0f; // 鮮やかなシアン
-		unsigned int pColor = HSVToRGBA(playerHue, 0.8f, 1.0f, 0xFF);
+		// --- 2. アニメーション変数の設定 ---
+		const int kFrameCount = 5;      // 全フレーム数（320 / 64 = 5）
+		const int kFrameWidth = 64;     // 1フレームの幅
+		const int kFrameHeight = 64;    // 1フレームの高さ
+		const int kAnimSpeed = 8;       // アニメーション速度（小さいほど速い）
 
-		// 描画用の座標計算
-		int px = static_cast<int>(status_.pos.x - offset.x);
-		int py = static_cast<int>(status_.pos.y - offset.y);
-		int pw = static_cast<int>(status_.scale.x);
-		int ph = static_cast<int>(status_.scale.y);
+		static int animTimer = 0;
+		animTimer++;
 
-		// 1. 外枠（四角形の4辺）
-		Novice::DrawLine(px, py, px + pw, py, pColor);
-		Novice::DrawLine(px, py + ph, px + pw, py + ph, pColor);
-		Novice::DrawLine(px, py, px, py + ph, pColor);
-		Novice::DrawLine(px + pw, py, px + pw, py + ph, pColor);
+		// --- 3. 現在のフレーム番号を計算 ---
+		// 止まっている時は 0フレーム目で固定、動いている時だけループさせる
+		int currentFrame = 0;
 
-		// 2. 内側のコア（斜めライン）
-		unsigned int pCoreCol = HSVToRGBA(playerHue, 0.5f, 0.7f, 0x88);
-		Novice::DrawLine(px, py, px + pw, py + ph, pCoreCol);
-		Novice::DrawLine(px + pw, py, px, py + ph, pCoreCol);
+		// キー入力（A or D）があるか、またはコマンド移動中なら動かす
+		// ※ status_.Velocity.x など、実際の移動判定に合わせて調整してください
+		bool isMoving = (Novice::CheckHitKey(DIK_D) || Novice::CheckHitKey(DIK_A) || status_.isCommandMove);
 
-		// 3. 複数スキャンライン（上から下へ流れる）
-		static float pTimer = 0.0f;
-		pTimer += 0.05f;
-
-		int pLineCount = 3; // 線の本数
-		for (int i = 0; i < pLineCount; i++) {
-			// 四角形の高さ（ph）の中でループするように計算
-			float offset_ = fmodf(pTimer * 40.0f + (i * (ph / (float)pLineCount)), (float)ph);
-			int pScanY = py + static_cast<int>(offset_);
-
-			// 中央付近が一番明るく、端にいくほど少しだけ薄くなるように（任意）
-			unsigned char pAlpha = (unsigned char)(200);
-
-			// スキャンライン描画（白に近いシアン）
-			Novice::DrawLine(
-				px, pScanY,
-				px + pw, pScanY,
-				HSVToRGBA(playerHue, 0.3f, 1.0f, pAlpha)
-			);
+		if (isMoving) {
+			currentFrame = (animTimer / kAnimSpeed) % kFrameCount;
 		}
+		else {
+			currentFrame = 0; // 待機状態
+		}
+
+		// --- 4. 切り抜き位置（画像上の左上座標）の計算 ---
+		int srcX = currentFrame * kFrameWidth;
+		int srcY = 0;
+
+		// --- 5. 左右の向き反転処理 ---
+		// moveDirがマイナス（左向き）ならスケールを反転させる
+		float scaleX = (status_.moveDir > 0) ? 1.0f : -1.0f;
+		// 反転した際、描画位置がずれるのを防ぐためのオフセット
+		float drawPosX = status_.pos.x - offset.x;
+		if (scaleX < 0) {
+			drawPosX += kFrameWidth;
+		}
+
+		// --- 6. 描画実行 ---
+		Novice::DrawQuad(
+			(int)drawPosX, (int)(status_.pos.y - offset.y),                      // 左上
+			(int)drawPosX + (int)(kFrameWidth * scaleX), (int)(status_.pos.y - offset.y), // 右上
+			(int)drawPosX, (int)(status_.pos.y + kFrameHeight - offset.y),       // 左下
+			(int)drawPosX + (int)(kFrameWidth * scaleX), (int)(status_.pos.y + kFrameHeight - offset.y), // 右下
+			srcX, srcY,             // ソースの左上
+			kFrameWidth, kFrameHeight, // ソースの幅・高さ
+			tex,
+			0xFFFFFFFF
+		);
 	}
 
-	// デバッグ処理
-	Novice::ScreenPrintf(0, 400, "isBlet%d", status_.isBlet);
-	Novice::ScreenPrintf(0, 440, "isBlack%d", status_.isBlack);
-	Novice::ScreenPrintf(0, 480, "isLift%d", status_.isLift);
-
+	// デバッグ情報
+	Novice::ScreenPrintf(0, 400, "isBlet:%d", status_.isBlet);
+	Novice::ScreenPrintf(0, 440, "isBlack:%d", status_.isBlack);
 }
 
 //------------------------------------------------------------------------------------------------------
