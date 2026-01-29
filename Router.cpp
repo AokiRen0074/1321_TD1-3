@@ -17,6 +17,7 @@ Router::Router(int id, int mapData[kMapHeight][kMapWidth]) {
 	electricGraphHandles[3] = Novice::LoadTexture("./Images/DenkiBiribiri4.png");
 }
 
+
 void Router::InitRouter(int id, int mapData[kMapHeight][kMapWidth]) {
 	id_ = id;
 	int idCount = 0;
