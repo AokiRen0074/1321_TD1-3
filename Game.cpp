@@ -375,7 +375,11 @@ void Game::Update(char keys[256], char preKeys[256]) {
 	// これが isRunning の外にないと、クリア画面のアニメーションが動きません
 	if (isGameClear) {
 		gameClearTimer++;
-
+		if (gameClearTimer > 300 && fadeState_ == FADE_NONE) {
+			Novice::PlayAudio(soundSceneChange, false, 1.0f); // 暗転音
+			fadeState_ = FADE_OUT;
+			fadeTimer_ = 0;
+		}
 
 	}
 	// --- フェード中の処理 ---
@@ -414,6 +418,27 @@ void Game::Update(char keys[256], char preKeys[256]) {
 
 					scrollCamera->Update(player->status_.pos);
 
+				} else if (isGameClear) {
+					// 1. フラグのリセット
+					isGameClear = false;
+					isRunning = false; // 実行モード終了
+					cantStartCount = 0;
+
+					// 2. プレイヤーのリセット
+					player->InitPlayer();
+					// 初期スポーン位置へ戻す（もし固定座標なら {300.0f, 704.0f} 等を指定）
+					player->status_.pos = respawnPos;
+
+					// 3. マップ・ギミックの完全リセット
+					std::vector<std::string> layers = { "IntGrid", "HalfBlock" };
+					map->LoadMapFromLDtk("./mapTest9999.ldtk", layers);
+
+					// 4. カメラ位置も即座に戻す
+					scrollCamera->Update(player->status_.pos);
+
+					// フェードインへ移行
+					fadeState_ = FADE_IN;
+					fadeTimer_ = 0;
 				} else {
 					// 【落下によるステージ進行の場合】
 					int nextIdx = scrollCamera->GetStageIndex() + 1;
@@ -833,7 +858,7 @@ void Game::Draw() {
 
 			float blockSize = 12.0f * bounce;
 			unsigned int mainColor = 0x00FF00FF;
-			unsigned int subColor = 0x00AAAAFF; // 案内文の色（水色）
+			
 			unsigned int shadowColor = 0x004400FF;
 
 			// --- 図形で文字を描く関数（パターン追加版） ---
@@ -892,23 +917,8 @@ void Game::Draw() {
 			for (int i = 0; i < 7; i++) DrawBlockChar(str1[i], startX1 + i * 6 * blockSize, cy - blockSize * 6, blockSize, mainColor);
 			for (int i = 0; i < 8; i++) DrawBlockChar(str2[i], startX2 + i * 6 * blockSize, cy + blockSize * 1, blockSize, mainColor);
 
-			// --- ★追加：Rで戻るの案内（下に小さく表示） ---
-			if (gameClearTimer > 120) {
-				const char* str3 = "PRESS R TO RETURN";
-				float smallSize = 6.0f;
-				int len3 = 17;
-				float startX3 = cx - (len3 * 6 * smallSize) / 2.0f;
-
-
-				float msgY = cy + blockSize * 24;
-
-				// 点滅アニメーション
-				if ((gameClearTimer / 30) % 2 == 0) {
-					for (int i = 0; i < len3; i++) {
-						DrawBlockChar(str3[i], startX3 + i * 6 * smallSize, msgY, smallSize, subColor);
-					}
-				}
-			}
+			
+			
 
 			// 装飾枠
 			if ((gameClearTimer / 30) % 2 == 0) {
