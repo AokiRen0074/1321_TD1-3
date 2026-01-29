@@ -134,6 +134,7 @@ bool IsPlayerHit(Player* player, const ButtonA& button) {
 	float buttonTop = button.pos.y;
 	float buttonBottom = button.pos.y + 32; // ボタンの高さを仮に32とする
 
+
 	return !(playerRight < buttonLeft || playerLeft > buttonRight || playerBottom < buttonTop || playerTop > buttonBottom);
 };
 
