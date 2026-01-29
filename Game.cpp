@@ -36,6 +36,10 @@ void Game::Initialize() {
 	player->InitPlayer();
 	commandList.clear();
 
+	isGameClear = false;
+	gameClearTimer = 0;
+
+
 	isGameOver = false;
 	gameOverTimer = 0;
 
@@ -255,7 +259,13 @@ void Game::Update(char keys[256], char preKeys[256]) {
 			} else {
 				player->UpdateByCommands(commandList, map->mapData, map->Beltconveyors, map->Blocks, map->liftBlocks);
 			}
+
+
+
+
+
 		}
+
 
 		// ストップボタン判定
 		if (isClick) {
@@ -343,6 +353,31 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		}
 	}
 
+	if (!isGameClear) {
+		// 座標を 10500, 3520 に合わせました
+		float gx = 10500.0f;
+		float gy = 3520.0f;   // 修正
+		float range = 100.0f; // 判定の広さ
+
+		// プレイヤーがゴールの範囲に入ったら
+		if (player->status_.pos.x > gx - range && player->status_.pos.x < gx + range &&
+			player->status_.pos.y > gy - range && player->status_.pos.y < gy + range) {
+
+			isGameClear = true;
+			isRunning = false; // プレイヤーを止める
+
+			// 演出用タイマーをリセット
+			gameClearTimer = 0;
+		}
+	}
+
+	// --- クリア演出のタイマー更新 ---
+	// これが isRunning の外にないと、クリア画面のアニメーションが動きません
+	if (isGameClear) {
+		gameClearTimer++;
+
+
+	}
 	// --- フェード中の処理 ---
 	if (fadeState_ != FADE_NONE) {
 		fadeTimer_++;
@@ -749,6 +784,138 @@ void Game::Draw() {
 			"ID:%d", door.linkId
 		);
 	}
+
+
+	// ==========================================
+	// ゲームクリア画面の描画（全画面・リセット案内付き）
+	// ==========================================
+	if (isGameClear) {
+		// 1. 背景：画面全体（プログラムエリア含む 1980px）を覆う
+		int alpha = gameClearTimer * 3;
+		if (alpha > 220) alpha = 220;
+		unsigned int bgCol = (0x00001100) | alpha;
+
+		// ★変更：幅を1400から1980に変更して画面全体を隠す
+		Novice::DrawBox(0, 0, 1980, 1080, 0.0f, bgCol, kFillModeSolid);
+
+		// 2. 背景演出：流れるグリッド
+		if (gameClearTimer > 20) {
+			unsigned int gridCol = 0x00FFCC44;
+			static float scroll = 0.0f;
+			scroll += 3.0f;
+
+			// 縦線（右端まで描画）
+			for (int i = 0; i < 1980; i += 100) {
+				Novice::DrawLine(i, 0, i, 1080, gridCol);
+			}
+			// 横線
+			for (int i = 0; i < 1080; i += 80) {
+				float y = fmodf(i + scroll, 1080.0f);
+				Novice::DrawLine(0, (int)y, 1980, (int)y, gridCol);
+			}
+		}
+
+		// 3. テキスト描画
+		if (gameClearTimer > 60) {
+			// ★変更：中心座標を画面全体（1980）の真ん中へ
+			float cx = 1980.0f / 2.0f;
+			float cy = 1080.0f / 2.0f;
+
+			// アニメーション
+			float scale = (gameClearTimer - 60) / 20.0f;
+			if (scale > 1.0f) scale = 1.0f;
+			float bounce = scale + sinf(scale * 3.14f) * 0.15f;
+			if (gameClearTimer > 90) bounce = 1.0f;
+
+			float blockSize = 12.0f * bounce;
+			unsigned int mainColor = 0x00FF00FF;
+			unsigned int subColor = 0x00AAAAFF; // 案内文の色（水色）
+			unsigned int shadowColor = 0x004400FF;
+
+			// --- 図形で文字を描く関数（パターン追加版） ---
+			auto DrawBlockChar = [&](char c, float x, float y, float size, unsigned int color) {
+				int pattern[5][5] = { 0 };
+
+				switch (c) {
+					// --- 既存の文字 ---
+				case 'M': pattern[0][0] = 1; pattern[0][4] = 1; pattern[1][0] = 1; pattern[1][1] = 1; pattern[1][3] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[2][2] = 1; pattern[2][4] = 1; pattern[3][0] = 1; pattern[3][4] = 1; pattern[4][0] = 1; pattern[4][4] = 1; break;
+				case 'I': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][2] = 1; pattern[2][2] = 1; pattern[3][2] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+				case 'S': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[3][4] = 1; pattern[4][0] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+				case 'O': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[2][4] = 1; pattern[3][0] = 1; pattern[3][4] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+				case 'N': pattern[0][0] = 1; pattern[0][4] = 1; pattern[1][0] = 1; pattern[1][1] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[2][2] = 1; pattern[2][4] = 1; pattern[3][0] = 1; pattern[3][3] = 1; pattern[3][4] = 1; pattern[4][0] = 1; pattern[4][4] = 1; break;
+				case 'C': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[3][0] = 1; pattern[3][4] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+				case 'L': pattern[0][0] = 1; pattern[1][0] = 1; pattern[2][0] = 1; pattern[3][0] = 1; pattern[4][0] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+				case 'E': pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[2][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[3][0] = 1; pattern[4][0] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+				case 'P': pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1; pattern[1][0] = 1; pattern[1][3] = 1; pattern[2][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[3][0] = 1; pattern[4][0] = 1; break;
+				case 'T': pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[0][4] = 1; pattern[1][2] = 1; pattern[2][2] = 1; pattern[3][2] = 1; pattern[4][2] = 1; break;
+
+					// --- ★追加した文字（R TO RETURN用）---
+				case 'R':
+					pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1;
+					pattern[1][0] = 1; pattern[1][3] = 1;
+					pattern[2][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1;
+					pattern[3][0] = 1; pattern[3][2] = 1;
+					pattern[4][0] = 1; pattern[4][3] = 1;
+					break;
+				case 'U':
+					pattern[0][0] = 1; pattern[0][4] = 1;
+					pattern[1][0] = 1; pattern[1][4] = 1;
+					pattern[2][0] = 1; pattern[2][4] = 1;
+					pattern[3][0] = 1; pattern[3][4] = 1;
+					pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1;
+					break;
+				case ' ': // スペース（何もしない）
+					break;
+				}
+
+				for (int i = 0; i < 5; i++) {
+					for (int j = 0; j < 5; j++) {
+						if (pattern[i][j] == 1) {
+							// 影と本体
+							Novice::DrawBox((int)(x + j * size + 4), (int)(y + i * size + 4), (int)size, (int)size, 0.0f, shadowColor, kFillModeSolid);
+							Novice::DrawBox((int)(x + j * size), (int)(y + i * size), (int)size, (int)size, 0.0f, color, kFillModeSolid);
+						}
+					}
+				}
+				};
+
+			// --- メインメッセージの描画 ---
+			const char* str1 = "MISSION";
+			const char* str2 = "COMPLETE";
+			float startX1 = cx - (7 * 6 * blockSize) / 2.0f;
+			float startX2 = cx - (8 * 6 * blockSize) / 2.0f;
+
+			for (int i = 0; i < 7; i++) DrawBlockChar(str1[i], startX1 + i * 6 * blockSize, cy - blockSize * 6, blockSize, mainColor);
+			for (int i = 0; i < 8; i++) DrawBlockChar(str2[i], startX2 + i * 6 * blockSize, cy + blockSize * 1, blockSize, mainColor);
+
+			// --- ★追加：Rで戻るの案内（下に小さく表示） ---
+			if (gameClearTimer > 120) {
+				const char* str3 = "PRESS R TO RETURN";
+				float smallSize = 6.0f;
+				int len3 = 17;
+				float startX3 = cx - (len3 * 6 * smallSize) / 2.0f;
+
+
+				float msgY = cy + blockSize * 24;
+
+				// 点滅アニメーション
+				if ((gameClearTimer / 30) % 2 == 0) {
+					for (int i = 0; i < len3; i++) {
+						DrawBlockChar(str3[i], startX3 + i * 6 * smallSize, msgY, smallSize, subColor);
+					}
+				}
+			}
+
+			// 装飾枠
+			if ((gameClearTimer / 30) % 2 == 0) {
+				float borderW = 800.0f * bounce;
+				float borderH = 300.0f * bounce;
+				Novice::DrawBox((int)(cx - borderW / 2), (int)(cy - borderH / 2), (int)borderW, (int)borderH, 0.0f, mainColor, kFillModeWireFrame);
+			}
+		}
+	}
+
+
 }
 
 
