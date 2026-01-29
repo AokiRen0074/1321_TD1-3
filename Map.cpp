@@ -570,33 +570,52 @@ void Map::Draw(Vector2 offset) {
 	}
 
 	// --- [LETS COMMAND!] 看板 ---
+// --- [LETS COMMAND!] 看板 --- (389行目付近)
 	float letsX = 3200.0f;
-	float letsY = 330.0f;
+	float letsY = 150.0f;
 
-	if (letsX - offset.x > -800 && letsX - offset.x < 1500) { 
+	if (letsX - offset.x > -800 && letsX - offset.x < 1500) {
 		float dx = letsX - offset.x;
 		float dy = letsY - offset.y;
 
-		// 点滅アニメーション
 		bool blink = (tutTimer / 40) % 2 == 0;
-		unsigned int cText = 0xFFFFFFDD; // 白
-		unsigned int cHighlight = 0x00FFFFFF; // シアン（強調色）
+		unsigned int cText = 0xFFFFFFDD;
+		unsigned int cHighlight = 0x00FFFFFF;
 
-
+		// 背景ボックスの描画（既存）
 		Novice::DrawBox((int)dx - 20, (int)dy - 100, 800, 240, 0.0f, 0x00000088, kFillModeSolid);
 		Novice::DrawBox((int)dx - 20, (int)dy - 100, 800, 240, 0.0f, 0x00AAAAFF, kFillModeWireFrame);
 
-
 		DrawDotText(dx, dy - 60, "LETS", 12.0f, cText);
 
-
-		// 少し大きく、色を変えて強調
+		// --- マウスカーソル風の矢印描画 ---
 		if (blink) {
-			DrawDotText(dx, dy + 40, "COMMAND !", 12.0f, cHighlight);
-			// ★修正2：アンダーラインも幅に合わせて長く (480 -> 700)
+			DrawDotText(dx, dy+20 , "COMMAND !", 12.0f, cHighlight);
 			Novice::DrawBox((int)dx, (int)dy + 120, 700, 8, 0.0f, cHighlight, kFillModeSolid);
-		} else {
-			DrawDotText(dx, dy + 40, "COMMAND !", 12.0f, cText);
+
+			// 矢印（ポインタ）の描画位置
+			// 文字の右下あたりに配置
+			float pointerX = dx + 650.0f;
+			float pointerY = dy + 180.0f;
+
+			// マウスカーソルの形（三角形＋短い棒）
+			// 1. 矢印の頭（斜め上を向いた三角形）
+			Novice::DrawTriangle(
+				(int)pointerX, (int)pointerY,           // 先端
+				(int)pointerX, (int)pointerY + 30,      // 下
+				(int)pointerX + 20, (int)pointerY + 20, // 右
+				WHITE, kFillModeSolid
+			);
+			// 2. 矢印の持ち手部分
+			Novice::DrawLine((int)pointerX + 5, (int)pointerY + 20, (int)pointerX + 15, (int)pointerY + 35, WHITE);
+
+			// 3. クリック波紋演出（円）
+			float ringSize = (float)(tutTimer % 40);
+			Novice::DrawEllipse((int)pointerX, (int)pointerY, (int)ringSize, (int)ringSize, 0.0f, 0x00FFFF88, kFillModeWireFrame);
+
+		}
+		else {
+			DrawDotText(dx, dy+20 , "COMMAND !", 12.0f, cText);
 		}
 	}
 	

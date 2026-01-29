@@ -499,6 +499,8 @@ void Game::Draw() {
 	// カメラのオフセットを取得(スクロールで必要)
 	Vector2 offset = scrollCamera->GetOffset();
 
+	
+
 	// --- ゲーム画面 ---
 
 	// 背景
@@ -514,6 +516,14 @@ void Game::Draw() {
 
 	// 区切り線
 	Novice::DrawBox(1400, 398, 580, 4, 0.0f, WHITE, kFillModeSolid);
+
+	Novice::DrawSprite(
+		(int)(3450.0f - offset.x), // カメラの動きに合わせてズレるようにする
+		(int)(330.0f - offset.y),
+		texRight,
+		1.0f, 1.0f, 0.0f,
+		0xFFFFFFFF
+	);
 
 	// ルーター描画
 	for (int i = 0; i < routerCount; i++) {
@@ -588,7 +598,9 @@ void Game::Draw() {
 
 		if (currentTex != 0) {
 			Novice::DrawSprite(1450, (int)blockY, currentTex, 1.0f, 1.0f, 0.0f, color);
+
 		}
+
 
 		// 矢印や強調枠の処理
 		if (i == currentIndex) {
@@ -642,6 +654,8 @@ void Game::Draw() {
 			}
 		}
 	}
+
+	
 
 	int mx, my;
 	Novice::GetMousePosition(&mx, &my);
