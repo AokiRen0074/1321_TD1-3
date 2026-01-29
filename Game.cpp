@@ -865,6 +865,7 @@ void Game::Draw() {
 			auto DrawBlockChar = [&](char c, float x, float y, float size, unsigned int color) {
 				int pattern[5][5] = { 0 };
 
+
 				switch (c) {
 					// --- 既存の文字 ---
 				case 'M': pattern[0][0] = 1; pattern[0][4] = 1; pattern[1][0] = 1; pattern[1][1] = 1; pattern[1][3] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[2][2] = 1; pattern[2][4] = 1; pattern[3][0] = 1; pattern[3][4] = 1; pattern[4][0] = 1; pattern[4][4] = 1; break;
