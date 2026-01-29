@@ -144,29 +144,34 @@ void Player::StartRespawnAnim(Vector2 centerPos) {
 void Player::UpdateRespawnAnim() {
 	if (!isRespawning) return;
 
-	respawnTimer++;
+	// 演出中は物理挙動（重力）を完全に停止
+	status_.Velocity.y = 0.0f;
 
-	// 進行度 (0.0 〜 1.0)
+	respawnTimer++;
 	float t = (float)respawnTimer / (float)kRespawnTimeMax;
 	if (t > 1.0f) t = 1.0f;
 
-	// イージング適用（シュッ！と集まる動き）
 	float easeT = EaseOutExpo(t);
 
 	for (auto& p : particles) {
-		// 線形補間: Start + (End - Start) * t
 		p.currentPos.x = p.startPos.x + (p.targetPos.x - p.startPos.x) * easeT;
 		p.currentPos.y = p.startPos.y + (p.targetPos.y - p.startPos.y) * easeT;
 	}
 
-	// 演出終了
+	// --- 演出終了時：めり込みを完全に防ぐ ---
 	if (respawnTimer >= kRespawnTimeMax) {
 		isRespawning = false;
-		status_.isActive = true; // プレイヤー本体を出現させる
-		particles.clear();       // 粒子はもう不要
+		status_.isActive = true;
 
-		// 復活時の着地音とか鳴らすと気持ちいい
-		// Novice::PlayAudio(soundLand, ...); 
+		// 速度をゼロにする
+		status_.Velocity.y = 0.0f;
+
+		// 【重要】座標をタイル単位でスナップ（吸着）させる
+		// 1ピクセルでも地面に潜っていると重力でめり込むため、
+		// 座標を整数のタイル位置ピッタリ（-0.1f余裕を持たせる）に配置します
+		status_.pos.y = floorf(status_.pos.y / kTileSize) * kTileSize;
+
+		particles.clear();
 	}
 }
 
@@ -176,6 +181,54 @@ void Player::UpdateRespawnAnim() {
 void Player::DrawRespawnAnim(Vector2 offset) {
 	if (!isRespawning) return;
 
+	float t = (float)respawnTimer / (float)kRespawnTimeMax;
+	float pillarAlpha = (t < 0.2f) ? (t * 5.0f) : (1.0f - t);
+
+	if (pillarAlpha > 0.0f) {
+		float playerHue = 180.0f; // シアン
+
+		int centerX = (int)(status_.pos.x + status_.width / 2.0f - offset.x);
+		int centerY = (int)(status_.pos.y + status_.height / 2.0f - offset.y);
+
+		// --- 1. 光の柱 ---
+		int auraWidth = (int)(status_.width * 1.2f * pillarAlpha);
+		unsigned int auraColor = HSVToRGBA(playerHue, 0.6f, 1.0f, (unsigned char)(pillarAlpha * 100));
+		unsigned int coreColor = HSVToRGBA(playerHue, 0.1f, 1.0f, (unsigned char)(pillarAlpha * 255));
+
+		Novice::DrawBox(centerX - auraWidth / 2, centerY, auraWidth, -2000, 0.0f, auraColor, kFillModeSolid);
+		Novice::DrawBox(centerX - 2, centerY, 4, -2000, 0.0f, coreColor, kFillModeSolid);
+
+		// --- 2. 大量の環境パーティクル演出（追加！） ---
+		// 復活タイマーをシードにして、大量の粒子を「その場」で計算して描画
+		const int kEnvParticleCount = 40; // 粒子の数（重ければ調整してね）
+
+		for (int i = 0; i < kEnvParticleCount; i++) {
+			// i を使って粒子ごとに固有の動きを作る
+			// 縦方向の上昇アニメーション（ループするように計算）
+			float pOffsetT = fmodf(t * 2.0f + (float)i / kEnvParticleCount, 1.0f);
+
+			// 柱の範囲内でランダムなX位置
+			float pX = (float)centerX + sinf((float)i * 0.5f) * (auraWidth * 0.8f);
+			// 下から上へ移動するY位置
+			float pY = (float)centerY - (pOffsetT * 600.0f);
+
+			// 粒子のサイズ（上に行くほど小さく、消えそうにする）
+			float pSize = (1.0f - pOffsetT) * 4.0f + 1.0f;
+
+			// 粒子の色（シアン〜白）
+			unsigned int pColor = HSVToRGBA(playerHue, 0.2f, 1.0f, (unsigned char)(pillarAlpha * (1.0f - pOffsetT) * 255));
+
+			// 小さな矩形として描画
+			Novice::DrawBox((int)pX, (int)pY, (int)pSize, (int)pSize, pOffsetT * 3.14f, pColor, kFillModeSolid);
+
+			// 豪華にするための「光の粉」
+			if (i % 3 == 0) {
+				Novice::DrawBox((int)pX + 2, (int)pY - 20, 2, 2, 0.0f, 0xFFFFFFFF, kFillModeSolid);
+			}
+		}
+	}
+
+	// --- 3. プレイヤー本体を形作る粒子（既存） ---
 	for (const auto& p : particles) {
 		Novice::DrawBox(
 			(int)(p.currentPos.x - offset.x),

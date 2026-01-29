@@ -725,13 +725,17 @@ void Game::Draw() {
 			}
 		}
 	}
-
+	
 	int mx, my;
 	Novice::GetMousePosition(&mx, &my);
 	Novice::ScreenPrintf(0, 0, "Mouse: %d, %d", mx, my);
 	Novice::ScreenPrintf(0, 20, "BtnRight X: %d", (int)btnRight.x);
 	Novice::ScreenPrintf(0, 80, "player Pos X: %.2f", player->status_.pos.x);
 	Novice::ScreenPrintf(0, 110, "player Pos Y: %.2f", player->status_.pos.y);
+
+	Novice::ScreenPrintf(0, 150, "player Pos Y: %.2f", respawnPos.y);
+
+
 	for (const auto& btn : map->buttons) {
 		// ボタンの場所にIDを表示
 		Novice::ScreenPrintf(
@@ -762,7 +766,9 @@ void Game::CheckpointPlayer() {
 			player->status_.pos.y + player->status_.height > cp.pos.y) {
 
 			// 触れたらリスポーン地点を更新
-			this->respawnPos = cp.pos;
+// 座標を保存するとき、あえて 1px 浮かせて「めり込み」を物理的に不可能にする
+			this->respawnPos.x = cp.pos.x;
+			this->respawnPos.y = cp.pos.y - 30.0f; // ★ここ！
 
 			if (!cp.isActive) {
 				cp.isActive = true;
