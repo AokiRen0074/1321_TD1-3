@@ -50,6 +50,10 @@ public:
 
 	bool isGameOver = false;
 	int gameOverTimer = 0;
+
+	bool isGameClear = false;      // クリアしたかどうか
+	int gameClearTimer = 0;   
+	
 	const int kGameOverTimeMax = 240;
 
 private:
