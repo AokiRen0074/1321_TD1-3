@@ -51,7 +51,7 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 
 	auto& level = data["levels"][0];
 	auto& layers = level["layerInstances"];
-
+	
 	doors.clear();
 	buttons.clear();
 	waters.clear();
@@ -572,53 +572,64 @@ void Map::Draw(Vector2 offset) {
 	}
 
 	// --- [LETS COMMAND!] 看板 ---
-// --- [LETS COMMAND!] 看板 --- (389行目付近)
+// --- [LETS COMMAND!] 看板のリッチ版（不透明度連動型） ---
 	float letsX = 3200.0f;
-	float letsY = 150.0f;
+	float letsY = 130.0f;
 
 	if (letsX - offset.x > -800 && letsX - offset.x < 1500) {
 		float dx = letsX - offset.x;
 		float dy = letsY - offset.y;
 
-		bool blink = (tutTimer / 40) % 2 == 0;
-		unsigned int cText = 0xFFFFFFDD;
-		unsigned int cHighlight = 0x00FFFFFF;
+		// --- 波紋と透明度の計算 ---
+		// 0〜60でループするタイマー
+		float ringTimer = fmodf((float)tutTimer, 60.0f);
+		// 波紋のサイズ（0から50まで広がる）
+		float ringSize = (ringTimer / 60.0f) * 50.0f;
+		// 波紋の透明度（広がるほど薄くなる）
+		float ringAlpha = (1.0f - (ringSize / 50.0f)) * 255.0f;
 
-		// 背景ボックスの描画（既存）
+		// ★カーソルの不透明度（波紋が始まった瞬間(クリック時)に少し薄くなり、すぐ戻る）
+		// 通常 255 (濃い) → クリック時 160 (少し薄い)
+		unsigned int cursorAlpha = 255;
+		if (ringTimer < 15.0f) {
+			cursorAlpha = 160 + (int)((ringTimer / 15.0f) * 95.0f);
+		}
+
+		unsigned int cText = 0xFFFFFFDD;
+		unsigned int cGlow = (0x00FFFF00) | (int)ringAlpha; // 波紋と同じフェード
+
+		// 1. 背景ボックス
 		Novice::DrawBox((int)dx - 20, (int)dy - 100, 800, 240, 0.0f, 0x00000088, kFillModeSolid);
 		Novice::DrawBox((int)dx - 20, (int)dy - 100, 800, 240, 0.0f, 0x00AAAAFF, kFillModeWireFrame);
 
+		// 2. テキスト
 		DrawDotText(dx, dy - 60, "LETS", 12.0f, cText);
+		DrawDotText(dx, dy + 40, "COMMAND !", 12.0f, cText);
 
-		// --- マウスカーソル風の矢印描画 ---
-		if (blink) {
-			DrawDotText(dx, dy+20 , "COMMAND !", 12.0f, cHighlight);
-			Novice::DrawBox((int)dx, (int)dy + 120, 700, 8, 0.0f, cHighlight, kFillModeSolid);
+		// 3. 装飾（下線）
+		Novice::DrawBox((int)dx, (int)dy + 120, 700, 4, 0.0f, cGlow, kFillModeSolid);
 
-			// 矢印（ポインタ）の描画位置
-			// 文字の右下あたりに配置
-			float pointerX = dx + 650.0f;
-			float pointerY = dy + 180.0f;
+		// 4. マウスカーソル（上下揺れなし・不透明度変化）
+		float pointerX = dx + 650.0f;
+		float pointerY = dy + 230.0f; // 座標は固定
 
-			// マウスカーソルの形（三角形＋短い棒）
-			// 1. 矢印の頭（斜め上を向いた三角形）
-			Novice::DrawTriangle(
-				(int)pointerX, (int)pointerY,           // 先端
-				(int)pointerX, (int)pointerY + 30,      // 下
-				(int)pointerX + 20, (int)pointerY + 20, // 右
-				WHITE, kFillModeSolid
-			);
-			// 2. 矢印の持ち手部分
-			Novice::DrawLine((int)pointerX + 5, (int)pointerY + 20, (int)pointerX + 15, (int)pointerY + 35, WHITE);
+		auto DrawCursor = [&](float px, float py, unsigned int baseColor, unsigned int alpha) {
+			// 色にアルファ値を合成
+			unsigned int finalColor = (baseColor & 0xFFFFFF00) | alpha;
+			// 本体
+			Novice::DrawTriangle((int)px, (int)py, (int)px, (int)py + 28, (int)px + 20, (int)py + 20, finalColor, kFillModeSolid);
+			// 持ち手
+			Novice::DrawLine((int)px + 8, (int)py + 18, (int)px + 16, (int)py + 32, finalColor);
+			Novice::DrawLine((int)px + 9, (int)py + 18, (int)px + 17, (int)py + 32, finalColor);
+			};
 
-			// 3. クリック波紋演出（円）
-			float ringSize = (float)(tutTimer % 40);
-			Novice::DrawEllipse((int)pointerX, (int)pointerY, (int)ringSize, (int)ringSize, 0.0f, 0x00FFFF88, kFillModeWireFrame);
+		// 影も薄くする
+		DrawCursor(pointerX + 2, pointerY + 2, 0x00000000, cursorAlpha / 2);
+		// 本体
+		DrawCursor(pointerX, pointerY, 0xFFFFFF00, cursorAlpha);
 
-		}
-		else {
-			DrawDotText(dx, dy+20 , "COMMAND !", 12.0f, cText);
-		}
+		// 5. クリック波紋
+		Novice::DrawEllipse((int)pointerX, (int)pointerY, (int)ringSize, (int)ringSize, 0.0f, (0x00FFFF00 | (int)ringAlpha), kFillModeWireFrame);
 	}
 	
 
