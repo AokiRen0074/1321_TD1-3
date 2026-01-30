@@ -275,6 +275,9 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 			CheckBlockGround(blocks);
 			CheckBlockCeiling(blocks);
 
+			isRightWall(mapData, HALF_FLOOR);
+			isLeftWall(mapData, HALF_FLOOR);
+
 			// 3. 特殊床ならジャンプせず次へ（ break で switch を抜ける）
 			if (status_.isBlet || status_.isBlack) {
 				status_.isWaitingForLanding = false;
@@ -308,7 +311,8 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 			CheckLiftCollision(liftBlocks);
 			CheckBlockGround(blocks);
 			CheckBlockCeiling(blocks);
-
+			isRightWall(mapData, HALF_FLOOR);
+			isLeftWall(mapData, HALF_FLOOR);
 			// 特殊床ならジャンプをスキップ
 			if (status_.isBlet || status_.isBlack || status_.isLift) {
 				status_.isWaitingForLanding = false;
@@ -357,6 +361,8 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 		status_.Velocity.y = 0;
 	}
 	isTopWall(mapData, BLOCK);
+	isTopWall(mapData, HALF_FLOOR);
+
 }
 
 void Player::DrawPlayer(Vector2 offset) {
