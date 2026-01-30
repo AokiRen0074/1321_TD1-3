@@ -56,6 +56,7 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 	buttons.clear();
 	waters.clear();
 	Beltconveyors.clear();
+	Checkpoints.clear();
 	Blocks.clear();
 	// LDtkの全レイヤーをチェック
 	for (auto& layer : layers) {
