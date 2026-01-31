@@ -17,7 +17,7 @@
 // (^▽^)/あ
 // (^▽^)/あ
 
-const char kWindowTitle[] = "1321_ゲームタイトル";
+const char kWindowTitle[] = "1321_アンテナの届く場所";
 
 //////////
 /// 構造体
