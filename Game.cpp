@@ -155,15 +155,21 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		player->InitPlayer(); // 速度などをゼロにする
 	}
 
+	////////////////////////////////////////////
 	// ゲームオーバー判定
-	if (!player->status_.isActive && !isGameOver && fadeState_ == FADE_NONE) {
+	if (!player->status_.isActive && !player->IsRespawning() && !isGameOver && fadeState_ == FADE_NONE) {
 		isGameOver = true;
 		// gameOverTimer = 0; // 削除
 		player->status_.Velocity = { 0.0f, 0.0f };
-
-		// 音を鳴らすならここで
-		Novice::PlayAudio(soundSceneChange, false, 1.0f);
 	}
+
+	// ゲームオーバーの演出
+	if (player->IsRespawning()) {
+		player->UpdateRespawnAnim();
+		return; // 他の処理（移動や当たり判定）をスキップ
+	}
+
+	///////////////////////////////////////////////////////
 
 // 全部のボタンをチェック
 	for (auto& btn : map->buttons) {
@@ -393,26 +399,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 					voiceSceneChange = -1;
 				}
 
-				// --- ここから修正 ---
 				if (isGameOver) {
-					// 【死亡リスポーンの場合】
-					//player->status_.pos = respawnPos; // リスポーン位置へ
-					//player->InitPlayer();             // ステータスリセット
-
-
-					//player->StartRespawnAnim(respawnPos);
-
-					//isGameOver = false;
-					//cantStartCount = 0;
-
-					//isRunning = true;
-
-					//return Scene::GAMEOVER;
-
-					/*if (gameOverTimer < kGameOverTimeMax) {
-						gameOverTimer++;
-					}*/
-
 					scrollCamera->Update(player->status_.pos);
 
 				} else if (isGameClear) {
@@ -624,6 +611,15 @@ void Game::Draw() {
 		}
 	} else {
 		Novice::ScreenPrintf(10, 10, "EDIT MODE");
+	}
+
+	// 描画
+	if (player->IsRespawning()) {
+		// 復活演出中のみ描画（この中には Novice::Draw系が書かれているはずです）
+		player->DrawRespawnAnim(offset);
+	} else {
+		// 通常時はプレイヤーを描画
+		player->DrawPlayer(offset);
 	}
 
 	// --- 暗転ブロックの描画 ---
@@ -839,5 +835,42 @@ void Game::SaveProgress() {
 		// ofs << someFlag << std::endl;
 
 		ofs.close();
+	}
+}
+
+void Game::ResetGameOver() {
+	isGameOver = false;
+	isRunning = false;  
+	fadeState_ = FADE_NONE;
+
+	player->InitPlayer();
+	player->status_.pos = respawnPos; // プレイヤーを復活地点へ
+
+	// ★追加: カメラも即座に復活地点へ移動させる
+	// これにより、復活演出（StartRespawnAnim）が最初から画面内で見えるようになります
+	scrollCamera->Update(player->status_.pos);
+
+	player->status_.isActive = true; 
+	player->StartRespawnAnim(respawnPos);
+
+	// ボタンをすべて未入力に
+	for (auto& button : map->buttons) {
+		button.isPressed = false;
+	}
+
+	// ドアをすべて閉める
+	for (auto& door : map->doors) {
+		door.isOpen = false;
+		door.openRatio = 0.0f;
+	}
+
+	// 消える床をすべて復活させる
+	for (auto& floor : map->VanishingFloors) {
+		floor.isActive = true;
+	}
+
+	// ギミックブロックを復活させる
+	for (auto& block : map->Blocks) {
+		block.isActive = true;
 	}
 }

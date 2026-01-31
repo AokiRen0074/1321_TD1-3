@@ -51,10 +51,19 @@ public:
 	bool isGameOver = false;
 	//int gameOverTimer = 0;
 
+	void ResetGameOver();
+
 	bool isGameClear = false;      // クリアしたかどうか
 	int gameClearTimer = 0;   
 	
 	const int kGameOverTimeMax = 240;
+
+	// ゲッター
+	Player* GetPlayer() { return player; }
+	Vector2 GetRespawnPos() { return respawnPos; }
+
+	// セッター
+	void SetIsRunning(bool f) { isRunning = f; }
 
 private:
 	// screen
@@ -139,4 +148,3 @@ private:
 	const int kCols = (1920 / 120) + 1; // 32列
 	const int kRows = (1080 / 120) + 1; // 18列
 };
-

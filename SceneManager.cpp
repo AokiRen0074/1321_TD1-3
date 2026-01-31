@@ -1,6 +1,7 @@
 ﻿#include "SceneManager.h"
 #include "GameOver.h"
 #include <Novice.h>
+#include "Game.h"
 
 // コンストラクタ
 SceneManager::SceneManager() {
@@ -50,8 +51,26 @@ void SceneManager::Run() {
 
 			if (gameOverScene->ShouldRetry()) {
 				//gameOverScene->Reset();
+				// ゲームシーンに戻す
 				currentScene = Scene::GAME;
-				gameScene->Initialize();
+
+				gameScene->ResetGameOver();
+
+				// ゲーム側のフラグをリセット
+				//gameScene->isGameOver = false;
+				//gameScene->SetIsRunning(false);
+
+				//gameScene->Initialize();
+
+				// プレイヤーの復活
+				//Player* player = gameScene->GetPlayer();
+				//Vector2 respawnPos = gameScene->GetRespawnPos();
+				//player->InitPlayer();
+
+				// 復活演出
+				//player->StartRespawnAnim(respawnPos);
+
+				
 			}
 
 			break;
