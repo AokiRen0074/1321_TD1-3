@@ -50,6 +50,7 @@ struct VanishingFloor {
 
 struct Block {
 	Vector2 pos;  // 座標
+	Vector2 STpos;  // 初期座標
 	int linkId;   // LDtkで設定したIntegerの値
 	bool isActive;  // 開いているか
 };

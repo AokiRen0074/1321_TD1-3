@@ -1213,7 +1213,7 @@
 						},
 						{
 							"__identifier": "Beltconveyor",
-							"__grid": [49,176],
+							"__grid": [48,176],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": null,
@@ -1222,12 +1222,12 @@
 							"width": 1024,
 							"height": 64,
 							"defUid": 34,
-							"px": [784,2816],
+							"px": [768,2816],
 							"fieldInstances": [
 								{ "__identifier": "Integer", "__type": "Int", "__value": 8, "__tile": null, "defUid": 35, "realEditorValues": [{ "id": "V_Int", "params": [8] }] },
 								{ "__identifier": "Float", "__type": "Float", "__value": 0, "__tile": null, "defUid": 47, "realEditorValues": [] }
 							],
-							"__worldX": -832,
+							"__worldX": -848,
 							"__worldY": 2816
 						},
 						{
@@ -1889,7 +1889,7 @@
 						},
 						{
 							"__identifier": "Checkpoint",
-							"__grid": [224,154],
+							"__grid": [222,154],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": null,
@@ -1898,9 +1898,9 @@
 							"width": 128,
 							"height": 32,
 							"defUid": 45,
-							"px": [3584,2464],
+							"px": [3552,2464],
 							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 0, "__tile": null, "defUid": 46, "realEditorValues": [] }],
-							"__worldX": 1968,
+							"__worldX": 1936,
 							"__worldY": 2464
 						},
 						{
@@ -2763,7 +2763,7 @@
 						},
 						{
 							"__identifier": "Water",
-							"__grid": [142,260],
+							"__grid": [141,260],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": null,
@@ -2772,14 +2772,14 @@
 							"width": 512,
 							"height": 64,
 							"defUid": 32,
-							"px": [2272,4160],
+							"px": [2256,4160],
 							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 0, "__tile": null, "defUid": 33, "realEditorValues": [] }],
-							"__worldX": 656,
+							"__worldX": 640,
 							"__worldY": 4160
 						},
 						{
 							"__identifier": "Water",
-							"__grid": [137,260],
+							"__grid": [136,260],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": null,
@@ -2788,9 +2788,9 @@
 							"width": 512,
 							"height": 64,
 							"defUid": 32,
-							"px": [2192,4160],
+							"px": [2176,4160],
 							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 0, "__tile": null, "defUid": 33, "realEditorValues": [] }],
-							"__worldX": 576,
+							"__worldX": 560,
 							"__worldY": 4160
 						},
 						{
@@ -2808,6 +2808,38 @@
 							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 50, "__tile": null, "defUid": 49, "realEditorValues": [] }],
 							"__worldX": 4160,
 							"__worldY": 3776
+						},
+						{
+							"__identifier": "Water",
+							"__grid": [136,260],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#0904A9",
+							"iid": "40fb50f0-fa90-11f0-ac15-39c14fe6d68f",
+							"width": 512,
+							"height": 64,
+							"defUid": 32,
+							"px": [2176,4160],
+							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 0, "__tile": null, "defUid": 33, "realEditorValues": [] }],
+							"__worldX": 560,
+							"__worldY": 4160
+						},
+						{
+							"__identifier": "Water",
+							"__grid": [141,260],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#0904A9",
+							"iid": "42dd7e70-fa90-11f0-ac15-0bf4dd96c40e",
+							"width": 512,
+							"height": 64,
+							"defUid": 32,
+							"px": [2256,4160],
+							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 0, "__tile": null, "defUid": 33, "realEditorValues": [] }],
+							"__worldX": 640,
+							"__worldY": 4160
 						}
 					]
 				},
@@ -3382,7 +3414,7 @@
 						0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 						0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,
 						0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,1,1,1,1,
-						1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,3,1,1,1,0,0,0,0,0,0,0,0,0,
+						1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,3,1,1,1,1,0,0,0,0,0,0,0,0,0,
 						0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 						0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 						1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,
