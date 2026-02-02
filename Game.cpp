@@ -96,6 +96,8 @@ void Game::Initialize() {
 	soundButtonPress = Novice::LoadAudio("./Sounds/switchOn.mp3");
 	soundSceneChange = Novice::LoadAudio("./Sounds/anten.mp3");
 
+	Checkpoint = Novice::LoadAudio("./Sounds/checkpoint.mp3");
+
 	/*------------------------------
 	ここにレイヤー名をいれるんだ！！
 	-----------------------------*/
@@ -909,6 +911,7 @@ void Game::Draw() {
 		}
 	}
 
+
 	// ===========================================================
 	// ★チュートリアル演出（UIの上に重ねて描画！）
 	// ===========================================================
@@ -1012,27 +1015,32 @@ void Game::Draw() {
 		}
 	}
 
-
 }
 
 
 
 void Game::CheckpointPlayer() {
-	for (size_t i = 0; i < map->Checkpoints.size(); i++) {
-		auto& cp = map->Checkpoints[i];
-		if (player->status_.pos.x < cp.pos.x + kTileSize &&
+	// map->Checkpoints の中身を直接書き換えるために「&」を付ける
+	for (auto& cp : map->Checkpoints) {
+
+		// プレイヤーとチェックポイントの当たり判定（矩形交差）
+		// 判定を少し甘く（広めに）しておくとスムーズです
+		if (player->status_.pos.x < cp.pos.x + kTileSize * 2.0f &&
 			player->status_.pos.x + player->status_.width > cp.pos.x &&
 			player->status_.pos.y < cp.pos.y + kTileSize &&
 			player->status_.pos.y + player->status_.height > cp.pos.y) {
 
-			// 触れたらリスポーン地点を更新
-// 座標を保存するとき、あえて 1px 浮かせて「めり込み」を物理的に不可能にする
+			// リスポーン地点を更新
 			this->respawnPos.x = cp.pos.x;
-			this->respawnPos.y = cp.pos.y - 30.0f; // ★ここ！
+			this->respawnPos.y = cp.pos.y - 32.0f; // 少し浮かせる
 
+			// まだアクティブでない場合のみ処理
 			if (!cp.isActive) {
-				cp.isActive = true;
-				SaveProgress(); // ここでファイル書き込み！
+
+				Novice::PlayAudio(Checkpoint, false, 1.0f);
+
+				cp.isActive = true;  // ★ここが map 内のデータに反映される
+				SaveProgress();      // 保存
 			}
 		}
 	}
@@ -1059,8 +1067,7 @@ void Game::ResetGameOver() {
 	fadeState_ = FADE_NONE;
 
 	player->InitPlayer();
-	player->status_.pos = respawnPos; // プレイヤーを復活地点へ
-
+	player->status_.pos = respawnPos ;
 	// ★追加: カメラも即座に復活地点へ移動させる
 	// これにより、復活演出（StartRespawnAnim）が最初から画面内で見えるようになります
 	scrollCamera->Update(player->status_.pos);
@@ -1086,6 +1093,10 @@ void Game::ResetGameOver() {
 
 	// ギミックブロックを復活させる
 	for (auto& block : map->Blocks) {
-		block.isActive = true;
+		// ボタンで出現させていたなら、再び非表示にする
+		block.isActive = false;
+
+		// もし座標が変わっていたなら、初期位置（Map読み込み時の位置）に戻す
+		block.pos = block.STpos;
 	}
 }

@@ -148,7 +148,7 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					Checkpoint nweCheckpoint;
 					nweCheckpoint.pos = { px,py };
 					nweCheckpoint.linkId = linkId;
-					nweCheckpoint.isActive = true;
+					nweCheckpoint.isActive = false;
 					Checkpoints.push_back(nweCheckpoint);
 
 				} else if (id == "VanishingFloor") {
@@ -163,6 +163,7 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 
 					Block nweBlocks;
 					nweBlocks.pos = { px,py };
+					nweBlocks.STpos = { px,py };
 					nweBlocks.linkId = linkId;
 					nweBlocks.isActive = false;
 					Blocks.push_back(nweBlocks);
@@ -286,6 +287,7 @@ void Map::Update(Player& player) {
 		}
 	}
 }
+
 
 void Map::Draw(Vector2 offset) {
 
@@ -925,27 +927,81 @@ void Map::Draw(Vector2 offset) {
 	// ★書き換えここまで
 
 	for (const auto& Checkpoint : Checkpoints) {
-		// 描画座標の計算
 		int drawX = (int)(Checkpoint.pos.x - offset.x);
 		int drawY = (int)(Checkpoint.pos.y - offset.y);
 
-		// 押されているかどうかの色分け（押されたら黄色、未踏なら赤）
-		unsigned int color = Checkpoint.isActive ? 0x000000FF : 0xFF0000FF;
+		// --- 1. カラー設定（未起動：赤 / 起動：SFグリーン） ---
+		unsigned int mainColor;
+		unsigned int beamColor;
 
-		// ボタンは少し小さく表示して、ドアと区別しやすくする
-		int btnSize = kTileSize;
+		if (Checkpoint.isActive) {
+			// スキャン済み：フルパワー・ネオングリーン
+			mainColor = 0x39FF14FF;
+			beamColor = 0x39FF1444;
+		}
+		else {
+			// 未スキャン：アラート・レッド（少し深みのある赤）
+			mainColor = 0xFF3030FF;
+			beamColor = 0xFF000033;
+		}
 
-		Novice::DrawBox(
-			drawX, drawY, // 少しずらして中央に
-			btnSize * 2, btnSize / 2,
-			0.0f,
-			color,
-			kFillModeSolid
-		);
+		int baseW = kTileSize * 2;
+		int centerX = drawX + baseW / 2;
+		int bottomY = drawY + kTileSize / 2;
 
-		// デバッグ用: リンクIDを確認したい場合
-		// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
+		// --- 2. 上昇エフェクト（緑のときだけ高密度に） ---
+		if (Checkpoint.isActive) {
+			for (int i = 0; i < 5; i++) {
+				float pSeed = (float)((tutTimer * 2 + i * 30) % 120) / 120.0f;
+				int px = centerX + (int)(cosf(pSeed * 10.0f) * 18.0f);
+				int py = bottomY - (int)(pSeed * 80.0f);
+				Novice::DrawBox(px, py, 2, 2, 0.0f, mainColor, kFillModeSolid);
+			}
+		}
+
+		// --- 3. 土台 ---
+		// 枠線をmainColorにすることで、赤か緑に光ります
+		Novice::DrawBox(drawX, bottomY - 4, baseW, 8, 0.0f, 0x111111FF, kFillModeSolid);
+		Novice::DrawBox(drawX, bottomY - 4, baseW, 8, 0.0f, mainColor, kFillModeWireFrame);
+
+		// --- 4. ホログラムスキャンライン ---
+		float animTimer = (float)(tutTimer % 60) / 60.0f;
+		// 起動前はラインを少なくして「待機中」感を出す
+		int numLines = Checkpoint.isActive ? 6 : 2;
+
+		for (int i = 0; i < numLines; i++) {
+			float lineProgress = fmodf(animTimer + (i * (1.0f / numLines)), 1.0f);
+			int lineY = bottomY - (int)(lineProgress * 60.0f);
+			int alpha = (int)((1.0f - lineProgress) * 160.0f);
+
+			// 未起動時はラインを短く、起動後は幅広に
+			int lineW = Checkpoint.isActive ? 22 : 12;
+			Novice::DrawLine(centerX - lineW, lineY, centerX + lineW, lineY, (mainColor & 0xFFFFFF00) | alpha);
+		}
+
+		// --- 5. 中央の浮遊コア ---
+		int coreY = bottomY - 30 + (int)(sinf(tutTimer * 0.12f) * 5.0f);
+		if (Checkpoint.isActive) {
+			// 起動後：ひし形が高速回転
+			Novice::DrawBox(centerX - 5, coreY - 5, 10, 10, tutTimer * 0.15f, mainColor, kFillModeSolid);
+			Novice::DrawBox(centerX - 9, coreY - 9, 18, 18, -tutTimer * 0.1f, mainColor, kFillModeWireFrame);
+		}
+		else {
+			// 起動前：警告を示す「！」のような縦型菱形
+			Novice::DrawBox(centerX - 3, coreY - 6, 6, 12, 0.0f, mainColor, kFillModeSolid);
+		}
+
+		// --- 6. 垂直ビーム（起動後のみ） ---
+		if (Checkpoint.isActive) {
+			float pulse = (sinf(tutTimer * 0.2f) + 1.0f) * 0.5f;
+			unsigned int bAlpha = (int)(20 + pulse * 30);
+			// メインビーム
+			Novice::DrawBox(centerX - 15, bottomY - 100, 30, 96, 0.0f, (mainColor & 0xFFFFFF00) | bAlpha, kFillModeSolid);
+			// 芯の部分
+			Novice::DrawBox(centerX - 2, bottomY - 100, 4, 96, 0.0f, (mainColor & 0xFFFFFF00) | (bAlpha + 40), kFillModeSolid);
+		}
 	}
+
 
 
 	for (const auto& VanishingFloor : VanishingFloors) {
