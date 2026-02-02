@@ -990,6 +990,10 @@ void Game::ResetGameOver() {
 
 	// ギミックブロックを復活させる
 	for (auto& block : map->Blocks) {
-		block.isActive = true;
+		// ボタンで出現させていたなら、再び非表示にする
+		block.isActive = false;
+
+		// もし座標が変わっていたなら、初期位置（Map読み込み時の位置）に戻す
+		block.pos = block.STpos;
 	}
 }
