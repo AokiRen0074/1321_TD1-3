@@ -97,7 +97,9 @@ void Player::UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHe
 // ---------------------------------------------------------
 void Player::StartRespawnAnim(Vector2 centerPos) {
 	isRespawning = true;
+	isDying = false;
 	respawnTimer = 0;
+	deathTimer = 0;
 	status_.isActive = false;
 	status_.pos = centerPos;
 
@@ -184,59 +186,50 @@ void Player::UpdateRespawnAnim() {
 void Player::DrawRespawnAnim(Vector2 offset) {
 	if (!isRespawning) return;
 
+	// 現在の復活進捗 (0.0 ～ 1.0)
 	float t = (float)respawnTimer / (float)kRespawnTimeMax;
+	if (t > 1.0f) t = 1.0f;
+
+	// ★ 元の豪華な pillarAlpha の計算式をそのまま使用
 	float pillarAlpha = (t < 0.2f) ? (t * 5.0f) : (1.0f - t);
 
+	// pillarAlpha が少しでもあれば柱を描画する
 	if (pillarAlpha > 0.0f) {
-		// --- 色の設定 ---
-		float playerHue = 35.0f; // ★シアン(180)からオレンジ/ゴールド(35)に変更
-
+		float playerHue = 35.0f;
 		int centerX = (int)(status_.pos.x + status_.width / 2.0f - offset.x);
 		int centerY = (int)(status_.pos.y + status_.height / 2.0f - offset.y);
 
-		// --- 1. 光の柱（熱気を感じるオレンジの光） ---
+		// --- 1. 光の柱（元のロジック維持） ---
 		int auraWidth = (int)(status_.width * 1.5f * pillarAlpha);
-		// 外側のオーラ（オレンジ）
 		unsigned int auraColor = HSVToRGBA(playerHue, 0.8f, 1.0f, (unsigned char)(pillarAlpha * 120));
-		// 中心コア（白に近いイエロー）
 		unsigned int coreColor = HSVToRGBA(playerHue - 5.0f, 0.3f, 1.0f, (unsigned char)(pillarAlpha * 255));
 
-		Novice::DrawBox(centerX - auraWidth / 2, centerY, auraWidth, -2000, 0.0f, auraColor, kFillModeSolid);
-		Novice::DrawBox(centerX - 4, centerY, 8, -2000, 0.0f, coreColor, kFillModeSolid);
+		// 柱の描画（上方向に伸ばす）
+		Novice::DrawBox(centerX - auraWidth / 2, centerY - 2000, auraWidth, 2000, 0.0f, auraColor, kFillModeSolid);
+		Novice::DrawBox(centerX - 4, centerY - 2000, 8, 2000, 0.0f, coreColor, kFillModeSolid);
 
-		// --- 2. 大量の環境パーティクル（火花のような演出） ---
+		// --- 2. 大量の環境パーティクル（元のロジック維持） ---
 		const int kEnvParticleCount = 45;
-
 		for (int i = 0; i < kEnvParticleCount; i++) {
+			// ここで使っている t も復活タイマー由来なので同期するはずです
 			float pOffsetT = fmodf(t * 1.5f + (float)i / kEnvParticleCount, 1.0f);
-
-			// 少しだけ左右の振れ幅を大きくして「熱のゆらぎ」を表現
 			float pX = (float)centerX + sinf((float)i * 0.8f + t * 5.0f) * (auraWidth * 0.6f);
 			float pY = (float)centerY - (pOffsetT * 800.0f);
-
 			float pSize = (1.0f - pOffsetT) * 5.0f + 1.0f;
-
-			// 火花のような色（オレンジ〜赤みのあるオレンジ）
 			unsigned int pColor = HSVToRGBA(playerHue - (pOffsetT * 10.0f), 0.7f, 1.0f, (unsigned char)(pillarAlpha * (1.0f - pOffsetT) * 255));
 
 			Novice::DrawBox((int)pX, (int)pY, (int)pSize, (int)pSize, pOffsetT * 6.28f, pColor, kFillModeSolid);
-
-			// 豪華にするための「高温の火花」（白）
 			if (i % 4 == 0) {
 				Novice::DrawBox((int)pX + 1, (int)pY, 2, 2, 0.0f, 0xFFFFFFFF, kFillModeSolid);
 			}
 		}
 	}
 
-	// --- 3. プレイヤー本体を形作る粒子 ---
+	// --- 3. プレイヤー本体を形作る粒子（元の描画ロジック維持） ---
 	for (auto& p : particles) {
-		// 粒子自体の色もオレンジ系にする（StartRespawnAnimで設定された色をここで上書きする場合）
-		// もし StartRespawnAnim 側で色を決めているなら、そちらの修正も必要です。
 		Novice::DrawBox(
-			(int)(p.currentPos.x - offset.x),
-			(int)(p.currentPos.y - offset.y),
-			(int)p.size, (int)p.size,
-			0.0f, p.color, kFillModeSolid
+			(int)(p.currentPos.x - offset.x), (int)(p.currentPos.y - offset.y),
+			(int)p.size, (int)p.size, 0.0f, p.color, kFillModeSolid
 		);
 	}
 }
