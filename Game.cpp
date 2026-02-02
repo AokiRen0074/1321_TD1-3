@@ -522,8 +522,6 @@ void Game::Draw() {
 	// 区切り線
 	Novice::DrawBox(1400, 398, 580, 4, 0.0f, WHITE, kFillModeSolid);
 
-
-
 	// ルーター描画
 	for (int i = 0; i < routerCount; i++) {
 		if (router[i] != nullptr) {
@@ -657,7 +655,9 @@ void Game::Draw() {
 	// ヘッダー装飾
 	Novice::DrawBox(1400, 400, 580, 30, 0.0f, 0x222233FF, kFillModeSolid);
 	// ★ここもドット文字に
-	DrawDotText(1420, 408, "MAIN FUNCTION", 2.0f, 0xAAAAAAFF);
+	DrawDotText(1420, 408, "--- MAIN FUNCTION", 2.0f, 0xAAAAAAFF);
+	DrawDotText(1610, 408, " (CLICK TO DELETE)", 2.0f, RED);
+	DrawDotText(1815, 408, " ---", 2.0f, 0xAAAAAAFF);
 
 	float blockY = programArea.y + 50;
 
@@ -908,6 +908,110 @@ void Game::Draw() {
 				float borderH = 300.0f * bounce;
 				Novice::DrawBox((int)(cx - borderW / 2), (int)(cy - borderH / 2), (int)borderW, (int)borderH, 0.0f, mainColor, kFillModeWireFrame);
 			}
+		}
+	}
+
+
+	// ===========================================================
+	// ★チュートリアル演出（UIの上に重ねて描画！）
+	// ===========================================================
+	static int tutTimer = 0; // タイマー用
+	tutTimer++;
+
+	float letsX = 3200.0f;
+	float letsY = 350.0f;
+	float guideDx = letsX - offset.x;
+	float guideDy = letsY - offset.y;
+
+	// 看板が画面内にあるときだけ演出
+	if (guideDx > -100 && guideDx < 1400) {
+
+		// ■ スタート地点：看板の文字の右側
+		float guideStartX = guideDx + 650.0f;
+		float guideStartY = guideDy + 80.0f;
+
+		// ■ ゴール地点：「MOVE RIGHT」ボタンの位置
+		// Game.cpp内なので btnRight がそのまま使えます
+		float guideEndX = btnRight.x + 30.0f;
+		float guideEndY = btnRight.y + 25.0f;
+
+		// --- アニメーション計算 ---
+		float loopTime = fmodf((float)tutTimer, 120.0f);
+		float t = loopTime / 120.0f;
+
+		// イージング
+		float easeT = 1.0f - powf(1.0f - t, 4.0f);
+
+		// カーソル位置
+		float ptrX = guideStartX + (guideEndX - guideStartX) * easeT;
+		float ptrY = guideStartY + (guideEndY - guideStartY) * easeT;
+
+		// クリック演出
+		bool isClicking = (t > 0.85f && t < 0.95f);
+		if (isClicking) {
+			ptrY += 5.0f;
+		}
+
+		// 1. ガイド線（点線）
+		float dist = sqrtf(powf(guideEndX - guideStartX, 2) + powf(guideEndY - guideStartY, 2));
+		int dotCount = (int)(dist / 30.0f);
+
+		for (int i = 0; i <= dotCount; i++) {
+			float rate = (float)i / dotCount;
+			float flowRate = fmodf(rate - (tutTimer * 0.02f), 1.0f);
+			if (flowRate < 0) flowRate += 1.0f;
+
+			float dotX = guideStartX + (guideEndX - guideStartX) * flowRate;
+			float dotY = guideStartY + (guideEndY - guideStartY) * flowRate;
+
+			// 点線を描画
+			Novice::DrawBox((int)dotX, (int)dotY, 6, 6, 0.0f, 0x00AAAA88, kFillModeSolid);
+		}
+
+		// 2. マウスカーソルの描画（ラムダ式再定義）
+		auto DrawCursor = [&](float px, float py, unsigned int color) {
+			// カーソルの「影」や「枠」を考慮して、少し大きめに描画します
+
+			// --- 本体（三角形） ---
+			// 頂点(0,0) -> 左下(0, 28) -> 右(22, 22) の直角っぽい三角形
+			Novice::DrawTriangle(
+				(int)px, (int)py,            // 先端
+				(int)px, (int)py + 28,       // 左下
+				(int)px + 22, (int)py + 22,  // 右
+				color, kFillModeSolid
+			);
+
+			// --- 持ち手（しっぽ） ---
+			// 三角形の下辺の「内側」から線を伸ばして、自然に繋げる
+			// Start(8, 20) -> End(16, 36)
+			// 線を何本か重ねて太さを出す
+			for (int w = 0; w < 7; w++) {
+				Novice::DrawLine(
+					(int)px + 8 + w, (int)py + 20, // 根元（本体の内側に隠す）
+					(int)px + 16 + w, (int)py + 36, // 先端
+					color
+				);
+			}
+			};
+
+		// 影
+		DrawCursor(ptrX + 3, ptrY + 3, 0x00000088);
+
+		// 本体
+		unsigned int cursorCol = isClicking ? 0xFFFFFFFF : 0x00FFFFFF;
+		DrawCursor(ptrX, ptrY, cursorCol);
+
+		// 3. クリック波紋
+		if (isClicking) {
+			float rippleSize = (t - 0.85f) * 500.0f;
+			unsigned int rippleAlpha = (unsigned int)((0.95f - t) * 10.0f * 255.0f);
+			unsigned int rippleCol = (0x00FFFF00) | rippleAlpha;
+
+			// 波紋
+			Novice::DrawEllipse((int)ptrX, (int)ptrY, (int)rippleSize, (int)rippleSize, 0.0f, rippleCol, kFillModeWireFrame);
+
+			// ボタン位置の枠線強調
+			Novice::DrawBox((int)btnRight.x - 5, (int)btnRight.y - 5, (int)btnRight.w + 10, (int)btnRight.h + 10, 0.0f, rippleCol, kFillModeWireFrame);
 		}
 	}
 

@@ -594,68 +594,27 @@ void Map::Draw(Vector2 offset) {
 			DrawArrow(dx + 120, arrowY, 2);
 		}
 	}
-
-	// --- [LETS COMMAND!] 看板 ---
-// --- [LETS COMMAND!] 看板のリッチ版（不透明度連動型） ---
+	// --- [LETS COMMAND!] 看板（UI誘導アニメーション版） ---
 	float letsX = 3200.0f;
-	float letsY = 130.0f;
+	float letsY = 350.0f;
 
 	if (letsX - offset.x > -800 && letsX - offset.x < 1500) {
 		float dx = letsX - offset.x;
 		float dy = letsY - offset.y;
 
-		// --- 波紋と透明度の計算 ---
-		// 0〜60でループするタイマー
-		float ringTimer = fmodf((float)tutTimer, 60.0f);
-		// 波紋のサイズ（0から50まで広がる）
-		float ringSize = (ringTimer / 60.0f) * 50.0f;
-		// 波紋の透明度（広がるほど薄くなる）
-		float ringAlpha = (1.0f - (ringSize / 50.0f)) * 255.0f;
-
-		// ★カーソルの不透明度（波紋が始まった瞬間(クリック時)に少し薄くなり、すぐ戻る）
-		// 通常 255 (濃い) → クリック時 160 (少し薄い)
-		unsigned int cursorAlpha = 255;
-		if (ringTimer < 15.0f) {
-			cursorAlpha = 160 + (int)((ringTimer / 15.0f) * 95.0f);
-		}
-
+		// 1. 背景とテキスト
 		unsigned int cText = 0xFFFFFFDD;
-		unsigned int cGlow = (0x00FFFF00) | (int)ringAlpha; // 波紋と同じフェード
+		unsigned int cLine = 0x00AAAAFF;
 
-		// 1. 背景ボックス
-		Novice::DrawBox((int)dx - 20, (int)dy - 100, 800, 240, 0.0f, 0x00000088, kFillModeSolid);
-		Novice::DrawBox((int)dx - 20, (int)dy - 100, 800, 240, 0.0f, 0x00AAAAFF, kFillModeWireFrame);
+		Novice::DrawBox((int)dx - 20, (int)dy - 100, 800, 240, 0.0f, 0x000000CC, kFillModeSolid);
+		Novice::DrawBox((int)dx - 20, (int)dy - 100, 800, 240, 0.0f, cLine, kFillModeWireFrame);
 
-		// 2. テキスト
 		DrawDotText(dx, dy - 60, "LETS", 12.0f, cText);
 		DrawDotText(dx, dy + 40, "COMMAND !", 12.0f, cText);
 
-		// 3. 装飾（下線）
-		Novice::DrawBox((int)dx, (int)dy + 120, 700, 4, 0.0f, cGlow, kFillModeSolid);
 
-		// 4. マウスカーソル（上下揺れなし・不透明度変化）
-		float pointerX = dx + 650.0f;
-		float pointerY = dy + 230.0f; // 座標は固定
-
-		auto DrawCursor = [&](float px, float py, unsigned int baseColor, unsigned int alpha) {
-			// 色にアルファ値を合成
-			unsigned int finalColor = (baseColor & 0xFFFFFF00) | alpha;
-			// 本体
-			Novice::DrawTriangle((int)px, (int)py, (int)px, (int)py + 28, (int)px + 20, (int)py + 20, finalColor, kFillModeSolid);
-			// 持ち手
-			Novice::DrawLine((int)px + 8, (int)py + 18, (int)px + 16, (int)py + 32, finalColor);
-			Novice::DrawLine((int)px + 9, (int)py + 18, (int)px + 17, (int)py + 32, finalColor);
-			};
-
-		// 影も薄くする
-		DrawCursor(pointerX + 2, pointerY + 2, 0x00000000, cursorAlpha / 2);
-		// 本体
-		DrawCursor(pointerX, pointerY, 0xFFFFFF00, cursorAlpha);
-
-		// 5. クリック波紋
-		Novice::DrawEllipse((int)pointerX, (int)pointerY, (int)ringSize, (int)ringSize, 0.0f, (0x00FFFF00 | (int)ringAlpha), kFillModeWireFrame);
 	}
-	
+
 
 
 	// ドアの描画
@@ -706,7 +665,7 @@ void Map::Draw(Vector2 offset) {
 				}
 			}
 
-	
+
 			int stripeH = 10;
 			int bottomY = drawY + (int)currentHeight - stripeH;
 
@@ -864,10 +823,10 @@ void Map::Draw(Vector2 offset) {
 
 		// デバッグ用: リンクIDを確認したい場合
 		// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
-	
 
 
-	
+
+
 	// アニメーション用のタイマー
 	static float beltAnimTimer = 0.0f;
 	beltAnimTimer += 1.0f;
@@ -1119,6 +1078,8 @@ void Map::Draw(Vector2 offset) {
 	// Map.cpp の Draw内に追加してデバッグ
 	Novice::ScreenPrintf(0, 100, "MapData[10][10]: %d", mapData[10][10]);
 }
+
+	
 
 /*
 　 　 　 　 　 　 　 　 ┏━━━┳━━━┓
