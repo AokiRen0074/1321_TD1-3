@@ -19,6 +19,7 @@
     <ClCompile Include="Tutorial.cpp" />
     <ClCompile Include="Vector2.cpp" />
     <ClCompile Include="GameOver.cpp" />
+    <ClCompile Include="AudioManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\DirectXGame\3d\Camera.h" />
@@ -46,6 +47,7 @@
     <ClInclude Include="Tutorial.h" />
     <ClInclude Include="Vector2.h" />
     <ClInclude Include="GameOver.h" />
+    <ClInclude Include="AudioManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\OneDrive\Desktop\爆弾除去\block.png" />

@@ -103,6 +103,11 @@ void Player::StartRespawnAnim(Vector2 centerPos) {
 	status_.isActive = false;
 	status_.pos = centerPos;
 
+	// 死亡音を停止
+	if (audioManager != nullptr) {
+		audioManager->Stop(SE_DEATH);
+	}
+
 	particles.clear();
 
 	float pSize = 8.0f;
@@ -501,7 +506,11 @@ void Player::ActionTryJump() {
 	if (!status_.isJumop) {
 		status_.isJumop = true;
 		status_.Velocity.y = -status_.jumpPower;
-		Novice::PlayAudio(soundJump, false, 0.6f);
+		//Novice::PlayAudio(soundJump, false, 0.6f);
+	}
+
+	if (audioManager) {
+		audioManager->Play(SE_JUMP, false);
 	}
 }
 
@@ -1077,9 +1086,17 @@ void Player::CheckLiftCollision(std::vector<LiftGimmickBlock>& liftBlocks) {
 
 // 死亡演出
 void Player::StartDeathAnim() {
+	// すでに死んでるなら何もしない
+	if (isDying) return;
+
 	isDying = true;
 	deathTimer = 0;
 	status_.isActive = false; // プレイヤーの当たり判定や描画をオフにする
+
+	// 死亡時の音を鳴らす
+	if (audioManager != nullptr) {
+		audioManager->Play(SE_DEATH, false); 
+	}
 
 	particles.clear();
 

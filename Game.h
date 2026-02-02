@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <fstream>
+#include "AudioManager.h"
 
 struct GameScreen {
 	Vector2 position;
@@ -149,4 +150,6 @@ private:
 	const int kBlockSize = 120;
 	const int kCols = (1920 / 120) + 1; // 32列
 	const int kRows = (1080 / 120) + 1; // 18列
+
+	AudioManager* audioManager;
 };

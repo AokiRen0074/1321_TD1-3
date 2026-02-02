@@ -4,6 +4,7 @@
 #include "Command.h" 
 #include <vector>
 #include "Router.h"
+#include "AudioManager.h"
 
 enum TileType {
 	NONE = 0,
@@ -65,6 +66,8 @@ public:
 	int respawnTimer = 0;            // タイマー
 	const int kRespawnTimeMax = 60;  // 演出にかかる時間（1秒）
 	std::vector<RespawnParticle> particles;
+
+	void SetAudioManager(AudioManager* am) { audioManager = am; }
 
 	// ★追加: 復活演出を開始する関数
 	void StartRespawnAnim(Vector2 centerPos);
@@ -133,10 +136,9 @@ public:
 	void isLeftWall(int mapData[kMapHeight][kMapWidth], int mapId);
 	void isTopWall(int mapData[kMapHeight][kMapWidth], int mapId);
 
-
-
 	// コマンド実行時のインデックス
 	int cmdIndex;
 
+	AudioManager* audioManager = nullptr;
 };
 
