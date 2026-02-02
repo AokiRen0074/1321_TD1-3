@@ -3,6 +3,7 @@
 #include <fstream>
 #include "json.hpp" 
 #include "Vector2.h"
+#include "Game.h"
 
 using json = nlohmann::json;
 
@@ -147,7 +148,7 @@ void Map::LoadMapFromLDtk(const char* fileName, const std::vector<std::string>& 
 					Checkpoint nweCheckpoint;
 					nweCheckpoint.pos = { px,py };
 					nweCheckpoint.linkId = linkId;
-					nweCheckpoint.isActive = true;
+					nweCheckpoint.isActive = false;
 					Checkpoints.push_back(nweCheckpoint);
 
 				} else if (id == "VanishingFloor") {
@@ -965,28 +966,83 @@ void Map::Draw(Vector2 offset) {
 	// ★書き換えここまで
 
 	for (const auto& Checkpoint : Checkpoints) {
-		// 描画座標の計算
 		int drawX = (int)(Checkpoint.pos.x - offset.x);
 		int drawY = (int)(Checkpoint.pos.y - offset.y);
 
-		// 押されているかどうかの色分け（押されたら黄色、未踏なら赤）
-		unsigned int color = Checkpoint.isActive ? 0x000000FF : 0xFF0000FF;
+		// --- 1. カラー設定（ネオン・SFグリーン） ---
+		unsigned int mainColor;
+		unsigned int subColor;
 
-		// ボタンは少し小さく表示して、ドアと区別しやすくする
-		int btnSize = kTileSize;
+		if (Checkpoint.isActive) {
+			// スキャン済み：高輝度ネオングリーン（発光感）
+			mainColor = 0x39FF14FF; // ネオングリーン
+			subColor = 0x39FF1444; // 半透明の緑
+		}
+		else {
+			// 未スキャン：待機状態のダークグリーン
+			mainColor = 0x006400FF; // 深い緑
+			subColor = 0x00640033;
+		}
 
-		Novice::DrawBox(
-			drawX, drawY, // 少しずらして中央に
-			btnSize * 2, btnSize / 2,
-			0.0f,
-			color,
-			kFillModeSolid
-		);
+		int baseW = kTileSize * 2;
+		int centerX = drawX + baseW / 2;
+		int bottomY = drawY + kTileSize / 2;
 
-		// デバッグ用: リンクIDを確認したい場合
-		// Novice::ScreenPrintf(0, 20, "Button ID:%d", button.linkId);
+		// --- 2. 上昇するデジタル・グリッチ（パーティクル） ---
+		if (Checkpoint.isActive) {
+			for (int i = 0; i < 5; i++) { // 数を少し増やして密度アップ
+				float pSeed = (float)((tutTimer * 2 + i * 30) % 120) / 120.0f;
+				int px = centerX + (int)(cosf(pSeed * 10.0f) * 15.0f); // 揺れながら上昇
+				int py = bottomY - (int)(pSeed * 70.0f);
+				// サイズをランダムに見せてデジタル感を出す
+				int pSize = (i % 2 == 0) ? 1 : 3;
+				Novice::DrawBox(px, py, pSize, pSize, 0.0f, mainColor, kFillModeSolid);
+			}
+		}
+
+		// --- 3. 土台（六角形っぽく見せるための2段構え） ---
+		Novice::DrawBox(drawX + 5, bottomY - 2, baseW - 10, 6, 0.0f, 0x111111FF, kFillModeSolid); // 暗い底
+		Novice::DrawBox(drawX, bottomY - 4, baseW, 4, 0.0f, mainColor, kFillModeWireFrame); // 縁取り
+
+		// --- 4. デジタル・ホログラムグリッド ---
+		// 横線だけでなく、少し太さを変えて「スキャン層」を表現
+		float animTimer = (float)(tutTimer % 60) / 60.0f;
+		int numLines = Checkpoint.isActive ? 6 : 2;
+
+		for (int i = 0; i < numLines; i++) {
+			float lineProgress = fmodf(animTimer + (i * (1.0f / numLines)), 1.0f);
+			int lineY = bottomY - (int)(lineProgress * 60.0f);
+			int alpha = (int)((1.0f - lineProgress) * 150.0f);
+			int lineWidth = (i % 2 == 0) ? 20 : 10; // ラインの長さを変えてメカニカルに
+			
+			Novice::DrawLine(centerX - lineWidth, lineY, centerX + lineWidth, lineY, (mainColor & 0xFFFFFF00) | alpha);
+		}
+
+		// --- 5. 中央の浮遊コア（SFコア） ---
+		int coreY = bottomY - 30 + (int)(sinf(tutTimer * 0.12f) * 5.0f);
+		if (Checkpoint.isActive) {
+			// スキャン済み：ひし形が高速回転（アクティブ状態）
+			Novice::DrawBox(centerX - 5, coreY - 5, 10, 10, tutTimer * 0.15f, mainColor, kFillModeSolid);
+			// 外側に回転する枠を追加してSF感を強化
+			Novice::DrawBox(centerX - 8, coreY - 8, 16, 16, -tutTimer * 0.08f, mainColor, kFillModeWireFrame);
+		}
+		else {
+			// 未スキャン：静止した二重の下向き三角形
+			Novice::DrawTriangle(centerX, coreY + 6, centerX - 5, coreY - 4, centerX + 5, coreY - 4, mainColor, kFillModeWireFrame);
+		}
+
+		// --- 6. 垂直ライトビーム（背景） ---
+		if (Checkpoint.isActive) {
+			// 呼吸するように明滅する光の柱
+			float pulse = (sinf(tutTimer * 0.2f) + 1.0f) * 0.5f;
+			unsigned int beamAlpha = (int)(15 + pulse * 25);
+			unsigned int beamCol = (mainColor & 0xFFFFFF00) | beamAlpha;
+
+			// 中心が濃い2重のビーム
+			Novice::DrawBox(centerX - 12, bottomY - 80, 24, 76, 0.0f, beamCol, kFillModeSolid);
+			Novice::DrawBox(centerX - 2, bottomY - 80, 4, 76, 0.0f, (mainColor & 0xFFFFFF00) | (beamAlpha + 20), kFillModeSolid);
+		}
 	}
-
 
 	for (const auto& VanishingFloor : VanishingFloors) {
 		// 描画座標の計算
