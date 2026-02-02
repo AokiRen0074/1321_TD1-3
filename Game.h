@@ -127,6 +127,8 @@ private:
 	int soundSceneChange;
 	int voiceSceneChange = -1;
 
+	int Checkpoint;
+
 	// 更新
 	void Update();
 

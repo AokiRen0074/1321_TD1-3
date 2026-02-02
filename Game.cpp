@@ -96,6 +96,8 @@ void Game::Initialize() {
 	soundButtonPress = Novice::LoadAudio("./Sounds/switchOn.mp3");
 	soundSceneChange = Novice::LoadAudio("./Sounds/anten.mp3");
 
+	Checkpoint = Novice::LoadAudio("./Sounds/checkpoint.mp3");
+
 	/*------------------------------
 	ここにレイヤー名をいれるんだ！！
 	-----------------------------*/
@@ -520,13 +522,7 @@ void Game::Draw() {
 	// 区切り線
 	Novice::DrawBox(1400, 398, 580, 4, 0.0f, WHITE, kFillModeSolid);
 
-	Novice::DrawSprite(
-		(int)(3450.0f - offset.x), // カメラの動きに合わせてズレるようにする
-		(int)(330.0f - offset.y),
-		texRight,
-		1.0f, 1.0f, 0.0f,
-		0xFFFFFFFF
-	);
+
 
 	// ルーター描画
 	for (int i = 0; i < routerCount; i++) {
@@ -936,6 +932,9 @@ void Game::CheckpointPlayer() {
 
 			// まだアクティブでない場合のみ処理
 			if (!cp.isActive) {
+
+				Novice::PlayAudio(Checkpoint, false, 1.0f);
+
 				cp.isActive = true;  // ★ここが map 内のデータに反映される
 				SaveProgress();      // 保存
 			}
