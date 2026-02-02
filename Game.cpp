@@ -403,22 +403,36 @@ void Game::Update(char keys[256], char preKeys[256]) {
 					scrollCamera->Update(player->status_.pos);
 
 				} else if (isGameClear) {
-					// 1. フラグのリセット
-					isGameClear = false;
-					isRunning = false; // 実行モード終了
-					cantStartCount = 0;
+					// ==============================================
+					// ゲームクリア時の完全リセット処理
+					// ==============================================
 
-					// 2. プレイヤーのリセット
+					// 1. フラグとタイマーの完全リセット
+					isGameClear = false;
+					isRunning = false;
+					cantStartCount = 0;
+					gameClearTimer = 0; 
+
+					// 2. リスポーン地点を初期位置に戻す
+					respawnPos.x = 300.0f;
+					respawnPos.y = 704.0f;
+
+					// 3. プレイヤーのリセット
 					player->InitPlayer();
-					// 初期スポーン位置へ戻す（もし固定座標なら {300.0f, 704.0f} 等を指定）
 					player->status_.pos = respawnPos;
 
-					// 3. マップ・ギミックの完全リセット
+					// 4. マップのリセット
 					std::vector<std::string> layers = { "IntGrid", "HalfBlock" };
 					map->LoadMapFromLDtk("./mapTest9999.ldtk", layers);
 
-					// 4. カメラ位置も即座に戻す
-					scrollCamera->Update(player->status_.pos);
+					// 5. ★重要★ カメラの状態を「最初の状態」に強制リセット
+					// これがないと、カメラがステージ3のままになったりします
+					scrollCamera->SetStageIndex(0);      // ステージ番号を0に戻す
+					scrollCamera->SetIsScrollMode(false); // スクロール固定を解除する
+					scrollCamera->Update(player->status_.pos); // プレイヤーの位置に瞬時に合わせる
+
+					// 6. 復活演出の開始
+					player->StartRespawnAnim(respawnPos);
 
 					// フェードインへ移行
 					fadeState_ = FADE_IN;
@@ -449,7 +463,9 @@ void Game::Update(char keys[256], char preKeys[256]) {
 				// 完全に明るくなったら移動再開
 				fadeState_ = FADE_NONE;
 				fadeTimer_ = 0;
-				player->status_.isActive = true;
+				if (!player->IsRespawning()) {
+					player->status_.isActive = true;
+				}
 			}
 		}
 
