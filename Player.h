@@ -76,6 +76,22 @@ public:
 	// ★追加: 演出中かどうか
 	bool IsRespawning() { return isRespawning; }
 
+	// 死亡時の演出
+	bool isDying = false; // 死亡演出中フラグ
+	int deathTimer = 0; // タイマー
+	const int kDeathTimeMax = 60; // 演出時間
+	//std::vector<RespawnParticle> particles;
+	//bool isRespawning = false; // リスポーン演出用
+
+	// 死亡演出の関数
+	void StartDeathAnim();
+	void UpdateDeathAnim();
+	void DrawDeathAnim(Vector2 offset);
+
+	bool IsDying() const { return isDying; }
+	bool IsRespawning() const { return isRespawning; }
+	//void UpdateRespawnAnim();
+
 	Player();
 	void InitPlayer();
 	void UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHeight][kMapWidth], std::vector<Block>& blocks);

@@ -158,17 +158,29 @@ void Game::Update(char keys[256], char preKeys[256]) {
 	}
 
 	////////////////////////////////////////////
+
 	// ゲームオーバー判定
-	if (!player->status_.isActive && !player->IsRespawning() && !isGameOver && fadeState_ == FADE_NONE) {
+	if (!player->status_.isActive && !player->IsRespawning() && !player->IsDying() && !isGameOver && fadeState_ == FADE_NONE) {
+		player->StartDeathAnim();
+		player->status_.Velocity = {0.0f, 0.0f};
 		isGameOver = true;
-		// gameOverTimer = 0; // 削除
-		player->status_.Velocity = { 0.0f, 0.0f };
 	}
 
-	// ゲームオーバーの演出
+	// 死亡演出
+	if (player->IsDying()) {
+		player->UpdateDeathAnim();     // ← ★ここで更新★
+
+		if (player->deathTimer >= player->kDeathTimeMax) {
+			// ここでは SceneManager に任せる
+		}
+
+		return; // 死亡中は通常更新しない
+	}
+
+	// リスポーン
 	if (player->IsRespawning()) {
 		player->UpdateRespawnAnim();
-		return; // 他の処理（移動や当たり判定）をスキップ
+		return;
 	}
 
 	///////////////////////////////////////////////////////
@@ -504,7 +516,7 @@ void Game::Draw() {
 	// カメラのオフセットを取得(スクロールで必要)
 	Vector2 offset = scrollCamera->GetOffset();
 
-	
+
 
 	// --- ゲーム画面 ---
 
@@ -536,6 +548,8 @@ void Game::Draw() {
 	player->DrawPlayer(offset);
 
 	player->DrawRespawnAnim(offset);
+
+	player->DrawDeathAnim(offset);
 
 	// 警告メッセージの表示
 	if (cantStartCount > 0) {
@@ -765,7 +779,7 @@ void Game::Draw() {
 		}
 	}
 
-	
+
 
 	int mx, my;
 	Novice::GetMousePosition(&mx, &my);
@@ -839,7 +853,7 @@ void Game::Draw() {
 
 			float blockSize = 12.0f * bounce;
 			unsigned int mainColor = 0x00FF00FF;
-			
+
 			unsigned int shadowColor = 0x004400FF;
 
 			// --- 図形で文字を描く関数（パターン追加版） ---
@@ -899,8 +913,8 @@ void Game::Draw() {
 			for (int i = 0; i < 7; i++) DrawBlockChar(str1[i], startX1 + i * 6 * blockSize, cy - blockSize * 6, blockSize, mainColor);
 			for (int i = 0; i < 8; i++) DrawBlockChar(str2[i], startX2 + i * 6 * blockSize, cy + blockSize * 1, blockSize, mainColor);
 
-			
-			
+
+
 
 			// 装飾枠
 			if ((gameClearTimer / 30) % 2 == 0) {
@@ -1063,17 +1077,17 @@ void Game::SaveProgress() {
 
 void Game::ResetGameOver() {
 	isGameOver = false;
-	isRunning = false;  
-	fadeState_ = FADE_NONE;
+	isRunning = false;
 
 	player->InitPlayer();
-	player->status_.pos = respawnPos ;
+	player->status_.pos = respawnPos; // プレイヤーを復活地点へ
+
 	// ★追加: カメラも即座に復活地点へ移動させる
 	// これにより、復活演出（StartRespawnAnim）が最初から画面内で見えるようになります
 	scrollCamera->Update(player->status_.pos);
 
-	player->status_.isActive = true; 
-	player->StartRespawnAnim(respawnPos);
+	// カメラも合わせる
+	scrollCamera->Update(respawnPos);
 
 	// ボタンをすべて未入力に
 	for (auto& button : map->buttons) {
@@ -1098,5 +1112,13 @@ void Game::ResetGameOver() {
 
 		// もし座標が変わっていたなら、初期位置（Map読み込み時の位置）に戻す
 		block.pos = block.STpos;
+	}
+
+	for (auto& water : map->waters) {
+		water.isActive = true;
+	}
+
+	for (auto& Beltconveyor : map->Beltconveyors) {
+		Beltconveyor.isReversed = true;
 	}
 }

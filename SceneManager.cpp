@@ -48,6 +48,7 @@ void SceneManager::Run() {
 
 		case Scene::GAMEOVER:
 			gameOverScene->Update(keys, preKeys);
+			gameScene->Update(keys, preKeys);
 
 			if (gameOverScene->ShouldRetry()) {
 				//gameOverScene->Reset();
