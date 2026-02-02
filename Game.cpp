@@ -1082,8 +1082,10 @@ void Game::ResetGameOver() {
 	player->InitPlayer();
 	player->status_.pos = respawnPos; // プレイヤーを復活地点へ
 
-	// ★追加: カメラも即座に復活地点へ移動させる
-	// これにより、復活演出（StartRespawnAnim）が最初から画面内で見えるようになります
+	// 復活演出を開始する
+	player->StartRespawnAnim(player->status_.pos);
+
+	// カメラも即座に復活地点へ移動させる
 	scrollCamera->Update(player->status_.pos);
 
 	// カメラも合わせる
