@@ -173,6 +173,8 @@ void Player::UpdateRespawnAnim() {
 		status_.pos.y = floorf(status_.pos.y / kTileSize) * kTileSize;
 
 		particles.clear();
+
+		//InitPlayer();
 	}
 }
 
@@ -1075,5 +1077,98 @@ void Player::CheckBlockCeiling(std::vector<Block>& blocks) {
 void Player::CheckLiftCollision(std::vector<LiftGimmickBlock>& liftBlocks) {
 	for (auto& lift : liftBlocks) {
 		lift.CheckCollision(*this); // Gimmick.cpp内の判定を呼ぶ
+	}
+}
+
+// 革命を起こせなくても、その時が訪れるまでは...
+
+// 死亡演出
+void Player::StartDeathAnim() {
+	isDying = true;
+	deathTimer = 0;
+	status_.isActive = false; // プレイヤーの当たり判定や描画をオフにする
+
+	particles.clear();
+
+	float pSize = 8.0f;
+	int cols = (int)(status_.width / pSize);
+	int rows = (int)(status_.height / pSize);
+
+	// オレンジ系のカラー
+	unsigned int color1 = 0xE6B422FF;
+	unsigned int color2 = 0xFF8C00FF;
+	unsigned int color3 = 0xFFFFFFFF;
+
+	for (int y = 0; y < rows; y++) {
+		for (int x = 0; x < cols; x++) {
+			RespawnParticle p;
+
+			// 【逆の動き】現在地がスタート地点
+			p.startPos.x = status_.pos.x + (x * pSize);
+			p.startPos.y = status_.pos.y + (y * pSize);
+
+			// 飛び散る先（ターゲット）をランダムに決定
+			float angle = (float)(rand() % 360) * (3.14159f / 180.0f);
+			float dist = 300.0f + (float)(rand() % 200);
+
+			p.targetPos.x = p.startPos.x + cosf(angle) * dist;
+			p.targetPos.y = p.startPos.y + sinf(angle) * dist;
+
+			p.currentPos = p.startPos;
+			p.size = pSize;
+
+			// 色の決定（復活演出と同じ比率）
+			int r = rand() % 10;
+			if (r < 6)      p.color = color1;
+			else if (r < 9) p.color = color2;
+			else            p.color = color3;
+
+			particles.push_back(p);
+		}
+	}
+}
+
+// 死亡演出の更新
+void Player::UpdateDeathAnim() {
+	if (!isDying) return;
+
+	deathTimer++;
+	float t = (float)deathTimer / (float)kDeathTimeMax;
+	if (t > 1.0f) t = 1.0f;
+
+	// 徐々に加速して散る感じにするために EaseOutExpo を使用
+	float easeT = EaseOutExpo(t);
+
+	for (auto& p : particles) {
+		p.currentPos.x = p.startPos.x + (p.targetPos.x - p.startPos.x) * easeT;
+		p.currentPos.y = p.startPos.y + (p.targetPos.y - p.startPos.y) * easeT;
+	}
+
+	// 演出終了
+	if (deathTimer >= kDeathTimeMax) {
+		isDying = false;
+		particles.clear();
+		// この後にゲームオーバー画面への遷移やリスポーン処理を呼ぶ
+	}
+}
+
+// 死亡演出の描画
+void Player::DrawDeathAnim(Vector2 offset) {
+	if (!isDying) return;
+
+	// 徐々に透明にする演出
+	float t = (float)deathTimer / (float)kDeathTimeMax;
+	unsigned char alpha = (unsigned char)((1.0f - t) * 255);
+
+	for (auto& p : particles) {
+		// パーティクルの色に透明度を適用
+		unsigned int drawColor = (p.color & 0xFFFFFF00) | alpha;
+
+		Novice::DrawBox(
+			(int)(p.currentPos.x - offset.x),
+			(int)(p.currentPos.y - offset.y),
+			(int)p.size, (int)p.size,
+			0.0f, drawColor, kFillModeSolid
+		);
 	}
 }
