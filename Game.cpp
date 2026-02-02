@@ -545,22 +545,120 @@ void Game::Draw() {
 		Novice::ScreenPrintf(800, 400, "Router Area! Can't Start!");
 	}
 
-	// --- UIボタン描画 ---
-	auto DrawBtn = [](Button& b) {
-		Novice::DrawSprite((int)b.x, (int)b.y, b.textureHandle, 1.0f, 1.0f, 0.0f, b.color);
+	// ==========================================
+	//  UI (右側) の描画
+	// ==========================================
+
+	auto DrawDotText = [&](float x, float y, const char* str, float size, unsigned int color) {
+		int startX = (int)x;
+		int startY = (int)y;
+		int spacing = (int)(size * 6.0f); // 文字間隔
+
+		for (int k = 0; str[k] != '\0'; k++) {
+			char c = str[k];
+			if (c == ' ') continue;
+
+			int px = startX + k * spacing;
+			int py = startY;
+			int p[5][5] = { 0 };
+
+			// 大文字・数字・記号のパターン定義
+			switch (c) {
+				// アルファベット (A-Z)
+			case 'A': p[0][2] = 1; p[1][1] = 1; p[1][3] = 1; p[2][0] = 1; p[2][4] = 1; p[3][0] = 1; p[3][1] = 1; p[3][2] = 1; p[3][3] = 1; p[3][4] = 1; p[4][0] = 1; p[4][4] = 1; break;
+			case 'B': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[2][3] = 1; p[3][0] = 1; p[3][4] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'C': p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[3][0] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'D': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[1][0] = 1; p[1][3] = 1; p[2][0] = 1; p[2][4] = 1; p[3][0] = 1; p[3][3] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; break;
+			case 'E': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[3][0] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'F': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[3][0] = 1; p[4][0] = 1; break;
+			case 'G': p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[2][0] = 1; p[2][3] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'H': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[2][3] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][0] = 1; p[4][4] = 1; break;
+			case 'I': p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][2] = 1; p[2][2] = 1; p[3][2] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'J': p[0][4] = 1; p[1][4] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'K': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][3] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[3][0] = 1; p[3][3] = 1; p[4][0] = 1; p[4][4] = 1; break;
+			case 'L': p[0][0] = 1; p[1][0] = 1; p[2][0] = 1; p[3][0] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'M': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][1] = 1; p[1][3] = 1; p[1][4] = 1; p[2][0] = 1; p[2][2] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][0] = 1; p[4][4] = 1; break;
+			case 'N': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][1] = 1; p[1][4] = 1; p[2][0] = 1; p[2][2] = 1; p[2][4] = 1; p[3][0] = 1; p[3][3] = 1; p[3][4] = 1; p[4][0] = 1; p[4][4] = 1; break;
+			case 'O': p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'P': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[1][0] = 1; p[1][3] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[3][0] = 1; p[4][0] = 1; break;
+			case 'Q': p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][4] = 1; p[3][0] = 1; p[3][2] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'R': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[1][0] = 1; p[1][3] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[3][0] = 1; p[3][2] = 1; p[4][0] = 1; p[4][3] = 1; break;
+			case 'S': p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[2][1] = 1; p[2][2] = 1; p[3][4] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'T': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[0][4] = 1; p[1][2] = 1; p[2][2] = 1; p[3][2] = 1; p[4][2] = 1; break;
+			case 'U': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'V': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][4] = 1; p[3][1] = 1; p[3][3] = 1; p[4][2] = 1; break;
+			case 'W': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][2] = 1; p[2][4] = 1; p[3][0] = 1; p[3][1] = 1; p[3][3] = 1; p[3][4] = 1; p[4][0] = 1; p[4][4] = 1; break;
+			case 'X': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][4] = 1; p[2][2] = 1; p[3][0] = 1; p[3][4] = 1; p[4][0] = 1; p[4][4] = 1; break;
+			case 'Y': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][4] = 1; p[2][2] = 1; p[3][2] = 1; p[4][2] = 1; break;
+			case 'Z': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[0][4] = 1; p[1][3] = 1; p[2][2] = 1; p[3][1] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; p[4][4] = 1; break;
+
+				// 記号 (プログラム用)
+			case '!': p[0][2] = 1; p[1][2] = 1; p[2][2] = 1; p[4][2] = 1; break;
+			case ';': p[1][2] = 1; p[3][2] = 1; p[4][1] = 1; break; // セミコロン
+			case '(': p[0][3] = 1; p[1][2] = 1; p[2][2] = 1; p[3][2] = 1; p[4][3] = 1; break; // 左カッコ
+			case ')': p[0][1] = 1; p[1][2] = 1; p[2][2] = 1; p[3][2] = 1; p[4][1] = 1; break; // 右カッコ
+			case '_': p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; p[4][4] = 1; break; // アンダーバー
+			case '-': p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[2][3] = 1; p[2][4] = 1; break; // ハイフン
+			case '>': p[0][0] = 1; p[1][1] = 1; p[2][2] = 1; p[3][1] = 1; p[4][0] = 1; break; // 大なり
+			case '<': p[0][4] = 1; p[1][3] = 1; p[2][2] = 1; p[3][3] = 1; p[4][4] = 1; break; // 小なり
+			case '/': p[0][4] = 1; p[1][3] = 1; p[2][2] = 1; p[3][1] = 1; p[4][0] = 1; break; // スラッシュ
+			}
+
+			// 描画
+			for (int i = 0; i < 5; i++) {
+				for (int j = 0; j < 5; j++) {
+					if (p[i][j] == 1) {
+						Novice::DrawBox((int)(px + j * size), (int)(py + i * size), (int)size, (int)size, 0.0f, color, kFillModeSolid);
+					}
+				}
+			}
+		}
 		};
 
-	DrawBtn(btnRight);
-	DrawBtn(btnLeft);
-	DrawBtn(btnWallJump);
-	DrawBtn(btnCliffJump);
-	DrawBtn(btnStart);
-	DrawBtn(btnReset);
+	// (背景と区切り線のコードはそのまま...)
+	Novice::DrawBox(1400, 0, 580, 1080, 0.0f, 0x11111633, kFillModeSolid);
+	Novice::DrawLine(1400, 0, 1400, 1080, 0x00AAAAFF);
 
-	// ... (ボタン描画などの後) ...
+	// カラーパレット
+	unsigned int cCyan = 0x00FFFFFF;
+	unsigned int cGreen = 0x00FF00FF;
+	unsigned int cRed = 0xFF0055FF;
+	unsigned int cText = 0xFFFFFFFF;
 
-	// --- プログラムリストのブロック描画 ---
-	Novice::ScreenPrintf(1420, 410, "--- YOUR PROGRAM (Click to Delete) ---");
+	// 2. ボタンを描画する関数
+	auto DrawCyberBtn = [&](Button& btn, const char* label, unsigned int color) {
+		// ボタン背景・枠・アクセント (前回のコードと同じ)
+		Novice::DrawBox((int)btn.x, (int)btn.y, (int)btn.w, (int)btn.h, 0.0f, 0x000000FF , kFillModeSolid);
+		Novice::DrawBox((int)btn.x, (int)btn.y, (int)btn.w, (int)btn.h, 0.0f, color, kFillModeWireFrame);
+		Novice::DrawBox((int)btn.x, (int)btn.y, 10, (int)btn.h, 0.0f, color, kFillModeSolid);
+
+		int mx, my;
+		Novice::GetMousePosition(&mx, &my);
+		if (mx >= btn.x && mx <= btn.x + btn.w && my >= btn.y && my <= btn.y + btn.h) {
+			Novice::DrawBox((int)btn.x, (int)btn.y, (int)btn.w, (int)btn.h, 0.0f, (color & 0xFFFFFF44), kFillModeSolid);
+		}
+
+		// ★ここを変更！Printfをやめてドットで描画
+		// size=3.0f くらいがちょうどいい大きさです
+		DrawDotText(btn.x + 30, btn.y + 15, label, 3.0f, cText);
+		};
+
+	// 描画実行（英語・大文字で！）
+	DrawCyberBtn(btnLeft, "MOVE LEFT", cCyan);
+	DrawCyberBtn(btnRight, "MOVE RIGHT", cCyan);
+	DrawCyberBtn(btnWallJump, "IF(WALL) JUMP", cGreen);
+	DrawCyberBtn(btnCliffJump, "IF(AIR) JUMP", cGreen);
+
+	DrawCyberBtn(btnStart, "START", cRed);
+	DrawCyberBtn(btnReset, "STOP", cRed);
+
+
+	// --- プログラムリスト（下部）の描画 ---
+
+	// ヘッダー装飾
+	Novice::DrawBox(1400, 400, 580, 30, 0.0f, 0x222233FF, kFillModeSolid);
+	// ★ここもドット文字に
+	DrawDotText(1420, 408, "MAIN FUNCTION", 2.0f, 0xAAAAAAFF);
 
 	float blockY = programArea.y + 50;
 
@@ -568,62 +666,66 @@ void Game::Draw() {
 	if (isRunning) {
 		currentIndex = player->GetCurrentCommandIndex();
 	}
-	for (int i = 0; i < commandList.size(); i++) {
 
-		// ここで描画する画像を決める
-		int currentTex = 0;
-
-		switch (commandList[i]) {
-
-			case CommandType::MoveRight:
-				currentTex = texRight;
-				break;
-			case CommandType::MoveLeft:
-				currentTex = texLeft;
-				break;
-			case CommandType::CheckWallJump:
-				currentTex = texWallJump;
-				break;
-			case CommandType::CheckCliffJump:
-				currentTex = texCliffJump;
-				break;
-
-		}
-
-		// 実行中の強調表示（色を変えるなど）
-		unsigned int color = 0xFFFFFFFF;
-		if (i == currentIndex) {
-			color = 0xFFAAAAFF; // 実行中は少し赤っぽくする例
-		}
-
-		if (currentTex != 0) {
-			Novice::DrawSprite(1450, (int)blockY, currentTex, 1.0f, 1.0f, 0.0f, color);
-
-		}
-
-
-		// 矢印や強調枠の処理
-		if (i == currentIndex) {
-			Novice::ScreenPrintf(1420, (int)blockY + 15, "->");
-			Novice::DrawBox(1445, (int)blockY - 5, 410, 60, 0.0f, RED, kFillModeWireFrame);
-		}
-
-		if (i < commandList.size() - 1) {
-			Novice::DrawTriangle(1650, (int)blockY + 50, 1630, (int)blockY + 60, 1670, (int)blockY + 60, WHITE, kFillModeSolid);
-		}
-
-		blockY += 60; // 次の表示位置へ
-	}
-
-	// 実行中などのステータス表示
 	if (isRunning) {
-		Novice::ScreenPrintf(10, 10, "RUNNING...");
+		// RUNNING... の文字もドット絵風に (ScreenPrintfをやめる場合)
+		DrawDotText(10, 10, "RUNNING...", 10.0f, 0x00FFFF88);
+
 		if (!player->IsRespawning()) {
-			// 実行中の赤いフィルター
-			Novice::DrawBox(0, 0, 1400, 1080, 0.0f, 0xFF000044, kFillModeSolid);
+			// ★ここを変更！実行中のフィルター（薄い青）
+			// 0x00CCFF44 -> R=00, G=CC, B=FF (水色), A=44 (半透明)
+			Novice::DrawBox(0, 0, 1400, 1080, 0.0f, 0x00CCFF22, kFillModeSolid);
 		}
 	} else {
-		Novice::ScreenPrintf(10, 10, "EDIT MODE");
+		// EDIT MODE もドット絵風に
+		DrawDotText(10, 10, "EDIT MODE", 10.0f, 0xAAAAAA88);
+	}
+
+	for (int i = 0; i < commandList.size(); i++) {
+
+		unsigned int cmdColor = 0xFFFFFFFF;
+		const char* cmdText = "UNKNOWN";
+
+		// ここは大文字のみ（小文字は未実装のため）
+		switch (commandList[i]) {
+		case CommandType::MoveRight:
+			cmdColor = cCyan;
+			cmdText = "MOVE_RIGHT"; // 大文字
+			break;
+		case CommandType::MoveLeft:
+			cmdColor = cCyan;
+			cmdText = "MOVE_LEFT";
+			break;
+		case CommandType::CheckWallJump:
+			cmdColor = cGreen;
+			cmdText = "IF(WALL) JUMP";
+			break;
+		case CommandType::CheckCliffJump:
+			cmdColor = cGreen;
+			cmdText = "IF(AIR) JUMP";
+			break;
+		}
+
+		if (i == currentIndex) {
+			Novice::DrawBox(1410, (int)blockY, 500, 50, 0.0f, 0x550000FF, kFillModeSolid);
+			// カーソル
+			DrawDotText(1420, blockY + 15, ">", 3.0f, 0xFF0000FF);
+		} else {
+			Novice::DrawBox(1410, (int)blockY, 500, 50, 0.0f, 0x222222FF, kFillModeSolid);
+		}
+
+		Novice::DrawBox(1410, (int)blockY, 500, 50, 0.0f, cmdColor, kFillModeWireFrame);
+		Novice::DrawBox(1410, (int)blockY, 5, 50, 0.0f, cmdColor, kFillModeSolid);
+
+		// ★ここもドット文字に！
+		DrawDotText(1450, blockY + 15, cmdText, 3.0f, cmdColor);
+
+
+		if (i < commandList.size() - 1) {
+			Novice::DrawLine(1660, (int)blockY + 50, 1660, (int)blockY + 60, 0x444455FF);
+		}
+
+		blockY += 60;
 	}
 
 	// --- 暗転ブロックの描画 ---
