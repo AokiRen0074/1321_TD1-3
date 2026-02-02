@@ -63,6 +63,10 @@ public:
 	Player* GetPlayer() { return player; }
 	Vector2 GetRespawnPos() { return respawnPos; }
 
+	// 音
+	AudioManager* audioManager;
+	AudioManager* GetAudioManager() { return audioManager; }
+
 	// セッター
 	void SetIsRunning(bool f) { isRunning = f; }
 
@@ -127,8 +131,9 @@ private:
 	int soundButtonPress;
 	int soundSceneChange;
 	int voiceSceneChange = -1;
-
 	int Checkpoint;
+
+
 
 	// 更新
 	void Update();
@@ -150,6 +155,4 @@ private:
 	const int kBlockSize = 120;
 	const int kCols = (1920 / 120) + 1; // 32列
 	const int kRows = (1080 / 120) + 1; // 18列
-
-	AudioManager* audioManager;
 };

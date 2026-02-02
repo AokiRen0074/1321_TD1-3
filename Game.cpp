@@ -175,9 +175,21 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		fadeState_ == FADE_NONE && // フェード中でない
 		!isGameClear) // クリア中でもない
 	{
-		player->StartDeathAnim();
-		player->status_.Velocity = {0.0f, 0.0f};
+		// ゲームオーバーになる
 		isGameOver = true;
+
+		// 死亡時の音を鳴らす
+		if (audioManager != nullptr) {
+			audioManager->Stop(BGM_GAME); // ゲームbgmを止める
+			audioManager->Play(SE_DEATH, false); //死亡seを鳴らす
+		}
+
+		// 死亡演出
+		player->StartDeathAnim();
+
+		// 速度を０に
+		player->status_.Velocity = {0.0f, 0.0f};
+		
 	}
 
 	// 死亡演出
