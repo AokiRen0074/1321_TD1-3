@@ -11,6 +11,9 @@ SceneManager::SceneManager() {
 	titleScene = new Title();
 	gameScene = new Game();
 	gameOverScene = new GameOver();
+
+	// 起動時にタイトルのbgmを鳴らす
+	gameScene->audioManager->Play(BGM_TITLE, true);
 }
 
 // デストラクタ
@@ -33,7 +36,10 @@ void SceneManager::Run() {
 			// エンターキーが押されたらGAMEシーンへ
 			if (keys[DIK_RETURN] && !preKeys[DIK_RETURN]) {
 				currentScene = Scene::GAME;
+				gameScene->audioManager->Stop(BGM_TITLE);
+				gameScene->audioManager->Play(BGM_GAME, true);
 			}
+
 			break;
 
 		case Scene::GAME:
@@ -71,6 +77,10 @@ void SceneManager::Run() {
 				// 復活演出
 				//player->StartRespawnAnim(respawnPos);
 
+				// ゲームbgmを再度鳴らす
+				if (gameScene->audioManager != nullptr) {
+					gameScene->audioManager->Play(BGM_GAME, true); 
+				}
 				
 			}
 

@@ -1093,11 +1093,6 @@ void Player::StartDeathAnim() {
 	deathTimer = 0;
 	status_.isActive = false; // プレイヤーの当たり判定や描画をオフにする
 
-	// 死亡時の音を鳴らす
-	if (audioManager != nullptr) {
-		audioManager->Play(SE_DEATH, false); 
-	}
-
 	particles.clear();
 
 	float pSize = 8.0f;
