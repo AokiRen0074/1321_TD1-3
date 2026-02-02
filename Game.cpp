@@ -6,6 +6,7 @@
 #include "ScrollCamera.h"
 #include "Router.h"
 #include <fstream> // ファイル操作に必要
+#include "AudioManager.h"
 
 Game::Game() {
 	player = new Player();
@@ -15,6 +16,10 @@ Game::Game() {
 		router[i] = nullptr;
 	}
 	Initialize();
+
+	audioManager = new AudioManager(); // 生成
+	audioManager->LoadAll(); // 読み込み
+	player->SetAudioManager(audioManager);
 }
 
 Game::~Game() {
@@ -98,6 +103,9 @@ void Game::Initialize() {
 
 	Checkpoint = Novice::LoadAudio("./Sounds/checkpoint.mp3");
 
+	// 音
+	player->SetAudioManager(audioManager);
+
 	/*------------------------------
 	ここにレイヤー名をいれるんだ！！
 	-----------------------------*/
@@ -160,7 +168,13 @@ void Game::Update(char keys[256], char preKeys[256]) {
 	////////////////////////////////////////////
 
 	// ゲームオーバー判定
-	if (!player->status_.isActive && !player->IsRespawning() && !player->IsDying() && !isGameOver && fadeState_ == FADE_NONE) {
+	if (!player->status_.isActive && 
+		!player->IsRespawning() && 
+		!player->IsDying() && 
+		!isGameOver && 
+		fadeState_ == FADE_NONE && // フェード中でない
+		!isGameClear) // クリア中でもない
+	{
 		player->StartDeathAnim();
 		player->status_.Velocity = {0.0f, 0.0f};
 		isGameOver = true;
