@@ -7,6 +7,7 @@ enum AudioID {
 	/// SE
 	/// </summary>
 	SE_JUMP,
+	SE_LANDING_FLOM_JUMP,
 	SE_DEATH,
 	SE_RESPAWN,
 	SE_BELTCONVEYORS,
@@ -18,6 +19,7 @@ enum AudioID {
 	BGM_TITLE,
 	BGM_GAME,
 	BGM_CLEAR,
+	BGM_LASTCOURSE,
 	
 };
 

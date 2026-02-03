@@ -13,30 +13,38 @@ void AudioManager::LoadAll() {
 	handles[SE_JUMP] = Novice::LoadAudio("./Sounds/jump.mp3");
 	volumes[SE_JUMP] = 1.0f;
 
+	// ジャンプから着地
+	handles[SE_LANDING_FLOM_JUMP] = Novice::LoadAudio("./Sounds/landing_flom_jump.mp3");
+	volumes[SE_LANDING_FLOM_JUMP] = 1.0f;
+
 	// 死亡
 	handles[SE_DEATH] = Novice::LoadAudio("./Sounds/death.mp3");
 	volumes[SE_DEATH] = 0.5f;
 
 	// 復活
 	handles[SE_RESPAWN] = Novice::LoadAudio("./Sounds/respawn.mp3");
-	volumes[SE_RESPAWN] = 1.5f;
+	volumes[SE_RESPAWN] = 1.0f;
 
 	// ベルトコンベア
 	handles[SE_BELTCONVEYORS] = Novice::LoadAudio("./Sounds/beltconveyors.mp3");
-	volumes[SE_BELTCONVEYORS] = 0.5f;
+	volumes[SE_BELTCONVEYORS] = 0.4f;
 
 	///// BGM /////
 	// スタート(TITLE)
 	handles[BGM_TITLE] = Novice::LoadAudio("./Sounds/title.mp3");
-	volumes[BGM_TITLE] = 1.0f;
+	volumes[BGM_TITLE] = 0.5f;
 
 	// ゲーム
 	handles[BGM_GAME] = Novice::LoadAudio("./Sounds/mainGame.mp3");
-	volumes[BGM_GAME] = 0.5f;
+	volumes[BGM_GAME] = 0.3f;
 
 	// クリア
 	handles[BGM_CLEAR] = Novice::LoadAudio("./Sounds/clearKakkoKari.mp3");
-	volumes[BGM_CLEAR] = 1.2f;
+	volumes[BGM_CLEAR] = 0.8f;
+
+	// ステージ４のベルトコンベアゾーン
+	handles[BGM_LASTCOURSE] = Novice::LoadAudio("./Sounds/last_course.mp3");
+	volumes[BGM_LASTCOURSE] = 0.6f;
 
 	// handles[BGM_MAIN] = Novice::LoadAudio("./Resources/Sounds/test_bgm.wav");
 }
