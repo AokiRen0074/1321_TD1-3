@@ -308,7 +308,8 @@ void Game::Update(char keys[256], char preKeys[256]) {
 			}
 			// 「基準の音量」を取得してセットする
 			audioManager->SetVolume(SE_BELTCONVEYORS, audioManager->GetDefaultVolume(SE_BELTCONVEYORS));
-		} else {
+		}
+		else {
 			// 離れたら
 			audioManager->SetVolume(SE_BELTCONVEYORS, 0.0f);
 		}
@@ -343,7 +344,8 @@ void Game::Update(char keys[256], char preKeys[256]) {
 
 		if (player->IsRespawning()) {
 			player->UpdateRespawnAnim(); // 粒子の計算だけする
-		} else {
+		}
+		else {
 			// --- 実行モード ---
 			bool isArrived = player->CheckRouter(router, 250);
 			//ドアと水とベルトの当たり判定とかの処理
@@ -355,7 +357,8 @@ void Game::Update(char keys[256], char preKeys[256]) {
 			player->CheckBlockWall(map->Blocks);
 			if (isArrived) {
 				isRunning = false;
-			} else {
+			}
+			else {
 				player->UpdateByCommands(commandList, map->mapData, map->Beltconveyors, map->Blocks, map->liftBlocks);
 			}
 
@@ -376,7 +379,8 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		}
 		player->CheckBlockGround(map->Blocks);
 		player->CheckBlockWall(map->Blocks);
-	} else {
+	}
+	else {
 		// --- 編集モード ---
 		player->UpdatePlayer(keys, preKeys, map->mapData, map->Blocks);
 		//player->CheckRouter(router, 250);
@@ -430,7 +434,8 @@ void Game::Update(char keys[256], char preKeys[256]) {
 					cantStartCount = 0;
 
 					Novice::PlayAudio(soundStart, false, 0.4f);
-				} else {
+				}
+				else {
 					// (オプション)「ここではスタートできません」みたいなログを出してもいいかも
 					cantStartCount = 60;
 				}
@@ -508,7 +513,8 @@ void Game::Update(char keys[256], char preKeys[256]) {
 				if (isGameOver) {
 					scrollCamera->Update(player->status_.pos);
 
-				} else if (isGameClear) {
+				}
+				else if (isGameClear) {
 					// ==============================================
 					// ゲームクリア時の完全リセット処理
 					// ==============================================
@@ -553,7 +559,8 @@ void Game::Update(char keys[256], char preKeys[256]) {
 					// フェードインへ移行
 					fadeState_ = FADE_IN;
 					fadeTimer_ = 0;
-				} else {
+				}
+				else {
 					// 【落下によるステージ進行の場合】
 					int nextIdx = scrollCamera->GetStageIndex() + 1;
 					if (nextIdx < 3) {
@@ -637,7 +644,6 @@ void Game::Draw() {
 
 	// 区切り線
 	Novice::DrawBox(1400, 398, 580, 4, 0.0f, WHITE, kFillModeSolid);
-	Novice::ScreenPrintf(200, 200, "isTimerActive:%d", isTimerActive);
 	// ルーター描画
 	for (int i = 0; i < routerCount; i++) {
 		if (router[i] != nullptr) {
@@ -692,7 +698,8 @@ void Game::Draw() {
 					// 範囲内：中心に近いほど 1.0、端っこは 0.0
 					signalStrength = 1.0f - (minDistance / nearestRadius);
 					if (signalStrength < 0.01f) signalStrength = 0.01f; // ギリギリでも範囲内なら0にはしない
-				} else {
+				}
+				else {
 					// 範囲外
 					signalStrength = 0.0f;
 				}
@@ -707,10 +714,12 @@ void Game::Draw() {
 				blinkTimer += 0.2f;
 				if ((int)blinkTimer % 2 == 0) {
 					wifiColor = 0xFF0000FF; // 赤
-				} else {
+				}
+				else {
 					wifiColor = 0x550000FF; // 暗い赤
 				}
-			} else {
+			}
+			else {
 				// 範囲内なら オレンジ(遠) ～ 緑(近) のグラデーション
 				unsigned int r, g;
 
@@ -719,7 +728,8 @@ void Game::Draw() {
 					float t = (signalStrength - 0.5f) * 2.0f;
 					r = (unsigned int)(255.0f * (1.0f - t));
 					g = 255;
-				} else {
+				}
+				else {
 					// 黄色 ～ オレンジ (中～遠)
 					float t = signalStrength * 2.0f;
 					r = 255;
@@ -907,7 +917,8 @@ void Game::Draw() {
 			// 0x00CCFF44 -> R=00, G=CC, B=FF (水色), A=44 (半透明)
 			Novice::DrawBox(0, 0, 1400, 1080, 0.0f, 0x00CCFF22, kFillModeSolid);
 		}
-	} else {
+	}
+	else {
 		// EDIT MODE もドット絵風に
 		DrawDotText(700, 50, "EDIT MODE", 10.0f, 0xAAAAAA55);
 	}
@@ -941,7 +952,8 @@ void Game::Draw() {
 			Novice::DrawBox(1410, (int)blockY, 500, 50, 0.0f, 0x550000FF, kFillModeSolid);
 			// カーソル
 			DrawDotText(1420, blockY + 15, ">", 3.0f, 0xFF0000FF);
-		} else {
+		}
+		else {
 			Novice::DrawBox(1410, (int)blockY, 500, 50, 0.0f, 0x222222FF, kFillModeSolid);
 		}
 
@@ -963,7 +975,8 @@ void Game::Draw() {
 	if (player->IsRespawning()) {
 		// 復活演出中のみ描画（この中には Novice::Draw系が書かれているはずです）
 		player->DrawRespawnAnim(offset);
-	} else {
+	}
+	else {
 		// 通常時はプレイヤーを描画
 		player->DrawPlayer(offset);
 	}
@@ -976,7 +989,8 @@ void Game::Draw() {
 		if (fadeState_ == FADE_OUT) {
 			// FADE_OUT：タイマー 0→Max に向かってブロックが増える
 			progress = (float)fadeTimer_ / kFadeMax;
-		} else {
+		}
+		else {
 			// FADE_IN：タイマー 0→Max に向かってブロックが減る
 			progress = 1.0f - ((float)fadeTimer_ / kFadeMax);
 		}
@@ -1135,6 +1149,60 @@ void Game::Draw() {
 
 
 
+			auto DrawDetailedBlockChar = [&](char c, float x, float y, float charSize, unsigned int color) {
+				int pattern[5][5] = { 0 }; // 基本の5x5グリッド
+
+				switch (c) {
+				case '0': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[2][4] = 1; pattern[3][0] = 1; pattern[3][4] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+				case '1': pattern[0][2] = 1; pattern[1][1] = 1; pattern[1][2] = 1; pattern[2][2] = 1; pattern[3][2] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+				case '2': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][4] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[2][3] = 1; pattern[3][0] = 1; pattern[4][0] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; pattern[4][4] = 1; break;
+				case '3': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][4] = 1; pattern[2][2] = 1; pattern[2][3] = 1; pattern[3][4] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+				case '4': pattern[0][0] = 1; pattern[0][4] = 1; pattern[1][0] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[2][3] = 1; pattern[2][4] = 1; pattern[3][4] = 1; pattern[4][4] = 1; break;
+				case '5': pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[0][4] = 1; pattern[1][0] = 1; pattern[2][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[3][4] = 1; pattern[4][0] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+				case '6': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[2][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[3][0] = 1; pattern[3][4] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+				case '7': pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[0][4] = 1; pattern[1][4] = 1; pattern[2][3] = 1; pattern[3][2] = 1; pattern[4][2] = 1; break;
+				case '8': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[1][4] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[2][3] = 1; pattern[3][0] = 1; pattern[3][4] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+				case '9': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[1][4] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[2][3] = 1; pattern[2][4] = 1; pattern[3][4] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+				case ':': pattern[1][2] = 1; pattern[3][2] = 1; break;
+				case 'T': pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[0][4] = 1; pattern[1][2] = 1; pattern[2][2] = 1; pattern[3][2] = 1; pattern[4][2] = 1; break;
+				case 'I': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][2] = 1; pattern[2][2] = 1; pattern[3][2] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+				case 'M': pattern[0][0] = 1; pattern[0][4] = 1; pattern[1][0] = 1; pattern[1][1] = 1; pattern[1][3] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[2][2] = 1; pattern[2][4] = 1; pattern[3][0] = 1; pattern[3][4] = 1; pattern[4][0] = 1; pattern[4][4] = 1; break;
+				case 'E': pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[2][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[3][0] = 1; pattern[4][0] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+				}
+
+				// 描画ループ
+				for (int row = 0; row < 5; row++) {
+					for (int col = 0; col < 5; col++) {
+						if (pattern[row][col] == 1) {
+							Novice::DrawBox((int)x + col * (int)charSize, (int)y + row * (int)charSize, (int)charSize - 1, (int)charSize - 1, 0.0f, color, kFillModeSolid);
+						}
+					}
+				}
+				};
+
+
+			if (isGameClear) {
+				char timeStr[32];
+				// 60fps計算で分・秒を算出
+				int totalSeconds = (int)clearTime / 60;
+				int m = totalSeconds / 60;
+				int s = totalSeconds % 60;
+				sprintf_s(timeStr, "TIME %02d:%02d", m, s);
+
+				// 画面中央下の目安座標
+				// 画面横幅1400の中央は700。文字数に合わせて少し左にオフセット
+				float startX = 550.0f;
+				float startY = 850.0f; // 画面下部
+
+				float dotSize = 8.0f;    // 5x5なので、1ドットを大きめにすると読みやすい
+				float charSpacing = 50.0f; // 文字同士の間隔
+
+				for (int i = 0; timeStr[i] != '\0'; i++) {
+					DrawDetailedBlockChar(timeStr[i], startX + i * charSpacing, startY, dotSize, WHITE);
+				}
+			}
+
+
 
 			// 装飾枠
 			if ((gameClearTimer / 30) % 2 == 0) {
@@ -1226,7 +1294,7 @@ void Game::Draw() {
 					color
 				);
 			}
-			};
+		};
 
 		// 影
 		DrawCursor(ptrX + 3, ptrY + 3, 0x00000088);
