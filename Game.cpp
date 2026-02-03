@@ -33,9 +33,9 @@ Game::~Game() {
 
 void Game::Initialize() {
 	// エリア定義
-	gameArea = {0, 0, 1400, 1080};
-	paletteArea = {1400, 0, 580, 400};     // 右上：パレット
-	programArea = {1400, 400, 580, 680};   // 右下：プログラム置き場
+	gameArea = { 0, 0, 1400, 1080 };
+	paletteArea = { 1400, 0, 580, 400 };     // 右上：パレット
+	programArea = { 1400, 400, 580, 680 };   // 右下：プログラム置き場
 
 	// 変数をリセット
 	isRunning = false;
@@ -78,13 +78,13 @@ void Game::Initialize() {
 	float btnW = 400;
 	float btnH = 50;
 
-	btnLeft = {btnX, 50, btnW, btnH, "Left", CommandType::MoveLeft, (int)WHITE, texLeft};
-	btnRight = {btnX, 110, btnW, btnH, "Right", CommandType::MoveRight, (int)WHITE, texRight};
-	btnWallJump = {btnX, 170, btnW, btnH, "Wall", CommandType::CheckWallJump, (int)WHITE, texWallJump};
-	btnCliffJump = {btnX, 230, btnW, btnH, "Cliff", CommandType::CheckCliffJump, (int)WHITE, texCliffJump};
+	btnLeft = { btnX, 50, btnW, btnH, "Left", CommandType::MoveLeft, (int)WHITE, texLeft };
+	btnRight = { btnX, 110, btnW, btnH, "Right", CommandType::MoveRight, (int)WHITE, texRight };
+	btnWallJump = { btnX, 170, btnW, btnH, "Wall", CommandType::CheckWallJump, (int)WHITE, texWallJump };
+	btnCliffJump = { btnX, 230, btnW, btnH, "Cliff", CommandType::CheckCliffJump, (int)WHITE, texCliffJump };
 	// スタート・リセット
-	btnStart = {1450, 300, 180, 80, "START", (CommandType)-1, (int)WHITE, texStart};
-	btnReset = {1670, 300, 180, 80, "STOP", (CommandType)-1, (int)WHITE, texStop};
+	btnStart = { 1450, 300, 180, 80, "START", (CommandType)-1, (int)WHITE, texStart };
+	btnReset = { 1670, 300, 180, 80, "STOP", (CommandType)-1, (int)WHITE, texStop };
 
 	/*----------------------------------
 				その他画像
@@ -111,7 +111,7 @@ void Game::Initialize() {
 	/*------------------------------
 	ここにレイヤー名をいれるんだ！！
 	-----------------------------*/
-	std::vector<std::string> layers = {"IntGrid", "HalfBlock"};
+	std::vector<std::string> layers = { "IntGrid", "HalfBlock" };
 
 	map->LoadMapFromLDtk("./mapTest9999.ldtk", layers);
 
@@ -195,7 +195,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		player->StartDeathAnim();
 
 		// 速度を０に
-		player->status_.Velocity = {0.0f, 0.0f};
+		player->status_.Velocity = { 0.0f, 0.0f };
 
 	}
 
@@ -488,7 +488,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 
 		// プレイヤーをその場で停止させる
 		player->status_.isActive = false;
-		player->status_.Velocity = {0.0f, 0.0f};
+		player->status_.Velocity = { 0.0f, 0.0f };
 
 		// --- 暗転が完了した瞬間の処理 ---
 		if (fadeState_ == FADE_OUT) {
@@ -529,7 +529,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 					player->status_.pos = respawnPos;
 
 					// 4. マップのリセット
-					std::vector<std::string> layers = {"IntGrid", "HalfBlock"};
+					std::vector<std::string> layers = { "IntGrid", "HalfBlock" };
 					map->LoadMapFromLDtk("./mapTest9999.ldtk", layers);
 
 					// 5. ★重要★ カメラの状態を「最初の状態」に強制リセット
@@ -588,7 +588,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 			fadeState_ = FADE_OUT; // 暗転開始
 			fadeTimer_ = 0;
 			isRunning = false;
-			player->status_.Velocity = {0.0f, 0.0f};
+			player->status_.Velocity = { 0.0f, 0.0f };
 		}
 	}
 
@@ -642,6 +642,120 @@ void Game::Draw() {
 	// プレイヤー描画
 	player->DrawPlayer(offset);
 
+	// プレイヤー描画
+	player->DrawPlayer(offset);
+
+	// ===========================================================
+		// Wi-Fi風の信号強度表示
+		// ===========================================================
+	if (player->status_.isAlive) {
+		{
+			// プレイヤーの中心座標
+			float pCx = player->status_.pos.x + player->status_.width / 2.0f;
+			float pCy = player->status_.pos.y;
+
+			// 最寄りのルーターの情報
+			float nearestRadius = 600.0f;
+			float minDistance = 99999.0f;
+			bool foundRouter = false;
+
+			// 一番近いルーターを探し、その「距離」と「半径」を取得する
+			for (int i = 0; i < routerCount; i++) {
+				if (router[i] != nullptr) {
+					float rCx = router[i]->router_.pos.x;
+					float rCy = router[i]->router_.pos.y;
+
+					float dist = sqrtf(powf(rCx - pCx, 2) + powf(rCy - pCy, 2));
+
+					if (dist < minDistance) {
+						minDistance = dist;
+						nearestRadius = router[i]->router_.radius;
+						foundRouter = true;
+					}
+				}
+			}
+
+			// 信号強度の計算
+			float signalStrength = 0.0f;
+
+			if (foundRouter) {
+				if (minDistance <= nearestRadius) {
+					// 範囲内：中心に近いほど 1.0、端っこは 0.0
+					signalStrength = 1.0f - (minDistance / nearestRadius);
+					if (signalStrength < 0.01f) signalStrength = 0.01f; // ギリギリでも範囲内なら0にはしない
+				} else {
+					// 範囲外
+					signalStrength = 0.0f;
+				}
+			}
+
+			// 色の計算
+			unsigned int wifiColor;
+
+			// 範囲外なら赤点滅
+			if (signalStrength <= 0.0f) {
+				static float blinkTimer = 0.0f;
+				blinkTimer += 0.2f;
+				if ((int)blinkTimer % 2 == 0) {
+					wifiColor = 0xFF0000FF; // 赤
+				} else {
+					wifiColor = 0x550000FF; // 暗い赤
+				}
+			} else {
+				// 範囲内なら オレンジ(遠) ～ 緑(近) のグラデーション
+				unsigned int r, g;
+
+				if (signalStrength >= 0.5f) {
+					// 緑 ～ 黄色 (近～中)
+					float t = (signalStrength - 0.5f) * 2.0f;
+					r = (unsigned int)(255.0f * (1.0f - t));
+					g = 255;
+				} else {
+					// 黄色 ～ オレンジ (中～遠)
+					float t = signalStrength * 2.0f;
+					r = 255;
+					// 緑成分を減らすが、完全に0にはせずオレンジ(G=140)で止める
+					g = 140 + (unsigned int)(115.0f * t);
+				}
+
+				wifiColor = (r << 24) | (g << 16) | 0x0000FF;
+			}
+
+			// Wi-Fiマークの描画
+			int iconX = (int)(pCx - offset.x);
+			int iconY = (int)(pCy - offset.y - 40);
+
+			//  基点の丸
+			Novice::DrawEllipse(iconX, iconY + 10, 6, 6, 0.0f, wifiColor, kFillModeSolid);
+
+			// 扇状のバー（点描）
+			auto DrawArc = [&](int cx, int cy, int radius, int thickness, unsigned int col) {
+				for (float angle = 225.0f; angle <= 315.0f; angle += 5.0f) {
+					float rad = angle * (3.14159f / 180.0f);
+					int ax = cx + (int)(cosf(rad) * radius);
+					int ay = cy + (int)(sinf(rad) * radius);
+					Novice::DrawBox(ax, ay, thickness, thickness, 0.0f, col, kFillModeSolid);
+				}
+				};
+
+			unsigned int cDim = 0x333333FF; // 消灯色
+
+			// 強度に合わせてバーの本数を変える
+			// レベル1 
+			if (signalStrength > 0.0f) DrawArc(iconX, iconY + 10, 16, 4, wifiColor);
+			else                       DrawArc(iconX, iconY + 10, 16, 4, cDim);
+
+			// レベル2
+			if (signalStrength > 0.3f) DrawArc(iconX, iconY + 10, 28, 4, wifiColor);
+			else                       DrawArc(iconX, iconY + 10, 28, 4, cDim);
+
+			// レベル3
+			if (signalStrength > 0.6f) DrawArc(iconX, iconY + 10, 40, 5, wifiColor);
+			else                       DrawArc(iconX, iconY + 10, 40, 5, cDim);
+		}
+	}
+
+
 	player->DrawRespawnAnim(offset);
 
 	player->DrawDeathAnim(offset);
@@ -666,48 +780,48 @@ void Game::Draw() {
 
 			int px = startX + k * spacing;
 			int py = startY;
-			int p[5][5] = {0};
+			int p[5][5] = { 0 };
 
 			// 大文字・数字・記号のパターン定義
 			switch (c) {
 				// アルファベット (A-Z)
-				case 'A': p[0][2] = 1; p[1][1] = 1; p[1][3] = 1; p[2][0] = 1; p[2][4] = 1; p[3][0] = 1; p[3][1] = 1; p[3][2] = 1; p[3][3] = 1; p[3][4] = 1; p[4][0] = 1; p[4][4] = 1; break;
-				case 'B': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[2][3] = 1; p[3][0] = 1; p[3][4] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
-				case 'C': p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[3][0] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
-				case 'D': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[1][0] = 1; p[1][3] = 1; p[2][0] = 1; p[2][4] = 1; p[3][0] = 1; p[3][3] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; break;
-				case 'E': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[3][0] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
-				case 'F': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[3][0] = 1; p[4][0] = 1; break;
-				case 'G': p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[2][0] = 1; p[2][3] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
-				case 'H': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[2][3] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][0] = 1; p[4][4] = 1; break;
-				case 'I': p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][2] = 1; p[2][2] = 1; p[3][2] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
-				case 'J': p[0][4] = 1; p[1][4] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
-				case 'K': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][3] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[3][0] = 1; p[3][3] = 1; p[4][0] = 1; p[4][4] = 1; break;
-				case 'L': p[0][0] = 1; p[1][0] = 1; p[2][0] = 1; p[3][0] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
-				case 'M': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][1] = 1; p[1][3] = 1; p[1][4] = 1; p[2][0] = 1; p[2][2] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][0] = 1; p[4][4] = 1; break;
-				case 'N': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][1] = 1; p[1][4] = 1; p[2][0] = 1; p[2][2] = 1; p[2][4] = 1; p[3][0] = 1; p[3][3] = 1; p[3][4] = 1; p[4][0] = 1; p[4][4] = 1; break;
-				case 'O': p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
-				case 'P': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[1][0] = 1; p[1][3] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[3][0] = 1; p[4][0] = 1; break;
-				case 'Q': p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][4] = 1; p[3][0] = 1; p[3][2] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
-				case 'R': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[1][0] = 1; p[1][3] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[3][0] = 1; p[3][2] = 1; p[4][0] = 1; p[4][3] = 1; break;
-				case 'S': p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[2][1] = 1; p[2][2] = 1; p[3][4] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
-				case 'T': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[0][4] = 1; p[1][2] = 1; p[2][2] = 1; p[3][2] = 1; p[4][2] = 1; break;
-				case 'U': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
-				case 'V': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][4] = 1; p[3][1] = 1; p[3][3] = 1; p[4][2] = 1; break;
-				case 'W': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][2] = 1; p[2][4] = 1; p[3][0] = 1; p[3][1] = 1; p[3][3] = 1; p[3][4] = 1; p[4][0] = 1; p[4][4] = 1; break;
-				case 'X': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][4] = 1; p[2][2] = 1; p[3][0] = 1; p[3][4] = 1; p[4][0] = 1; p[4][4] = 1; break;
-				case 'Y': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][4] = 1; p[2][2] = 1; p[3][2] = 1; p[4][2] = 1; break;
-				case 'Z': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[0][4] = 1; p[1][3] = 1; p[2][2] = 1; p[3][1] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; p[4][4] = 1; break;
+			case 'A': p[0][2] = 1; p[1][1] = 1; p[1][3] = 1; p[2][0] = 1; p[2][4] = 1; p[3][0] = 1; p[3][1] = 1; p[3][2] = 1; p[3][3] = 1; p[3][4] = 1; p[4][0] = 1; p[4][4] = 1; break;
+			case 'B': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[2][3] = 1; p[3][0] = 1; p[3][4] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'C': p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[3][0] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'D': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[1][0] = 1; p[1][3] = 1; p[2][0] = 1; p[2][4] = 1; p[3][0] = 1; p[3][3] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; break;
+			case 'E': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[3][0] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'F': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[3][0] = 1; p[4][0] = 1; break;
+			case 'G': p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[2][0] = 1; p[2][3] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'H': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[2][3] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][0] = 1; p[4][4] = 1; break;
+			case 'I': p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][2] = 1; p[2][2] = 1; p[3][2] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'J': p[0][4] = 1; p[1][4] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'K': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][3] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[3][0] = 1; p[3][3] = 1; p[4][0] = 1; p[4][4] = 1; break;
+			case 'L': p[0][0] = 1; p[1][0] = 1; p[2][0] = 1; p[3][0] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'M': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][1] = 1; p[1][3] = 1; p[1][4] = 1; p[2][0] = 1; p[2][2] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][0] = 1; p[4][4] = 1; break;
+			case 'N': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][1] = 1; p[1][4] = 1; p[2][0] = 1; p[2][2] = 1; p[2][4] = 1; p[3][0] = 1; p[3][3] = 1; p[3][4] = 1; p[4][0] = 1; p[4][4] = 1; break;
+			case 'O': p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'P': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[1][0] = 1; p[1][3] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[3][0] = 1; p[4][0] = 1; break;
+			case 'Q': p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][4] = 1; p[3][0] = 1; p[3][2] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'R': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[1][0] = 1; p[1][3] = 1; p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[3][0] = 1; p[3][2] = 1; p[4][0] = 1; p[4][3] = 1; break;
+			case 'S': p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[1][0] = 1; p[2][1] = 1; p[2][2] = 1; p[3][4] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'T': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[0][4] = 1; p[1][2] = 1; p[2][2] = 1; p[3][2] = 1; p[4][2] = 1; break;
+			case 'U': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][4] = 1; p[3][0] = 1; p[3][4] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; break;
+			case 'V': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][4] = 1; p[3][1] = 1; p[3][3] = 1; p[4][2] = 1; break;
+			case 'W': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][4] = 1; p[2][0] = 1; p[2][2] = 1; p[2][4] = 1; p[3][0] = 1; p[3][1] = 1; p[3][3] = 1; p[3][4] = 1; p[4][0] = 1; p[4][4] = 1; break;
+			case 'X': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][4] = 1; p[2][2] = 1; p[3][0] = 1; p[3][4] = 1; p[4][0] = 1; p[4][4] = 1; break;
+			case 'Y': p[0][0] = 1; p[0][4] = 1; p[1][0] = 1; p[1][4] = 1; p[2][2] = 1; p[3][2] = 1; p[4][2] = 1; break;
+			case 'Z': p[0][0] = 1; p[0][1] = 1; p[0][2] = 1; p[0][3] = 1; p[0][4] = 1; p[1][3] = 1; p[2][2] = 1; p[3][1] = 1; p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; p[4][4] = 1; break;
 
-					// 記号 (プログラム用)
-				case '!': p[0][2] = 1; p[1][2] = 1; p[2][2] = 1; p[4][2] = 1; break;
-				case ';': p[1][2] = 1; p[3][2] = 1; p[4][1] = 1; break; // セミコロン
-				case '(': p[0][3] = 1; p[1][2] = 1; p[2][2] = 1; p[3][2] = 1; p[4][3] = 1; break; // 左カッコ
-				case ')': p[0][1] = 1; p[1][2] = 1; p[2][2] = 1; p[3][2] = 1; p[4][1] = 1; break; // 右カッコ
-				case '_': p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; p[4][4] = 1; break; // アンダーバー
-				case '-': p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[2][3] = 1; p[2][4] = 1; break; // ハイフン
-				case '>': p[0][0] = 1; p[1][1] = 1; p[2][2] = 1; p[3][1] = 1; p[4][0] = 1; break; // 大なり
-				case '<': p[0][4] = 1; p[1][3] = 1; p[2][2] = 1; p[3][3] = 1; p[4][4] = 1; break; // 小なり
-				case '/': p[0][4] = 1; p[1][3] = 1; p[2][2] = 1; p[3][1] = 1; p[4][0] = 1; break; // スラッシュ
+				// 記号 (プログラム用)
+			case '!': p[0][2] = 1; p[1][2] = 1; p[2][2] = 1; p[4][2] = 1; break;
+			case ';': p[1][2] = 1; p[3][2] = 1; p[4][1] = 1; break; // セミコロン
+			case '(': p[0][3] = 1; p[1][2] = 1; p[2][2] = 1; p[3][2] = 1; p[4][3] = 1; break; // 左カッコ
+			case ')': p[0][1] = 1; p[1][2] = 1; p[2][2] = 1; p[3][2] = 1; p[4][1] = 1; break; // 右カッコ
+			case '_': p[4][0] = 1; p[4][1] = 1; p[4][2] = 1; p[4][3] = 1; p[4][4] = 1; break; // アンダーバー
+			case '-': p[2][0] = 1; p[2][1] = 1; p[2][2] = 1; p[2][3] = 1; p[2][4] = 1; break; // ハイフン
+			case '>': p[0][0] = 1; p[1][1] = 1; p[2][2] = 1; p[3][1] = 1; p[4][0] = 1; break; // 大なり
+			case '<': p[0][4] = 1; p[1][3] = 1; p[2][2] = 1; p[3][3] = 1; p[4][4] = 1; break; // 小なり
+			case '/': p[0][4] = 1; p[1][3] = 1; p[2][2] = 1; p[3][1] = 1; p[4][0] = 1; break; // スラッシュ
 			}
 
 			// 描画
@@ -796,22 +910,22 @@ void Game::Draw() {
 
 		// ここは大文字のみ（小文字は未実装のため）
 		switch (commandList[i]) {
-			case CommandType::MoveRight:
-				cmdColor = cCyan;
-				cmdText = "MOVE_RIGHT"; // 大文字
-				break;
-			case CommandType::MoveLeft:
-				cmdColor = cCyan;
-				cmdText = "MOVE_LEFT";
-				break;
-			case CommandType::CheckWallJump:
-				cmdColor = cGreen;
-				cmdText = "IF(WALL) JUMP";
-				break;
-			case CommandType::CheckCliffJump:
-				cmdColor = cGreen;
-				cmdText = "IF(AIR) JUMP";
-				break;
+		case CommandType::MoveRight:
+			cmdColor = cCyan;
+			cmdText = "MOVE_RIGHT"; // 大文字
+			break;
+		case CommandType::MoveLeft:
+			cmdColor = cCyan;
+			cmdText = "MOVE_LEFT";
+			break;
+		case CommandType::CheckWallJump:
+			cmdColor = cGreen;
+			cmdText = "IF(WALL) JUMP";
+			break;
+		case CommandType::CheckCliffJump:
+			cmdColor = cGreen;
+			cmdText = "IF(AIR) JUMP";
+			break;
 		}
 
 		if (i == currentIndex) {
@@ -955,39 +1069,39 @@ void Game::Draw() {
 
 			// --- 図形で文字を描く関数（パターン追加版） ---
 			auto DrawBlockChar = [&](char c, float x, float y, float size, unsigned int color) {
-				int pattern[5][5] = {0};
+				int pattern[5][5] = { 0 };
 
 
 				switch (c) {
 					// --- 既存の文字 ---
-					case 'M': pattern[0][0] = 1; pattern[0][4] = 1; pattern[1][0] = 1; pattern[1][1] = 1; pattern[1][3] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[2][2] = 1; pattern[2][4] = 1; pattern[3][0] = 1; pattern[3][4] = 1; pattern[4][0] = 1; pattern[4][4] = 1; break;
-					case 'I': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][2] = 1; pattern[2][2] = 1; pattern[3][2] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
-					case 'S': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[3][4] = 1; pattern[4][0] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
-					case 'O': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[2][4] = 1; pattern[3][0] = 1; pattern[3][4] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
-					case 'N': pattern[0][0] = 1; pattern[0][4] = 1; pattern[1][0] = 1; pattern[1][1] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[2][2] = 1; pattern[2][4] = 1; pattern[3][0] = 1; pattern[3][3] = 1; pattern[3][4] = 1; pattern[4][0] = 1; pattern[4][4] = 1; break;
-					case 'C': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[3][0] = 1; pattern[3][4] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
-					case 'L': pattern[0][0] = 1; pattern[1][0] = 1; pattern[2][0] = 1; pattern[3][0] = 1; pattern[4][0] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
-					case 'E': pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[2][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[3][0] = 1; pattern[4][0] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
-					case 'P': pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1; pattern[1][0] = 1; pattern[1][3] = 1; pattern[2][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[3][0] = 1; pattern[4][0] = 1; break;
-					case 'T': pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[0][4] = 1; pattern[1][2] = 1; pattern[2][2] = 1; pattern[3][2] = 1; pattern[4][2] = 1; break;
+				case 'M': pattern[0][0] = 1; pattern[0][4] = 1; pattern[1][0] = 1; pattern[1][1] = 1; pattern[1][3] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[2][2] = 1; pattern[2][4] = 1; pattern[3][0] = 1; pattern[3][4] = 1; pattern[4][0] = 1; pattern[4][4] = 1; break;
+				case 'I': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][2] = 1; pattern[2][2] = 1; pattern[3][2] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+				case 'S': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[3][4] = 1; pattern[4][0] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+				case 'O': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[2][4] = 1; pattern[3][0] = 1; pattern[3][4] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+				case 'N': pattern[0][0] = 1; pattern[0][4] = 1; pattern[1][0] = 1; pattern[1][1] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[2][2] = 1; pattern[2][4] = 1; pattern[3][0] = 1; pattern[3][3] = 1; pattern[3][4] = 1; pattern[4][0] = 1; pattern[4][4] = 1; break;
+				case 'C': pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[1][4] = 1; pattern[2][0] = 1; pattern[3][0] = 1; pattern[3][4] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+				case 'L': pattern[0][0] = 1; pattern[1][0] = 1; pattern[2][0] = 1; pattern[3][0] = 1; pattern[4][0] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+				case 'E': pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[1][0] = 1; pattern[2][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[3][0] = 1; pattern[4][0] = 1; pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1; break;
+				case 'P': pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1; pattern[1][0] = 1; pattern[1][3] = 1; pattern[2][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1; pattern[3][0] = 1; pattern[4][0] = 1; break;
+				case 'T': pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1; pattern[0][3] = 1; pattern[0][4] = 1; pattern[1][2] = 1; pattern[2][2] = 1; pattern[3][2] = 1; pattern[4][2] = 1; break;
 
-						// --- ★追加した文字（R TO RETURN用）---
-					case 'R':
-						pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1;
-						pattern[1][0] = 1; pattern[1][3] = 1;
-						pattern[2][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1;
-						pattern[3][0] = 1; pattern[3][2] = 1;
-						pattern[4][0] = 1; pattern[4][3] = 1;
-						break;
-					case 'U':
-						pattern[0][0] = 1; pattern[0][4] = 1;
-						pattern[1][0] = 1; pattern[1][4] = 1;
-						pattern[2][0] = 1; pattern[2][4] = 1;
-						pattern[3][0] = 1; pattern[3][4] = 1;
-						pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1;
-						break;
-					case ' ': // スペース（何もしない）
-						break;
+					// --- ★追加した文字（R TO RETURN用）---
+				case 'R':
+					pattern[0][0] = 1; pattern[0][1] = 1; pattern[0][2] = 1;
+					pattern[1][0] = 1; pattern[1][3] = 1;
+					pattern[2][0] = 1; pattern[2][1] = 1; pattern[2][2] = 1;
+					pattern[3][0] = 1; pattern[3][2] = 1;
+					pattern[4][0] = 1; pattern[4][3] = 1;
+					break;
+				case 'U':
+					pattern[0][0] = 1; pattern[0][4] = 1;
+					pattern[1][0] = 1; pattern[1][4] = 1;
+					pattern[2][0] = 1; pattern[2][4] = 1;
+					pattern[3][0] = 1; pattern[3][4] = 1;
+					pattern[4][1] = 1; pattern[4][2] = 1; pattern[4][3] = 1;
+					break;
+				case ' ': // スペース（何もしない）
+					break;
 				}
 
 				for (int i = 0; i < 5; i++) {
