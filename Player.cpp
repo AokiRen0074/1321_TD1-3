@@ -42,6 +42,7 @@ Player::Player() {
 	status_.pos.x = 300.0f;
 	status_.pos.y = 704.0f;
 	soundJump = Novice::LoadAudio("./Sounds/jump.mp3");
+
 	InitPlayer();
 }
 
