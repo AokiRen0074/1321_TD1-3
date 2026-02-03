@@ -20,7 +20,7 @@ void AudioManager::LoadAll() {
 
 	// ベルトコンベア
 	handles[SE_BELTCONVEYORS] = Novice::LoadAudio("./Sounds/beltconveyors.mp3");
-	volumes[SE_BELTCONVEYORS] = 1.0f;
+	volumes[SE_BELTCONVEYORS] = 0.5f;
 
 	///// BGM /////
 	// スタート(TITLE)
@@ -47,10 +47,15 @@ void AudioManager::Stop(AudioID id) {
 	Novice::StopAudio(playHandles[id]);
 }
 
+//void AudioManager::SetVolume(AudioID id, float volume) {
+//	volumes[id] = volume;
+//	// 再生中のハンドルに対して音量を即座に反映させる
+//	if (Novice::IsPlayingAudio(playHandles[id])) {
+//		Novice::SetAudioVolume(playHandles[id], volumes[id]);
+//	}
+//}
+
 void AudioManager::SetVolume(AudioID id, float volume) {
-	volumes[id] = volume;
 	// 再生中のハンドルに対して音量を即座に反映させる
-	if (Novice::IsPlayingAudio(playHandles[id])) {
-		Novice::SetAudioVolume(playHandles[id], volumes[id]);
-	}
+	Novice::SetAudioVolume(playHandles[id], volume);
 }
