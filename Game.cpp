@@ -278,6 +278,9 @@ void Game::Update(char keys[256], char preKeys[256]) {
 	// ==========================================
 	// モード分岐
 	// ==========================================
+
+	if (isGameOver)return;
+
 	if (isRunning) {
 
 		if (player->IsRespawning()) {
