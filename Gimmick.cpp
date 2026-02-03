@@ -240,21 +240,77 @@ void LiftGimmickButton::Update() {
 	// 特に更新処理はない
 }
 
+// =========================================================
+// リフト用ボタンの描画
+// =========================================================
 void LiftGimmickButton::Draw(Vector2 offset) {
-	// 押されているときは緑、そうでないときは赤
-	unsigned int color = isPressed_ ? 0xFF00FFFF : 0xFFFF00FF;
+	int drawX = (int)(pos_.x - offset.x);
+	int drawY = (int)(pos_.y - offset.y);
+	int w = (int)size_.x; // 通常32
+	int h = (int)size_.y; // 通常32
 
-	Novice::DrawBox(
-		(int)(pos_.x - offset.x),
-		(int)(pos_.y - offset.y),
-		(int)size_.x,
-		(int)size_.y,
-		0.0f,
-		color,
-		kFillModeSolid
-	);
+	// 中心座標と底辺座標を基準に描画する
+	int cx = drawX + w / 2;
+	int bottomY = drawY + h;
+
+	// ★サイズ設定（判定より大きくする！）
+	int visualW = w + 20; // 横幅を +20px 大きく (52px)
+	int baseH = 10;       // 台座を高く (6 -> 10)
+
+	// --- カラーパレット ---
+	unsigned int cBase = 0x444455FF; // 台座
+	unsigned int cOff = 0xFF2222FF; // OFF（赤）
+	unsigned int cOn = 0x00FF00FF; // ON（緑）
+	unsigned int cShadow = 0x222233FF; // 影
+	unsigned int cLight = 0xFFFFFFFF; // ハイライト
+
+	unsigned int btnColor = isPressed_ ? cOn : cOff;
+
+	// 1. 台座（地面に固定されている部分）
+	// 中心(cx)から左右に広げる
+	int baseX = cx - visualW / 2;
+	int baseY = bottomY - baseH;
+
+	// 台座本体
+	Novice::DrawBox(baseX, baseY, visualW, baseH, 0.0f, cBase, kFillModeSolid);
+	// 台座の装飾（斜めストライプ）
+	Novice::DrawLine(baseX, baseY, baseX + visualW, baseY, 0x888899FF); // 上線
+	Novice::DrawBox(baseX, baseY, visualW, baseH, 0.0f, cShadow, kFillModeWireFrame); // 枠
+
+	// 2. ボタン本体（可動部）
+	int margin = 6; // 台座より少し内側
+	int btnW = visualW - margin * 2;
+
+	// 押されている時は低くする
+	int btnHeight = isPressed_ ? 6 : 16; // 高さアップ (12 -> 16)
+	int btnY = baseY - btnHeight;
+	int btnX = cx - btnW / 2;
+
+	// 本体描画
+	Novice::DrawBox(btnX, btnY, btnW, btnHeight, 0.0f, btnColor, kFillModeSolid);
+
+	// 本体の枠と立体感
+	Novice::DrawBox(btnX, btnY, btnW, btnHeight, 0.0f, cShadow, kFillModeWireFrame);
+	// 上面のハイライト
+	if (!isPressed_) {
+		Novice::DrawLine(btnX, btnY, btnX + btnW, btnY, cLight);
+	}
+
+	// 3. 発光エフェクト（ONのとき）
+	if (isPressed_) {
+		Novice::SetBlendMode(kBlendModeAdd);
+		// 本体が強く光る
+		Novice::DrawBox(btnX, btnY, btnW, btnHeight, 0.0f, 0x00FF00AA, kFillModeSolid);
+		Novice::SetBlendMode(kBlendModeNormal);
+	} else {
+		// OFFのときは赤いランプが点滅（サイズアップ）
+		static int blink = 0;
+		blink++;
+		if ((blink / 30) % 2 == 0) {
+			Novice::DrawBox(cx - 6, btnY + 4, 12, 4, 0.0f, 0xFF8888FF, kFillModeSolid);
+		}
+	}
 }
-
 void LiftGimmickButton::CheckCollision(Player& player) {
 	// CollisionクラスのCheckRectを使用して判定
 	if (Collision::CheckRect(

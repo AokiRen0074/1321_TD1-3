@@ -777,7 +777,7 @@ void Game::Draw() {
 
 	if (isRunning) {
 		// RUNNING... の文字もドット絵風に (ScreenPrintfをやめる場合)
-		DrawDotText(10, 10, "RUNNING...", 10.0f, 0x00FFFF88);
+		DrawDotText(700, 50, "RUNNING...", 10.0f, 0x00FFFF88);
 
 		if (!player->IsRespawning()) {
 			// ★ここを変更！実行中のフィルター（薄い青）
@@ -786,7 +786,7 @@ void Game::Draw() {
 		}
 	} else {
 		// EDIT MODE もドット絵風に
-		DrawDotText(10, 10, "EDIT MODE", 10.0f, 0xAAAAAA88);
+		DrawDotText(700, 50, "EDIT MODE", 10.0f, 0xAAAAAA55);
 	}
 
 	for (int i = 0; i < commandList.size(); i++) {
