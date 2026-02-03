@@ -64,9 +64,9 @@ void LiftGimmickBlock::Update() {
 	}
 
 	// デバッグ用
-	Novice::ScreenPrintf(0, 800, "lift isActive_: %d", isActive_);
-	Novice::ScreenPrintf(0, 820, "lift isRunning_: %d", isRunning_);
-	Novice::ScreenPrintf(0, 840, "lift isReturning_: %d", isReturning_);
+	//Novice::ScreenPrintf(0, 800, "lift isActive_: %d", isActive_);
+	//Novice::ScreenPrintf(0, 820, "lift isRunning_: %d", isRunning_);
+	//Novice::ScreenPrintf(0, 840, "lift isReturning_: %d", isReturning_);
 }
 
 void LiftGimmickBlock::Draw(Vector2 offset) {

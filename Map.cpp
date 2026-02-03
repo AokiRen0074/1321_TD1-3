@@ -1107,7 +1107,8 @@ void Map::Draw(Vector2 offset) {
 	}
 
 	// Map.cpp の Draw内に追加してデバッグ
-	Novice::ScreenPrintf(0, 100, "MapData[10][10]: %d", mapData[10][10]);
+	//
+	// Novice::ScreenPrintf(0, 100, "MapData[10][10]: %d", mapData[10][10]);
 }
 
 	

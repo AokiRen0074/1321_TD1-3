@@ -422,8 +422,8 @@ void Player::DrawPlayer(Vector2 offset) {
 	}
 
 	// デバッグ情報
-	Novice::ScreenPrintf(0, 400, "isBlet:%d", status_.isBlet);
-	Novice::ScreenPrintf(0, 440, "isBlack:%d", status_.isBlack);
+	//Novice::ScreenPrintf(0, 400, "isBlet:%d", status_.isBlet);
+	//Novice::ScreenPrintf(0, 440, "isBlack:%d", status_.isBlack);
 }
 
 //------------------------------------------------------------------------------------------------------

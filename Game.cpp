@@ -589,7 +589,7 @@ void Game::Draw() {
 
 	// 警告メッセージの表示
 	if (cantStartCount > 0) {
-		Novice::ScreenPrintf(800, 400, "Router Area! Can't Start!");
+		//Novice::ScreenPrintf(800, 400, "Router Area! Can't Start!");
 	}
 
 	// ==========================================
@@ -819,17 +819,18 @@ void Game::Draw() {
 
 	int mx, my;
 	Novice::GetMousePosition(&mx, &my);
-	Novice::ScreenPrintf(0, 0, "Mouse: %d, %d", mx, my);
-	Novice::ScreenPrintf(0, 20, "BtnRight X: %d", (int)btnRight.x);
-	Novice::ScreenPrintf(0, 80, "player Pos X: %.2f", player->status_.pos.x);
-	Novice::ScreenPrintf(0, 110, "player Pos Y: %.2f", player->status_.pos.y);
+	//Novice::ScreenPrintf(0, 0, "Mouse: %d, %d", mx, my);
+	//Novice::ScreenPrintf(0, 20, "BtnRight X: %d", (int)btnRight.x);
+	//Novice::ScreenPrintf(0, 80, "player Pos X: %.2f", player->status_.pos.x);
+	//Novice::ScreenPrintf(0, 110, "player Pos Y: %.2f", player->status_.pos.y);
 
-	Novice::ScreenPrintf(0, 150, "player Pos Y: %.2f", respawnPos.y);
+	//Novice::ScreenPrintf(0, 150, "player Pos Y: %.2f", respawnPos.y);
 
 
 	for (const auto& btn : map->buttons) {
 		// ボタンの場所にIDを表示
-		Novice::ScreenPrintf(
+		//Novice::ScreenPrintf
+		(
 			(int)(btn.pos.x - offset.x),
 			(int)(btn.pos.y - offset.y - 20),
 			"ID:%d", btn.linkId
@@ -838,7 +839,8 @@ void Game::Draw() {
 
 	for (const auto& door : map->doors) {
 		// ドアの場所にIDを表示
-		Novice::ScreenPrintf(
+		//Novice::ScreenPrintf
+		(
 			(int)(door.pos.x - offset.x),
 			(int)(door.pos.y - offset.y - 20),
 			"ID:%d", door.linkId
