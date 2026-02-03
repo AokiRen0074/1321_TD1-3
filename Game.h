@@ -85,6 +85,8 @@ private:
 
 	std::vector<int> topScores; // 歴代トップ5を保存する配列
 	const int kMaxRanking = 5;  // 最大何個まで保存するか
+	bool isTimerActive = false;
+
 
 	Player* player;
 	Map* map;
