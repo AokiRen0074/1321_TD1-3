@@ -3,8 +3,11 @@
 
 // AudioManager.cpp の読み込み部分
 void AudioManager::LoadAll() {
+	for (int i = 0; i < 100; i++) {
+		playHandles[i] = -1;
+	}
+
 	// 音源を差し入れる、音の種類と音量
-	
 	///// SE /////
 	// ジャンプ
 	handles[SE_JUMP] = Novice::LoadAudio("./Sounds/jump.mp3");
@@ -39,12 +42,19 @@ void AudioManager::LoadAll() {
 }
 
 void AudioManager::Play(AudioID id, bool loop) {
+	// すでに同じのが流れてたら止める
+	Stop(id);
+
 	// 指定されたIDのハンドルを使って再生
 	playHandles[id] = Novice::PlayAudio(handles[id], loop, volumes[id]);
 }
 
 void AudioManager::Stop(AudioID id) {
-	Novice::StopAudio(playHandles[id]);
+	if (playHandles[id] != -1 && Novice::IsPlayingAudio(playHandles[id])) {
+		Novice::StopAudio(playHandles[id]);
+	}
+	// 止めたら「再生していない」状態に戻す
+	playHandles[id] = -1;
 }
 
 //void AudioManager::SetVolume(AudioID id, float volume) {

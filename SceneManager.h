@@ -42,5 +42,7 @@ private:
 	// キー入力を受け取るための変数(Novice用)
 	char keys[256] = {0};
 	char preKeys[256] = {0};
+
+	bool isGameBgmStarted = false;
 };
 
