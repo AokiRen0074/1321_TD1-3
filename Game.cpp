@@ -7,6 +7,7 @@
 #include "Router.h"
 #include <fstream> // ファイル操作に必要
 #include "AudioManager.h"
+#include <algorithm>
 
 Game::Game() {
 	player = new Player();
@@ -157,6 +158,8 @@ bool IsPlayerHit(Player* player, const ButtonA& button) {
 void Game::Update(char keys[256], char preKeys[256]) {
 	// Game::Update 内
 	CheckpointPlayer();
+
+	PlayeTimer++;//プレイ時間をカウント
 
 	if (keys[DIK_R] && !preKeys[DIK_R]) {
 		// 保存されているリスポーン地点（初期位置 or 最後に触れた旗）に戻す
@@ -508,6 +511,9 @@ void Game::Update(char keys[256], char preKeys[256]) {
 					// ==============================================
 					// ゲームクリア時の完全リセット処理
 					// ==============================================
+					clearTime = PlayeTimer / 60.0f;
+					SaveClearTime(clearTime);
+
 
 					if (audioManager != nullptr) {
 						audioManager->Stop(BGM_CLEAR);   // クリアBGMを止める
@@ -519,7 +525,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 					isRunning = false;
 					cantStartCount = 0;
 					gameClearTimer = 0;
-
+					PlayeTimer = 0;
 					// 2. リスポーン地点を初期位置に戻す
 					respawnPos.x = 300.0f;
 					respawnPos.y = 704.0f;
@@ -1285,6 +1291,44 @@ void Game::SaveProgress() {
 		ofs.close();
 	}
 }
+
+//ゲームクリア時にタイムを記録
+void Game::SaveClearTime(float currentTime) {
+	// 1. 現在のランキングを読み込むためのリスト（配列）
+	std::vector<float> scores;
+
+	// ファイルから既存のスコアをすべて読み込む
+	std::ifstream ifs("./clear_time.txt");
+	if (ifs.is_open()) {
+		float s;
+		while (ifs >> s) {
+			scores.push_back(s);
+		}
+		ifs.close();
+	}
+
+	// 2. 今回のタイムをとりあえずリストに加える
+	scores.push_back(currentTime);
+
+	// 3. 小さい順（早い順）に並べ替える
+	// ※ #include <algorithm> が必要です
+	std::sort(scores.begin(), scores.end());
+
+	// 4. 上位5つだけに絞る（6番目以降をカット）
+	if (scores.size() > 5) {
+		scores.resize(5);
+	}
+
+	// 5. ファイルに書き戻す
+	std::ofstream ofs("./clear_time.txt");
+	if (ofs.is_open()) {
+		for (float s : scores) {
+			ofs << s << std::endl; // 1行ずつ保存
+		}
+		ofs.close();
+	}
+}
+
 
 void Game::ResetGameOver() {
 	isGameOver = false;

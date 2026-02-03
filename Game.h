@@ -57,6 +57,9 @@ public:
 	bool isGameClear = false;      // クリアしたかどうか
 	int gameClearTimer = 0;   
 	
+	float PlayeTimer = 0;// プレイ時間を計測する変数
+	float clearTime = 0; // クリア時間を保存する変数
+
 	const int kGameOverTimeMax = 240;
 
 	// ゲッター
@@ -70,6 +73,9 @@ public:
 	// セッター
 	void SetIsRunning(bool f) { isRunning = f; }
 
+	//クリア時に記録を保存する関数
+	void SaveClearTime(float currentTime);
+
 private:
 	// screen
 // ゲーム画面とコマンド設定画面を分ける
@@ -77,6 +83,8 @@ private:
 	GameScreen gameScreen;
 	CommandScreen commandScreen;
 
+	std::vector<int> topScores; // 歴代トップ5を保存する配列
+	const int kMaxRanking = 5;  // 最大何個まで保存するか
 
 	Player* player;
 	Map* map;
