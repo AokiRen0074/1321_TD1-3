@@ -101,6 +101,8 @@ void Game::Initialize() {
 	soundButtonPress = Novice::LoadAudio("./Sounds/switchOn.mp3");
 	soundSceneChange = Novice::LoadAudio("./Sounds/anten.mp3");
 
+	soundPlayerDeath = Novice::LoadAudio("./Sounds/PlayerDeht.mp3");
+
 	Checkpoint = Novice::LoadAudio("./Sounds/checkpoint.mp3");
 
 	// 音
@@ -175,6 +177,11 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		fadeState_ == FADE_NONE && // フェード中でない
 		!isGameClear) // クリア中でもない
 	{
+		player->status_.isAlive = false;
+		if (!player->status_.isAlive) {
+			Novice::PlayAudio(soundPlayerDeath, false, 1.0f);
+		}
+
 		// ゲームオーバーになる
 		isGameOver = true;
 

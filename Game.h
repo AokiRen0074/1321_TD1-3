@@ -132,7 +132,7 @@ private:
 	int soundSceneChange;
 	int voiceSceneChange = -1;
 	int Checkpoint;
-
+	int  soundPlayerDeath;
 
 
 	// 更新
