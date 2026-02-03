@@ -33,6 +33,10 @@ struct Beltconveyor {
 	int linkId;   // LDtkで設定したIntegerの値
 	float speed;
 	bool isReversed;  // 開いているか
+
+	// bgmの距離減衰で使う
+	float width;
+	float height;
 };
 
 //チェックポイント
