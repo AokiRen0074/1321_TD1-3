@@ -188,11 +188,22 @@ void LiftGimmickBlock::CheckCollision(Player& player) {
 
 		// 1. 上から乗っている判定（落下中または接地中のみ有効）
 		if (minOverlap == overlapTop && player.status_.Velocity.y >= 0) {
+
+			// 落下中の判定
+			bool isFalling = (player.status_.Velocity.y > 0.0f);
+
 			player.status_.pos.y = pos_.y - player.status_.height;
 			player.status_.isLift = true;
 			player.status_.Velocity.y = 0.0f;
 			player.status_.isJumop = false;
 			player.isOnGround = true;
+
+			// 着地seを鳴らす
+			if (!player.wasOnGround && isFalling) {
+				if (player.audioManager) {
+					player.audioManager->Play(SE_LANDING_FLOM_JUMP, false);
+				}
+			}
 
 			if (isRunning_) {
 				float moveX = 0, moveY = 0;

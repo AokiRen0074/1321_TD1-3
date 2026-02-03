@@ -92,6 +92,8 @@ void Player::UpdatePlayer(char keys[256],
 	std::vector< VanishingFloor>& VanishingFloors
 	) {
 
+	landedThisFrame = false;
+
 	// 前フレームの状態を保存
 	wasOnGround = isOnGround;
 
@@ -107,13 +109,6 @@ void Player::UpdatePlayer(char keys[256],
 		CheckBeltCollision(beltConveyors);
 		CheckLiftCollision(liftGimmicks);
 		CheckFlooCollision(VanishingFloors);
-	}
-
-	// 着地した瞬間
-	if (!wasOnGround && isOnGround) {
-		if (audioManager) {
-			audioManager->Play(SE_LANDING_FLOM_JUMP, false);
-		}
 	}
 }
 
@@ -264,9 +259,7 @@ void Player::DrawRespawnAnim(Vector2 offset) {
 	}
 }
 
-
 // コマンドで動かせるプレイヤー
-
 void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapData[kMapHeight][kMapWidth],
 	std::vector<Beltconveyor>& Beltconveyors, std::vector<Block>& blocks, std::vector<LiftGimmickBlock>& liftBlocks) {
 
@@ -274,6 +267,10 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 	status_.isBlet = false;
 	status_.isBlack = false;
 	status_.isLift = false;
+
+	wasOnGround = isOnGround; // ここで保存
+	landedThisFrame = false;
+	isOnGround = false;
 
 	if (cmdIndex < commands.size()) {
 		CommandType currentCmd = commands[cmdIndex];
@@ -338,6 +335,7 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 			CheckBlockCeiling(blocks);
 			isRightWall(mapData, HALF_FLOOR);
 			isLeftWall(mapData, HALF_FLOOR);
+
 			// 特殊床ならジャンプをスキップ
 			if (status_.isBlet || status_.isBlack || status_.isLift) {
 				status_.isWaitingForLanding = false;
@@ -376,18 +374,32 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 
 	Gravity();
 
-	if (!status_.isBlet && !status_.isBlack) {
-		isGrounded(mapData, BLOCK);
-		isGrounded(mapData, HALF_FLOOR);
-		isGrounded(mapData, SCRAPMACHINE);
+	if (!isOnGround) {
+		if (!status_.isBlet && !status_.isBlack) {
+			isGrounded(mapData, BLOCK);
+			isGrounded(mapData, HALF_FLOOR);
+			isGrounded(mapData, SCRAPMACHINE);
+		}
 	}
-	else {
-		status_.isJumop = false;
-		status_.Velocity.y = 0;
-	}
+
 	isTopWall(mapData, BLOCK);
 	isTopWall(mapData, HALF_FLOOR);
 
+	if (isOnGround && !wasOnGround) {
+		landedThisFrame = true;
+	}
+
+	if (cmdIndex < commands.size()) {
+		CommandType currentCmd = commands[cmdIndex];
+		if (currentCmd == CommandType::CheckWallJump || currentCmd == CommandType::CheckCliffJump) {
+			if (status_.isWaitingForLanding && isOnGround) {
+				status_.isWaitingForLanding = false;
+				status_.isJumop = false;
+				status_.Velocity.y = 0;
+				cmdIndex++;
+			}
+		}
+	}
 }
 
 void Player::DrawPlayer(Vector2 offset) {
@@ -641,6 +653,7 @@ bool Player::IsCliffAhead(int mapData[kMapHeight][kMapWidth], const std::vector<
 
 // --- 接地判定 ---
 void Player::isGrounded(int mapData[kMapHeight][kMapWidth], int mapId) {
+	// 落下中（Velocity.y > 0）でないなら判定しない
 	if (status_.Velocity.y <= 0) return;
 
 	float leftX = status_.pos.x;
@@ -656,9 +669,21 @@ void Player::isGrounded(int mapData[kMapHeight][kMapWidth], int mapId) {
 	if (mapId == BLOCK) {
 		if ((tileLeftX >= 0 && tileLeftX < kMapWidth && mapData[tileBottomY][tileLeftX] == BLOCK) ||
 			(tileRightX >= 0 && tileRightX < kMapWidth && mapData[tileBottomY][tileRightX] == BLOCK)) {
+
+			// 着地判定用のフラグ
+			bool isFalling = (status_.Velocity.y > 0.0f);
+
 			status_.pos.y = (float)(tileBottomY * kTileSize) - status_.height;
 			status_.Velocity.y = 0;
 			status_.isJumop = false;
+
+			// 着地音再生
+			if (!wasOnGround && isFalling) {
+				if (audioManager) {
+					audioManager->Play(SE_LANDING_FLOM_JUMP, false);
+				}
+			}
+
 			isOnGround = true;
 		}
 	}
@@ -677,10 +702,22 @@ void Player::isGrounded(int mapData[kMapHeight][kMapWidth], int mapId) {
 				float tCenter = tLeft + (kTileSize / 2.0f);
 				// プレイヤーの足がタイルの左半分（実体）に乗っているか
 				if (rightX > tLeft && leftX < tCenter) {
+
+					// 着地判定用のフラグ
+					bool isFalling = (status_.Velocity.y > 0.0f);
+
 					float floorY = (float)(tileBottomY * kTileSize);
 					status_.pos.y = floorY - status_.height;
 					status_.Velocity.y = 0;
 					status_.isJumop = false;
+
+					// 着地音再生
+					if (!wasOnGround && isFalling) {
+						if (audioManager) {
+							audioManager->Play(SE_LANDING_FLOM_JUMP, false);
+						}
+					}
+
 					isOnGround = true;
 					return;
 				}
@@ -927,15 +964,30 @@ void Player::CheckBeltCollision(std::vector<Beltconveyor>& Beltconveyors) {
 
 			// 1. 上から乗っている判定 (一番浅いのが Top だった場合)
 			if (minOverlap == overlapTop) {
+
+				bool isFalling = (status_.Velocity.y > 0.0f);
+
 				status_.pos.y = belt.pos.y - status_.height;
 				status_.isBlet = true;
 				status_.Velocity.y = 0.0f;
 				status_.isJumop = false;
 				isOnGround = true;
 
+				if (!wasOnGround && isFalling) {
+					if (audioManager) {
+						audioManager->Play(SE_LANDING_FLOM_JUMP, false);
+					}
+					// landedThisFrame = true; // SEを直接鳴らすので、このフラグはもう不要
+				}
+
+				
+
+				// 着地判定の音
+				/*if (wasFalling && audioManager) {
+					audioManager->Play(SE_LANDING_FLOM_JUMP, false);
+				}*/
+
 				// ベルトの移動効果
-
-
 				if (belt.linkId == 100) {
 					status_.pos.x -= 3.0;
 				}
@@ -943,8 +995,8 @@ void Player::CheckBeltCollision(std::vector<Beltconveyor>& Beltconveyors) {
 					if (belt.isReversed) status_.pos.x -= belt.speed;
 					else status_.pos.x += belt.speed;
 				}
-
 			}
+
 			// 2. 横からぶつかっている判定
 			else if (minOverlap == overlapLeft) {
 				status_.pos.x = belt.pos.x - status_.width;
@@ -997,6 +1049,11 @@ void Player::CheckFlooCollision(std::vector<VanishingFloor>& VanishingFloors) {
 					status_.pos.y = floor.pos.y - status_.height;
 					status_.Velocity.y = 0.0f;
 					status_.isJumop = false;
+
+					if (!wasOnGround) {
+						landedThisFrame = true;   // ★追加
+					}
+
 					isOnGround = true;
 
 					if (wasFalling && audioManager) {
@@ -1082,7 +1139,7 @@ void Player::CheckBlockGround(std::vector<Block>& blocks) {
 				status_.pos.y + status_.height < block.pos.y + hitThreshold) {
 
 				// 前に空中にいるかの判定判定
-				bool wasFalling = (status_.Velocity.y > 0.0f);
+				bool isFalling = (status_.Velocity.y > 0.0f);
 
 				status_.pos.y = block.pos.y - status_.height;
 				status_.Velocity.y = 0.0f;
@@ -1090,8 +1147,11 @@ void Player::CheckBlockGround(std::vector<Block>& blocks) {
 				status_.isBlack = true; // 当たった時だけ true
 				isOnGround = true;
 
-				if (wasFalling && audioManager) {
-					audioManager->Play(SE_LANDING_FLOM_JUMP, false);
+				// 直接再生
+				if (!wasOnGround && isFalling) {
+					if (audioManager) {
+						audioManager->Play(SE_LANDING_FLOM_JUMP, false);
+					}
 				}
 
 				isGroundNow = true;

@@ -152,5 +152,8 @@ public:
 	bool wasOnGround = false;
 	bool isOnGround = false;
 	bool wasGrounded = false;
+
+	// 着地用の音
+	bool landedThisFrame = false;
 };
 
