@@ -5,15 +5,12 @@
 
 // コンストラクタ
 SceneManager::SceneManager() {
-	currentScene = Scene::TITLE; // 最初はタイトルから
+	currentScene = Scene::GAME; // 最初からゲーム
 
 	// シーンの実体を生成
 	titleScene = new Title();
 	gameScene = new Game();
 	gameOverScene = new GameOver();
-
-	// 起動時にタイトルのbgmを鳴らす
-	gameScene->audioManager->Play(BGM_TITLE, true);
 }
 
 // デストラクタ
@@ -43,10 +40,18 @@ void SceneManager::Run() {
 			break;
 
 		case Scene::GAME:
+			if (!isGameBgmStarted) {
+				if (gameScene->audioManager != nullptr) {
+					gameScene->audioManager->Play(BGM_GAME, true);
+				}
+				isGameBgmStarted = true;
+			}
+
 			gameScene->Update(keys, preKeys);
 
 			if (gameScene->isGameOver) {
 				currentScene = Scene::GAMEOVER;
+				isGameBgmStarted = false; // 次回用
 				gameOverScene->Reset(); // タイマーやフラグをリセット
 			}
 

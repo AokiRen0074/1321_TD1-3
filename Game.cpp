@@ -468,7 +468,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 			gameClearTimer = 0;
 
 			if (audioManager != nullptr) {
-				audioManager->Stop(BGM_GAME);  // ゲーム中のBGMを止める
+				audioManager->Stop(BGM_GAME); // ゲーム中のBGMを止める
 				audioManager->Play(BGM_CLEAR, false); // クリアBGMを再生
 			}
 		}
