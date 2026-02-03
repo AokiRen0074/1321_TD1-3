@@ -470,12 +470,17 @@ void Game::Update(char keys[256], char preKeys[256]) {
 			isGameClear = true;
 			isRunning = false; // プレイヤーを止める
 
+			// ★★★ ここで代入しないと、描画に間に合いません！ ★★★
+			// 60fpsなので、60で割って「秒」に変換してから入れます
+			clearTime = PlayeTimer / 60.0f;
+
 			// 演出用タイマーをリセット
 			gameClearTimer = 0;
 
+			// 音再生など...
 			if (audioManager != nullptr) {
-				audioManager->Stop(BGM_GAME); // ゲーム中のBGMを止める
-				audioManager->Play(BGM_CLEAR, false); // クリアBGMを再生
+				audioManager->Stop(BGM_GAME);
+				audioManager->Play(BGM_CLEAR, false);
 			}
 		}
 	}
@@ -518,10 +523,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 					// ==============================================
 					// ゲームクリア時の完全リセット処理
 					// ==============================================
-					if (isTimerActive) {
-						clearTime = PlayeTimer / 60.0f;
-						SaveClearTime(clearTime);
-					}
+
 
 					if (audioManager != nullptr) {
 						audioManager->Stop(BGM_CLEAR);   // クリアBGMを止める
@@ -533,7 +535,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 					isRunning = false;
 					cantStartCount = 0;
 					gameClearTimer = 0;
-					PlayeTimer = 0;
+					
 					isTimerActive = false;
 					// 2. リスポーン地点を初期位置に戻す
 					respawnPos.x = 300.0f;
@@ -542,7 +544,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 					// 3. プレイヤーのリセット
 					player->InitPlayer();
 					player->status_.pos = respawnPos;
-
+					PlayeTimer = 0;
 					// 4. マップのリセット
 					std::vector<std::string> layers = { "IntGrid", "HalfBlock" };
 					map->LoadMapFromLDtk("./mapTest9999.ldtk", layers);
@@ -1184,9 +1186,18 @@ void Game::Draw() {
 			if (isGameClear) {
 				char timeStr[32];
 				// 60fps計算で分・秒を算出
-				int totalSeconds = (int)clearTime / 60;
+				
+				// 1. まずフレーム数を「合計秒」に変換する
+// clearTime はすでに「秒」なので、整数にする
+				int totalSeconds = (int)clearTime;
+
+				// 分：全体の秒を60で割る
 				int m = totalSeconds / 60;
+
+				// 秒：60で割った余り
 				int s = totalSeconds % 60;
+
+				// 4. 文字列に変換
 				sprintf_s(timeStr, "TIME %02d:%02d", m, s);
 
 				// 画面中央下の目安座標
