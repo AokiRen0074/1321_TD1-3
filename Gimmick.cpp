@@ -192,6 +192,7 @@ void LiftGimmickBlock::CheckCollision(Player& player) {
 			player.status_.isLift = true;
 			player.status_.Velocity.y = 0.0f;
 			player.status_.isJumop = false;
+			player.isOnGround = true;
 
 			if (isRunning_) {
 				float moveX = 0, moveY = 0;

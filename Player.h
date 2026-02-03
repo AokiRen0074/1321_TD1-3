@@ -97,7 +97,15 @@ public:
 
 	Player();
 	void InitPlayer();
-	void UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHeight][kMapWidth], std::vector<Block>& blocks);
+	void UpdatePlayer(
+		char keys[256], 
+		char preKeys[256],
+		int  mapData[kMapHeight][kMapWidth],
+		std::vector<Block>& blocks,
+		std::vector<Beltconveyor>& beltConveyors,
+		std::vector<LiftGimmickBlock>& liftGimmicks,
+		std::vector< VanishingFloor>& VanishingFloors
+	);
 	// コマンドで動かせる
 	void UpdateByCommands(const std::vector<CommandType>& commands, int mapData[kMapHeight][kMapWidth],
 		std::vector<Beltconveyor>& Beltconveyors, std::vector<Block>& blocks, std::vector<LiftGimmickBlock>& liftBlocks);
@@ -140,5 +148,9 @@ public:
 	int cmdIndex;
 
 	AudioManager* audioManager = nullptr;
+
+	bool wasOnGround = false;
+	bool isOnGround = false;
+	bool wasGrounded = false;
 };
 

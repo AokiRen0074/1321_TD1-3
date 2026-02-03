@@ -83,13 +83,37 @@ void Player::InitPlayer() {
 
 }
 
-void Player::UpdatePlayer(char keys[256], char preKeys[256], int  mapData[kMapHeight][kMapWidth], std::vector<Block>& blocks) {
+void Player::UpdatePlayer(char keys[256],
+	char preKeys[256],
+	int  mapData[kMapHeight][kMapWidth],
+	std::vector<Block>& blocks,
+	std::vector<Beltconveyor>& beltConveyors,
+	std::vector<LiftGimmickBlock>& liftGimmicks,
+	std::vector< VanishingFloor>& VanishingFloors
+	) {
+
+	// 前フレームの状態を保存
+	wasOnGround = isOnGround;
+
+	// 今フレームはまだ接地していない
+	isOnGround = false;
 
 	if (status_.isActive) {
 		MovePlayer(keys, preKeys, mapData);
 		CheckBlockWall(blocks);
 		CheckBlockGround(blocks);
 		CheckBlockCeiling(blocks);
+
+		CheckBeltCollision(beltConveyors);
+		CheckLiftCollision(liftGimmicks);
+		CheckFlooCollision(VanishingFloors);
+	}
+
+	// 着地した瞬間
+	if (!wasOnGround && isOnGround) {
+		if (audioManager) {
+			audioManager->Play(SE_LANDING_FLOM_JUMP, false);
+		}
 	}
 }
 
@@ -635,6 +659,7 @@ void Player::isGrounded(int mapData[kMapHeight][kMapWidth], int mapId) {
 			status_.pos.y = (float)(tileBottomY * kTileSize) - status_.height;
 			status_.Velocity.y = 0;
 			status_.isJumop = false;
+			isOnGround = true;
 		}
 	}
 	else if (mapId == SCRAPMACHINE) {
@@ -656,6 +681,7 @@ void Player::isGrounded(int mapData[kMapHeight][kMapWidth], int mapId) {
 					status_.pos.y = floorY - status_.height;
 					status_.Velocity.y = 0;
 					status_.isJumop = false;
+					isOnGround = true;
 					return;
 				}
 			}
@@ -905,6 +931,7 @@ void Player::CheckBeltCollision(std::vector<Beltconveyor>& Beltconveyors) {
 				status_.isBlet = true;
 				status_.Velocity.y = 0.0f;
 				status_.isJumop = false;
+				isOnGround = true;
 
 				// ベルトの移動効果
 
@@ -935,6 +962,8 @@ void Player::CheckBeltCollision(std::vector<Beltconveyor>& Beltconveyors) {
 }
 
 //とぅんとぅンサフール
+// ベルトコンベアステージに行く前の乗り場
+// おいこれえええええええええええええええええい!!!!!!!!!!!(ぶち切れ
 void Player::CheckFlooCollision(std::vector<VanishingFloor>& VanishingFloors) {
 	for (auto& floor : VanishingFloors) {
 		// 床がすでに消えている（isActive == false）なら当たり判定を無視する
@@ -962,9 +991,17 @@ void Player::CheckFlooCollision(std::vector<VanishingFloor>& VanishingFloors) {
 
 				// 1. 上から乗った場合（接地）
 				if (minOverlap == overlapTop) {
+					// 落下中かを保存
+					bool wasFalling = (status_.Velocity.y > 0.0f);
+
 					status_.pos.y = floor.pos.y - status_.height;
 					status_.Velocity.y = 0.0f;
 					status_.isJumop = false;
+					isOnGround = true;
+
+					if (wasFalling && audioManager) {
+						audioManager->Play(SE_LANDING_FLOM_JUMP, false);
+					}
 
 					// ★ ここで床の「消え始めるタイマー」などを起動させる処理を入れることが多いです
 					// floor.isTouched = true; 
@@ -986,6 +1023,7 @@ void Player::CheckFlooCollision(std::vector<VanishingFloor>& VanishingFloors) {
 	}
 }
 
+// 自機の壁チェック
 void Player::CheckBlockWall(std::vector<Block>& blocks) {
 	for (auto& block : blocks) {
 		float bW = (float)kTileSize;
@@ -1027,9 +1065,11 @@ void Player::CheckBlockWall(std::vector<Block>& blocks) {
 	}
 }
 
-
-
+// 最後のベルトコンベアのステージの横から流れてくるブロック
 void Player::CheckBlockGround(std::vector<Block>& blocks) {
+
+	bool isGroundNow = false;
+
 	if (status_.Velocity.y < 0) return;
 
 	for (auto& block : blocks) {
@@ -1041,19 +1081,27 @@ void Player::CheckBlockGround(std::vector<Block>& blocks) {
 			if (status_.pos.y + status_.height > block.pos.y &&
 				status_.pos.y + status_.height < block.pos.y + hitThreshold) {
 
+				// 前に空中にいるかの判定判定
+				bool wasFalling = (status_.Velocity.y > 0.0f);
+
 				status_.pos.y = block.pos.y - status_.height;
 				status_.Velocity.y = 0.0f;
 				status_.isJumop = false;
 				status_.isBlack = true; // 当たった時だけ true
+				isOnGround = true;
+
+				if (wasFalling && audioManager) {
+					audioManager->Play(SE_LANDING_FLOM_JUMP, false);
+				}
+
+				isGroundNow = true;
 				return; // 1つ当たれば十分なので抜ける
 			}
 		}
 	}
-	// ここまで来たら当たっていないということだが、
-	// 呼び出し元の UpdateByCommands の冒頭で false にしているので、
-	// ここで敢えて false に書かなくても大丈夫なはずです。
-}
 
+	wasGrounded = isGroundNow;
+}
 
 void Player::CheckBlockCeiling(std::vector<Block>& blocks) {
 	if (status_.Velocity.y >= 0) return; // 落下中は無視

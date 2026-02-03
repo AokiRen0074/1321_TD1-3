@@ -378,7 +378,16 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		player->CheckBlockWall(map->Blocks);
 	} else {
 		// --- 編集モード ---
-		player->UpdatePlayer(keys, preKeys, map->mapData, map->Blocks);
+		player->UpdatePlayer(
+			keys,
+			preKeys,
+			map->mapData,
+			map->Blocks,
+			map->Beltconveyors,
+			map->liftBlocks,
+			map->VanishingFloors
+		);
+
 		//player->CheckRouter(router, 250);
 		bool isInsideRouter = player->CheckRouter(router, 250);
 
