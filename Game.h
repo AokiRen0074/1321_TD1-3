@@ -155,6 +155,13 @@ private:
 	// Game.h
 	Vector2 respawnPos = { 300.0f, 704.0f }; // 初期値を設定しておく
 
+	// 現在有効なリスポーン情報の保存
+	Vector2 currentRespawnPos; // 現在の復活座標
+	int currentRespawnStageIndex = 0; // その場所が何階にあたるか (0, 1, 2, 3...)
+
+	// 初期のスタート地点を覚えておく用
+	Vector2 defaultStartPos;
+
 	///// 画面の暗転処理(切り替えかも～おいしいかも～) /////
 	enum FadeState { FADE_NONE, FADE_OUT, FADE_IN };
 	FadeState fadeState_ = FADE_NONE;

@@ -59,6 +59,14 @@ void Game::Initialize() {
 	// プレイヤーの位置を最後に保存したチェックポイントへ移動させる
 	player->status_.pos = respawnPos;
 
+	// 初期スポーン位置を保存
+	defaultStartPos = player->status_.pos; 
+	currentRespawnPos = defaultStartPos;
+
+	// 初期位置がどの階層（0～3）か計算して保存
+	currentRespawnStageIndex = static_cast<int>(defaultStartPos.y / 1080.0f);
+	if (currentRespawnStageIndex > 3) currentRespawnStageIndex = 3; // 最大は4段階目(index 3)
+
 	fadeState_ = FADE_NONE;
 
 	/*---------------------------------
@@ -70,10 +78,6 @@ void Game::Initialize() {
 	texCliffJump = Novice::LoadTexture("./Images/airJamp.png");
 	texStart = Novice::LoadTexture("./Images/start.png");
 	texStop = Novice::LoadTexture("./Images/stop.png");
-
-
-
-
 
 	float btnX = 1450;
 	float btnW = 400;
@@ -1339,32 +1343,46 @@ void Game::Draw() {
 
 }
 
-
-
 void Game::CheckpointPlayer() {
 	// map->Checkpoints の中身を直接書き換えるために「&」を付ける
-	for (auto& cp : map->Checkpoints) {
+	for (auto& cp : map->Checkpoints) { // 小文字のcか大文字のCかはMap.hに合わせてください
 
-		// プレイヤーとチェックポイントの当たり判定（矩形交差）
-		// 判定を少し甘く（広めに）しておくとスムーズです
-		if (player->status_.pos.x < cp.pos.x + kTileSize * 2.0f &&
-			player->status_.pos.x + player->status_.width > cp.pos.x &&
-			player->status_.pos.y < cp.pos.y + kTileSize &&
-			player->status_.pos.y + player->status_.height > cp.pos.y) {
+		// 1. プレイヤーとチェックポイント(128x32)の当たり判定
+		float pLeft   = player->status_.pos.x;
+		float pRight  = player->status_.pos.x + player->status_.width;
+		float pTop    = player->status_.pos.y;
+		float pBottom = player->status_.pos.y + player->status_.height;
 
-			// リスポーン地点を更新
+		float cpLeft   = cp.pos.x;
+		float cpRight  = cp.pos.x + 128.0f; // サイズ指定: 128
+		float cpTop    = cp.pos.y;
+		float cpBottom = cp.pos.y + 32.0f;  // サイズ指定: 32
+
+		if (pRight > cpLeft && pLeft < cpRight &&
+			pBottom > cpTop && pTop < cpBottom) {
+
+			// 2. リスポーン地点の更新
 			this->respawnPos.x = cp.pos.x;
-			this->respawnPos.y = cp.pos.y - 32.0f; // 少し浮かせる
+			this->respawnPos.y = cp.pos.y - 32.0f; 
 
-			// まだアクティブでない場合のみ処理
+			// --- 今回の肝：カメラ用の階層情報を保存 ---
+			// currentRespawnPos も同期させておく
+			this->currentRespawnPos = this->respawnPos;
+
+			// Y座標からどのステージ（0,1,2,3）か計算
+			this->currentRespawnStageIndex = static_cast<int>(cp.pos.y / 1080.0f);
+			if (this->currentRespawnStageIndex > 3) this->currentRespawnStageIndex = 3;
+			// ------------------------------------------
+
+			// 3. まだアクティブでない場合のみエフェクトや音
 			if (!cp.isActive) {
 				if (cp.linkId == 0) {
 					isTimerActive = true;
 				}
 				Novice::PlayAudio(Checkpoint, false, 1.0f);
 
-				cp.isActive = true;  // ★ここが map 内のデータに反映される
-				SaveProgress();      // 保存
+				cp.isActive = true; 
+				SaveProgress();     // 保存
 			}
 		}
 	}
@@ -1428,7 +1446,9 @@ void Game::ResetGameOver() {
 	isRunning = false;
 
 	player->InitPlayer();
-	player->status_.pos = respawnPos; // プレイヤーを復活地点へ
+
+	// プレイヤーを復活地点へ
+	player->status_.pos = respawnPos;
 
 	// 復活seを鳴らす
 	if (audioManager != nullptr) {
@@ -1438,11 +1458,14 @@ void Game::ResetGameOver() {
 	// 復活演出を開始する
 	player->StartRespawnAnim(player->status_.pos);
 
-	// カメラも即座に復活地点へ移動させる
-	scrollCamera->Update(player->status_.pos);
+	// カメラを保存しておいた階層（インデックス）にセット
+	scrollCamera->SetStageIndex(currentRespawnStageIndex);
 
 	// カメラも合わせる
-	scrollCamera->Update(respawnPos);
+	scrollCamera->Update(player->status_.pos);
+
+	// フェードリセット
+	fadeState_ = FADE_NONE;
 
 	// ボタンをすべて未入力に
 	for (auto& button : map->buttons) {
