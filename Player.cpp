@@ -339,7 +339,6 @@ void Player::UpdateByCommands(const std::vector<CommandType>& commands, int mapD
 	}
 	else {
 		// コマンド終了後の慣性移動
-		status_.pos.x += status_.Speed * status_.moveDir;
 		CheckBeltCollision(Beltconveyors);
 		CheckLiftCollision(liftBlocks);
 		CheckBlockGround(blocks);
