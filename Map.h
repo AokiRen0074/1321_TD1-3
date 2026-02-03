@@ -66,6 +66,8 @@ public:
 	int buttonOnTexture;
 	int buttonOffTexture;
 
+	int texTitle = -1;
+
 	// コンストラクタ
 	Map();
 

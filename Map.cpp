@@ -33,6 +33,9 @@ void Map::Initialize() {
 	buttonOffTexture = Novice::LoadTexture("./Images/Switch-Push-Blue.png");
 	buttonOnTexture = Novice::LoadTexture("./Images/Switch-Blue.png");
 
+	// タイトル
+	texTitle = Novice::LoadTexture("./Images/title.png");
+
 }
 
 // LDtk読み込み
@@ -321,6 +324,73 @@ void Map::Draw(Vector2 offset) {
 	//  描画ループ
 	//  （0からではなく、計算した startX, startY から回します）
 	// ========================================================
+
+	// ========================================================
+	// ★修正版：タイトル画像の描画（変数名をユニークに変更）
+	// ========================================================
+
+	// タイトル用の座標計算
+	float titleWorldX = 250.0f;
+	float titleWorldY = 30.0f;
+
+	// 変数名を 'titleDrawX', 'titleDrawY' に変更して被りを回避
+	int titleDrawX = (int)(titleWorldX - offset.x);
+	int titleDrawY = (int)(titleWorldY - offset.y);
+
+	// 画面内判定
+	if (titleDrawX > -1000 && titleDrawX < (int)kScreenWidth && titleDrawY > -500 && titleDrawY < (int)kScreenHeight) {
+
+		if (texTitle != -1) {
+			static float titleLogoTimer = 0.0f; // 変数名変更
+			titleLogoTimer += 0.05f;
+
+			// エフェクト設定
+			float titleScale = 1.0f;
+			titleScale += sinf(titleLogoTimer * 2.0f) * 0.02f;
+
+			float titleGlitchX = 0.0f;
+			float titleGlitchY = 0.0f;
+			if (rand() % 100 < 5) {
+				titleGlitchX = (float)(rand() % 10 - 5);
+				titleGlitchY = (float)(rand() % 6 - 3);
+			}
+
+			// 色定義（変数名変更）
+			unsigned int titleCMain = 0x00FFFFFF;
+			unsigned int titleCGlow = 0x00AAAAFF;
+
+			// --- 1. グロー（発光）描画 ---
+			Novice::SetBlendMode(kBlendModeAdd);
+			Novice::DrawSprite(
+				(int)(titleDrawX + titleGlitchX - 4), (int)(titleDrawY + titleGlitchY - 4),
+				texTitle,
+				titleScale * 1.02f, titleScale * 1.02f,
+				0.0f,
+				titleCGlow & 0xFFFFFF88
+			);
+			Novice::DrawSprite(
+				(int)(titleDrawX + titleGlitchX + 4), (int)(titleDrawY + titleGlitchY + 4),
+				texTitle,
+				titleScale * 1.02f, titleScale * 1.02f,
+				0.0f,
+				titleCGlow & 0xFFFFFF88
+			);
+			Novice::SetBlendMode(kBlendModeNormal);
+
+			// --- 2. 本体描画 ---
+			Novice::DrawSprite(
+				(int)(titleDrawX + titleGlitchX), (int)(titleDrawY + titleGlitchY),
+				texTitle,
+				titleScale, titleScale,
+				0.0f,
+				titleCMain
+			);
+		}
+
+		
+	}
+
+
 	for (int y = startY; y < endY; y++) {
 		for (int x = startX; x < endX; x++) {
 
