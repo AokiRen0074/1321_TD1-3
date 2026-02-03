@@ -1112,7 +1112,7 @@
 						},
 						{
 							"__identifier": "Button",
-							"__grid": [234,75],
+							"__grid": [234,74],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": null,
@@ -1121,10 +1121,10 @@
 							"width": 32,
 							"height": 16,
 							"defUid": 15,
-							"px": [3744,1200],
+							"px": [3744,1184],
 							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 3, "__tile": null, "defUid": 25, "realEditorValues": [{ "id": "V_Int", "params": [3] }] }],
 							"__worldX": 2128,
-							"__worldY": 1200
+							"__worldY": 1184
 						},
 						{
 							"__identifier": "LiftGimmickBlock",
@@ -1165,7 +1165,7 @@
 						},
 						{
 							"__identifier": "Button",
-							"__grid": [377,103],
+							"__grid": [377,102],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": null,
@@ -1174,14 +1174,14 @@
 							"width": 32,
 							"height": 16,
 							"defUid": 15,
-							"px": [6032,1648],
+							"px": [6032,1632],
 							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 5, "__tile": null, "defUid": 25, "realEditorValues": [{ "id": "V_Int", "params": [5] }] }],
 							"__worldX": 4416,
-							"__worldY": 1648
+							"__worldY": 1632
 						},
 						{
 							"__identifier": "Button",
-							"__grid": [302,83],
+							"__grid": [302,82],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": null,
@@ -1190,10 +1190,10 @@
 							"width": 32,
 							"height": 16,
 							"defUid": 15,
-							"px": [4832,1328],
+							"px": [4832,1312],
 							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 0, "__tile": null, "defUid": 25, "realEditorValues": [] }],
 							"__worldX": 3216,
-							"__worldY": 1328
+							"__worldY": 1312
 						},
 						{
 							"__identifier": "Door",
@@ -1232,7 +1232,7 @@
 						},
 						{
 							"__identifier": "Button",
-							"__grid": [25,179],
+							"__grid": [25,178],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": null,
@@ -1241,10 +1241,10 @@
 							"width": 32,
 							"height": 16,
 							"defUid": 15,
-							"px": [400,2864],
+							"px": [400,2848],
 							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 8, "__tile": null, "defUid": 25, "realEditorValues": [{ "id": "V_Int", "params": [8] }] }],
 							"__worldX": -1216,
-							"__worldY": 2864
+							"__worldY": 2848
 						},
 						{
 							"__identifier": "LiftGimmickButton",
@@ -1320,7 +1320,7 @@
 						},
 						{
 							"__identifier": "Button",
-							"__grid": [126,155],
+							"__grid": [126,154],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": null,
@@ -1329,14 +1329,14 @@
 							"width": 32,
 							"height": 16,
 							"defUid": 15,
-							"px": [2016,2480],
+							"px": [2016,2464],
 							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 10, "__tile": null, "defUid": 25, "realEditorValues": [{ "id": "V_Int", "params": [10] }] }],
 							"__worldX": 400,
-							"__worldY": 2480
+							"__worldY": 2464
 						},
 						{
 							"__identifier": "Button",
-							"__grid": [133,151],
+							"__grid": [133,150],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": null,
@@ -1345,10 +1345,10 @@
 							"width": 32,
 							"height": 16,
 							"defUid": 15,
-							"px": [2128,2416],
+							"px": [2128,2400],
 							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 9, "__tile": null, "defUid": 25, "realEditorValues": [{ "id": "V_Int", "params": [9] }] }],
 							"__worldX": 512,
-							"__worldY": 2416
+							"__worldY": 2400
 						},
 						{
 							"__identifier": "VanishingFloor",
@@ -1473,7 +1473,7 @@
 						},
 						{
 							"__identifier": "Button",
-							"__grid": [221,247],
+							"__grid": [221,246],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": null,
@@ -1482,10 +1482,10 @@
 							"width": 32,
 							"height": 16,
 							"defUid": 15,
-							"px": [3536,3952],
+							"px": [3536,3936],
 							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 50, "__tile": null, "defUid": 25, "realEditorValues": [{ "id": "V_Int", "params": [50] }] }],
 							"__worldX": 1920,
-							"__worldY": 3952
+							"__worldY": 3936
 						},
 						{
 							"__identifier": "Block",
@@ -1899,7 +1899,7 @@
 							"height": 32,
 							"defUid": 45,
 							"px": [3552,2464],
-							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 0, "__tile": null, "defUid": 46, "realEditorValues": [] }],
+							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 2, "__tile": null, "defUid": 46, "realEditorValues": [{ "id": "V_Int", "params": [2] }] }],
 							"__worldX": 1936,
 							"__worldY": 2464
 						},
@@ -2712,7 +2712,7 @@
 						},
 						{
 							"__identifier": "Button",
-							"__grid": [410,219],
+							"__grid": [410,218],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": null,
@@ -2721,10 +2721,10 @@
 							"width": 32,
 							"height": 16,
 							"defUid": 15,
-							"px": [6560,3504],
+							"px": [6560,3488],
 							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 24, "__tile": null, "defUid": 25, "realEditorValues": [{ "id": "V_Int", "params": [24] }] }],
 							"__worldX": 4944,
-							"__worldY": 3504
+							"__worldY": 3488
 						},
 						{
 							"__identifier": "Water",
@@ -2869,7 +2869,7 @@
 							"height": 32,
 							"defUid": 45,
 							"px": [1280,736],
-							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 3, "__tile": null, "defUid": 46, "realEditorValues": [{ "id": "V_Int", "params": [3] }] }],
+							"fieldInstances": [{ "__identifier": "Integer", "__type": "Int", "__value": 0, "__tile": null, "defUid": 46, "realEditorValues": [{ "id": "V_Int", "params": [0] }] }],
 							"__worldX": -336,
 							"__worldY": 736
 						}
