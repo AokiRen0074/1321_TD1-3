@@ -19,7 +19,7 @@ void AudioManager::LoadAll() {
 
 	// 死亡
 	handles[SE_DEATH] = Novice::LoadAudio("./Sounds/death.mp3");
-	volumes[SE_DEATH] = 0.5f;
+	volumes[SE_DEATH] = 0.6f;
 
 	// 復活
 	handles[SE_RESPAWN] = Novice::LoadAudio("./Sounds/respawn.mp3");
@@ -36,7 +36,7 @@ void AudioManager::LoadAll() {
 
 	// ゲーム
 	handles[BGM_GAME] = Novice::LoadAudio("./Sounds/mainGame.mp3");
-	volumes[BGM_GAME] = 0.3f;
+	volumes[BGM_GAME] = 0.2f;
 
 	// クリア
 	handles[BGM_CLEAR] = Novice::LoadAudio("./Sounds/clearKakkoKari.mp3");
@@ -44,7 +44,7 @@ void AudioManager::LoadAll() {
 
 	// ステージ４のベルトコンベアゾーン
 	handles[BGM_LASTCOURSE] = Novice::LoadAudio("./Sounds/last_course.mp3");
-	volumes[BGM_LASTCOURSE] = 0.6f;
+	volumes[BGM_LASTCOURSE] = 0.4f;
 
 	// handles[BGM_MAIN] = Novice::LoadAudio("./Resources/Sounds/test_bgm.wav");
 }
