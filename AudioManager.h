@@ -30,6 +30,8 @@ public:
 	// 音量をセット
 	void SetVolume(AudioID id, float volume);
 
+	float GetDefaultVolume(AudioID id) const { return volumes[id]; }
+
 private:
 	int handles[100];
 	int playHandles[100]; // 今鳴らしている音の番号
