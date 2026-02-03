@@ -39,7 +39,7 @@ void Router::InitRouter(int id, int mapData[kMapHeight][kMapWidth]) {
 
 		break;
 
-		case 7:
+		case 6:
 			router_.radius = 600.0f;
 			router_.bigRadius = 1300.0f;
 			break;
