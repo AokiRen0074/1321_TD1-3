@@ -159,8 +159,9 @@ void Game::Update(char keys[256], char preKeys[256]) {
 	// Game::Update 内
 	CheckpointPlayer();
 
-	PlayeTimer++;//プレイ時間をカウント
-
+	if (isTimerActive) {
+		PlayeTimer++;//プレイ時間をカウント
+	}
 	if (keys[DIK_R] && !preKeys[DIK_R]) {
 		// 保存されているリスポーン地点（初期位置 or 最後に触れた旗）に戻す
 		player->status_.pos = respawnPos;
@@ -511,9 +512,10 @@ void Game::Update(char keys[256], char preKeys[256]) {
 					// ==============================================
 					// ゲームクリア時の完全リセット処理
 					// ==============================================
-					clearTime = PlayeTimer / 60.0f;
-					SaveClearTime(clearTime);
-
+					if (isTimerActive) {
+						clearTime = PlayeTimer / 60.0f;
+						SaveClearTime(clearTime);
+					}
 
 					if (audioManager != nullptr) {
 						audioManager->Stop(BGM_CLEAR);   // クリアBGMを止める
@@ -526,6 +528,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 					cantStartCount = 0;
 					gameClearTimer = 0;
 					PlayeTimer = 0;
+					isTimerActive = false;
 					// 2. リスポーン地点を初期位置に戻す
 					respawnPos.x = 300.0f;
 					respawnPos.y = 704.0f;
@@ -634,7 +637,7 @@ void Game::Draw() {
 
 	// 区切り線
 	Novice::DrawBox(1400, 398, 580, 4, 0.0f, WHITE, kFillModeSolid);
-
+	Novice::ScreenPrintf(200, 200, "isTimerActive:%d", isTimerActive);
 	// ルーター描画
 	for (int i = 0; i < routerCount; i++) {
 		if (router[i] != nullptr) {
@@ -1267,7 +1270,9 @@ void Game::CheckpointPlayer() {
 
 			// まだアクティブでない場合のみ処理
 			if (!cp.isActive) {
-
+				if (cp.linkId == 0) {
+					isTimerActive = true;
+				}
 				Novice::PlayAudio(Checkpoint, false, 1.0f);
 
 				cp.isActive = true;  // ★ここが map 内のデータに反映される
