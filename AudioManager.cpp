@@ -15,7 +15,7 @@ void AudioManager::LoadAll() {
 
 	// ジャンプから着地
 	handles[SE_LANDING_FLOM_JUMP] = Novice::LoadAudio("./Sounds/landing_flom_jump.mp3");
-	volumes[SE_LANDING_FLOM_JUMP] = 0.5f;
+	volumes[SE_LANDING_FLOM_JUMP] = 1.0f;
 
 	// 死亡
 	handles[SE_DEATH] = Novice::LoadAudio("./Sounds/death.mp3");
