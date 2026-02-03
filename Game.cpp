@@ -1467,36 +1467,36 @@ void Game::ResetGameOver() {
 	// フェードリセット
 	fadeState_ = FADE_NONE;
 
-	// ボタンをすべて未入力に
-	for (auto& button : map->buttons) {
-		button.isPressed = false;
-	}
+	///// 各ギミックのリセット /////
 
-	// ドアをすべて閉める
+	// 1. ドアを閉める
 	for (auto& door : map->doors) {
 		door.isOpen = false;
 		door.openRatio = 0.0f;
 	}
-
-	// 消える床をすべて復活させる
-	for (auto& floor : map->VanishingFloors) {
-		floor.isActive = true;
+	// 2. ボタンを「未入力」に戻す
+	for (auto& btn : map->buttons) {
+		btn.isPressed = false;
 	}
-
-	// ギミックブロックを復活させる
-	for (auto& block : map->Blocks) {
-		// ボタンで出現させていたなら、再び非表示にする
-		block.isActive = false;
-
-		// もし座標が変わっていたなら、初期位置（Map読み込み時の位置）に戻す
-		block.pos = block.STpos;
-	}
-
+	// 3. 水を復活させる
 	for (auto& water : map->waters) {
 		water.isActive = true;
 	}
-
-	for (auto& Beltconveyor : map->Beltconveyors) {
-		Beltconveyor.isReversed = true;
+	// 4. ベルトコンベアの向きを初期（逆転状態）に戻す
+	for (auto& belt : map->Beltconveyors) {
+		belt.isReversed = true; 
+	}
+	// 5. 消える床を復活させる
+	for (auto& floor : map->VanishingFloors) {
+		floor.isActive = true;
+	}
+	// 6. 出現ブロックを非アクティブにし、位置を戻す
+	for (auto& block : map->Blocks) {
+		block.isActive = false;
+		block.pos = block.STpos; // 保存しておいた初期位置に戻す
+	}
+	// 7. リフトボタンのリセット
+	for (auto& lBtn : map->liftButtons) {
+		lBtn.isPressed_ = false;
 	}
 }
