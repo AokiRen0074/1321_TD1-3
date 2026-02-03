@@ -625,8 +625,8 @@ void Map::Draw(Vector2 offset) {
 	tutTimer++;
 
 	// --- [A][D] MOVE ---
-	float moveX = 150.0f;
-	float moveY = 450.0f;
+	float moveX = 350.0f;
+	float moveY = 650.0f;
 
 	if (moveX - offset.x > -400 && moveX - offset.x < 1500) {
 		float dx = moveX - offset.x;
