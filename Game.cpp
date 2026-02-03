@@ -213,6 +213,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 	// リスポーン
 	if (player->IsRespawning()) {
 		player->UpdateRespawnAnim();
+
 		return;
 	}
 
@@ -267,6 +268,51 @@ void Game::Update(char keys[256], char preKeys[256]) {
 
 		}
 	}
+
+	//////////////////////
+
+	// --- ベルトコンベアの音量制御 ---
+	bool isNearAnyBelt = false;
+	const float margin = 1024.0f;
+	const float a = 256.0f;
+
+	for (auto& belt : map->Beltconveyors) {
+		// もし width/height が 0 なら 32.0f として扱う（保険）
+		float bW = (belt.width > 0) ? belt.width : 32.0f;
+		float bH = (belt.height > 0) ? belt.height : 32.0f;
+
+		float areaLeft   = belt.pos.x - margin;
+		float areaRight  = belt.pos.x + bW + margin;
+		float areaTop    = belt.pos.y - a;
+		float areaBottom = belt.pos.y + bH + a;
+
+		if (player->status_.pos.x >= areaLeft && player->status_.pos.x <= areaRight &&
+			player->status_.pos.y >= areaTop  && player->status_.pos.y <= areaBottom) {
+			isNearAnyBelt = true;
+			break; 
+		}
+	}
+
+	// 2. 音の制御（二重再生防止フラグ）
+	static bool isCurrentlyPlaying = false; 
+
+	if (audioManager != nullptr) {
+		if (isNearAnyBelt) {
+			if (!isCurrentlyPlaying) {
+				audioManager->Play(SE_BELTCONVEYORS, true);
+				isCurrentlyPlaying = true;
+			}
+			audioManager->SetVolume(SE_BELTCONVEYORS, 1.0f);
+		} else {
+			audioManager->SetVolume(SE_BELTCONVEYORS, 0.0f);
+			// audioManager->Stop(SE_BELTCONVEYORS); // ←これを呼ぶなら isCurrentlyPlaying = false にする
+		}
+	}
+
+	//Novice::ScreenPrintf(1000, 10, "In Belt Zone: %s", isNearAnyBelt ? "YES" : "NO");
+	//Novice::ScreenPrintf(1000, 30, "Belt Count: %d", (int)map->Beltconveyors.size());
+
+	//////////////////////////////
 
 	int mouseX, mouseY;
 	Novice::GetMousePosition(&mouseX, &mouseY);
@@ -416,6 +462,11 @@ void Game::Update(char keys[256], char preKeys[256]) {
 
 			// 演出用タイマーをリセット
 			gameClearTimer = 0;
+
+			if (audioManager != nullptr) {
+				audioManager->Stop(BGM_GAME);  // ゲーム中のBGMを止める
+				audioManager->Play(BGM_CLEAR, false); // クリアBGMを再生
+			}
 		}
 	}
 
@@ -1119,6 +1170,11 @@ void Game::ResetGameOver() {
 
 	player->InitPlayer();
 	player->status_.pos = respawnPos; // プレイヤーを復活地点へ
+
+	// 復活seを鳴らす
+	if (audioManager != nullptr) {
+		audioManager->Play(SE_RESPAWN, false);
+	}
 
 	// 復活演出を開始する
 	player->StartRespawnAnim(player->status_.pos);
