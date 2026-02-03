@@ -964,7 +964,7 @@ void Game::Draw() {
 	float guideDy = letsY - offset.y;
 
 	// 看板が画面内にあるときだけ演出
-	if (guideDx > -100 && guideDx < 1400) {
+	if (guideDx > -50 && guideDx < 400 &&  player->status_.pos.y< 710) {
 
 		// ■ スタート地点：看板の文字の右側
 		float guideStartX = guideDx + 650.0f;
