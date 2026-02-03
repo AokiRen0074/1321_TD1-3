@@ -617,77 +617,108 @@ void Map::Draw(Vector2 offset) {
 
 
 
-	// ドアの描画
+	// ==========================================
+	// ドアの描画（重厚なブラストドア風）
+	// ==========================================
 	for (const auto& door : doors) {
 		int drawX = (int)(door.pos.x - offset.x);
 		int drawY = (int)(door.pos.y - offset.y);
 		int w = kTileSize;
 		int h = kTileSize * 2;
 
-		// カラーパレット（壁と同化するような重い色）
-		unsigned int cPassage = 0x050510FF;   // 開いた奥の暗闇
-		unsigned int cWall = 0x444455FF;   // 壁（ドア本体）の色
-		unsigned int cShadow = 0x222233FF;   // 影・溝
-		unsigned int cStripe = 0xDDCC00FF;   // 警告色
-		unsigned int cLampRed = 0xFF0000FF;   // ロック中ランプ
-		unsigned int cLampGreen = 0x00FF00FF; // 解除ランプ
+		// --- カラーパレット ---
+		unsigned int cVoid = 0x050510FF; // 開いた奥の暗闇
+		unsigned int cFrame = 0x333344FF; // 外枠
+		unsigned int cDoor = 0x555566FF; // ドア本体（鉄板）
+		unsigned int cShadow = 0x222233FF; // 影・溝
+		unsigned int cLight = 0x777788FF; // ハイライト
+		unsigned int cWarn1 = 0xDDAA00FF; // 警告色（黄色）
+		unsigned int cWarn2 = 0x222200FF; // 警告色（黒）
+		unsigned int cLock = 0x00FFFFFF; // ロックランプ（シアン）
 
-		// ==========================================
-		// 1. 背景
-		// ==========================================
-		// ドアの後ろにある暗い空間。ドアが持ち上がるとこれが見える。
-		Novice::DrawBox(drawX, drawY, w, h, 0.0f, cPassage, kFillModeSolid);
+		// 1. 背景（ドアが開いたときに見える奥）
+		Novice::DrawBox(drawX, drawY, w, h, 0.0f, cVoid, kFillModeSolid);
+		// 奥のパイプや配線（ディテール）
+		Novice::DrawBox(drawX + 8, drawY, 4, h, 0.0f, 0x002200FF, kFillModeSolid);
+		Novice::DrawBox(drawX + w - 12, drawY, 4, h, 0.0f, 0x002200FF, kFillModeSolid);
 
-		// 奥へ続く床のガイド線（遠近感）
-		Novice::DrawLine(drawX + 10, drawY + h, drawX + 20, drawY + h - 20, 0x004400FF);
-		Novice::DrawLine(drawX + w - 10, drawY + h, drawX + w - 20, drawY + h - 20, 0x004400FF);
+		// 2. ドア枠（動かない部分）
+		int frameW = 4;
+		// 左右の柱
+		Novice::DrawBox(drawX, drawY, frameW, h, 0.0f, cFrame, kFillModeSolid);
+		Novice::DrawBox(drawX + w - frameW, drawY, frameW, h, 0.0f, cFrame, kFillModeSolid);
+		// 上の鴨居
+		Novice::DrawBox(drawX, drawY, w, frameW * 2, 0.0f, cFrame, kFillModeSolid);
 
-
-		// ==========================================
-		//  「動く壁」の描画
-		// ==========================================
-
+		// 3. ドア本体（可動部分）
 		float currentHeight = h * (1.0f - door.openRatio);
 
-		if (door.openRatio > 0.0f && currentHeight < 10.0f) currentHeight = 10.0f;
+		// 完全に消えず、少し上に残る演出（格納された感）
+		if (door.isOpen && currentHeight < 8.0f) currentHeight = 8.0f;
 
 		if (currentHeight > 0) {
-			// 壁
-			Novice::DrawBox(drawX, drawY, w, (int)currentHeight, 0.0f, cWall, kFillModeSolid);
+			int doorBottomY = drawY + (int)currentHeight; // ドアの下端座標
 
-			// 枠線
-			Novice::DrawBox(drawX, drawY, w, (int)currentHeight, 0.0f, cShadow, kFillModeWireFrame);
+			// --- 鉄板本体 ---
+			// 枠の内側に描画
+			int innerX = drawX + frameW;
+			int innerW = w - frameW * 2;
+			Novice::DrawBox(innerX, drawY, innerW, (int)currentHeight, 0.0f, cDoor, kFillModeSolid);
 
-			// --- ディテール：重厚感を出すための横溝 ---
+			// 質感（枠線とハイライト）
+			Novice::DrawBox(innerX, drawY, innerW, (int)currentHeight, 0.0f, cShadow, kFillModeWireFrame);
+			Novice::DrawLine(innerX + 2, drawY, innerX + 2, doorBottomY, cLight); // 左ハイライト
+
+			// --- ディテール：横方向の補強リブ（溝） ---
 			for (int i = 20; i < h; i += 20) {
-				if (i < currentHeight) {
-					Novice::DrawLine(drawX + 5, drawY + i, drawX + w - 5, drawY + i, cShadow);
+				if (i < currentHeight - 10) {
+					Novice::DrawLine(innerX, drawY + i, innerX + innerW, drawY + i, cShadow);
+					Novice::DrawLine(innerX, drawY + i + 1, innerX + innerW, drawY + i + 1, cLight);
 				}
 			}
 
-
-			int stripeH = 10;
-			int bottomY = drawY + (int)currentHeight - stripeH;
-
+			// --- 警告ストライプ（下端） ---
+			// ドアの下の方に「トラ柄」を入れると工業用ドアっぽくなります
+			int stripeH = 16;
 			if (currentHeight > stripeH) {
-				// 黄色い帯
-				Novice::DrawBox(drawX, bottomY, w, stripeH, 0.0f, cStripe, kFillModeSolid);
+				int stripeY = doorBottomY - stripeH;
+				Novice::DrawBox(innerX, stripeY, innerW, stripeH, 0.0f, cWarn1, kFillModeSolid);
 
-				// 黒い縞模様を入れる
-				for (int i = 0; i < w; i += 8) {
-					Novice::DrawLine(drawX + i, bottomY, drawX + i, bottomY + stripeH, cShadow);
+				// 斜め線（黒）
+				for (int i = -20; i < innerW; i += 10) {
+					int x1 = innerX + i;
+					int x2 = x1 + 6;
+					int y1 = stripeY + stripeH;
+					int y2 = stripeY;
+
+					// はみ出しクリッピング簡易版（枠内に収める描画）
+					// ※厳密なクリッピングは複雑になるので、枠線で上書きして隠す手法をとります
+					if (x1 >= innerX && x2 <= innerX + innerW) {
+						Novice::DrawTriangle(x1, y1, x2, y2, x1 + 4, y1, cWarn2, kFillModeSolid);
+						Novice::DrawTriangle(x2, y2, x1 + 4, y1, x2 + 4, y2, cWarn2, kFillModeSolid);
+					}
 				}
-				// 帯の上のライン
-				Novice::DrawLine(drawX, bottomY, drawX + w, bottomY, cShadow);
+				// 仕上げに枠線で縁取り（はみ出し隠し）
+				Novice::DrawBox(innerX, stripeY, innerW, stripeH, 0.0f, cShadow, kFillModeWireFrame);
+			}
+
+			// --- 中央のロック機構 / ハンドル ---
+			// ドアの真ん中あたりに描画
+			int handleY = drawY + h / 2;
+			if (handleY < doorBottomY - 10) {
+				int handleSize = 14;
+				int hx = drawX + w / 2;
+
+				// ベース
+				Novice::DrawBox(hx - handleSize / 2, handleY - handleSize / 2, handleSize, handleSize, 0.0f, cFrame, kFillModeSolid);
+				Novice::DrawBox(hx - handleSize / 2, handleY - handleSize / 2, handleSize, handleSize, 0.0f, cShadow, kFillModeWireFrame);
+
+				// ランプ（ロック状態なら赤、開錠中なら緑や消灯）
+				// ここではシンプルに「ドアの象徴」としてシアンに光らせます
+				unsigned int centerCol = (door.openRatio > 0.0f) ? 0x00FF00FF : cLock;
+				Novice::DrawBox(hx - 2, handleY - 2, 4, 4, 0.0f, centerCol, kFillModeSolid);
 			}
 		}
-
-		unsigned int lampColor = (door.openRatio > 0.5f) ? cLampGreen : cLampRed;
-
-		// ランプの土台
-		Novice::DrawBox(drawX + w / 2 - 8, drawY, 16, 6, 0.0f, cShadow, kFillModeSolid);
-		// 光る部分
-		Novice::DrawBox(drawX + w / 2 - 6, drawY + 1, 12, 4, 0.0f, lampColor, kFillModeSolid);
 	}
 
 
@@ -1104,5 +1135,5 @@ void Map::Draw(Vector2 offset) {
 
 黄道十二宮配置図
 
-
-  */
+*/
+  
