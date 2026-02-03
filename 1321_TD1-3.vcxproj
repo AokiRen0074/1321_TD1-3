@@ -163,8 +163,6 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
     <ClCompile Include="C:\KamataEngine\Adapter\Novice.cpp" />
     <ClCompile Include="Clear.cpp" />
     <ClCompile Include="Collision.cpp" />
-    <ClCompile Include="Credit.cpp" />
-    <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameOver.cpp" />
     <ClCompile Include="Gimmick.cpp" />
@@ -176,7 +174,6 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
     <ClCompile Include="ScrollCamera.cpp" />
     <ClCompile Include="Setting.cpp" />
     <ClCompile Include="Title.cpp" />
-    <ClCompile Include="Tutorial.cpp" />
     <ClCompile Include="Vector2.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -191,8 +188,6 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
     <ClInclude Include="Collision.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="const.h" />
-    <ClInclude Include="Credit.h" />
-    <ClInclude Include="Enemy.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameOver.h" />
     <ClInclude Include="Gimmick.h" />
@@ -204,7 +199,6 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
     <ClInclude Include="ScrollCamera.h" />
     <ClInclude Include="Setting.h" />
     <ClInclude Include="Title.h" />
-    <ClInclude Include="Tutorial.h" />
     <ClInclude Include="Vector2.h" />
   </ItemGroup>
   <ItemGroup>

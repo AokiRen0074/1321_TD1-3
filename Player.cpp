@@ -1022,6 +1022,7 @@ void Player::CheckFlooCollision(std::vector<VanishingFloor>& VanishingFloors) {
 		if (floor.isActive) {
 			float floorWidth = (float)kTileSize * 4;
 			float beltHeight = (float)kTileSize;
+
 			// --- 矩形判定（AABB） ---
 			// プレイヤーの四角形と床の四角形が重なっているか
 			if (status_.pos.x < floor.pos.x + floorWidth &&
@@ -1049,11 +1050,6 @@ void Player::CheckFlooCollision(std::vector<VanishingFloor>& VanishingFloors) {
 					status_.pos.y = floor.pos.y - status_.height;
 					status_.Velocity.y = 0.0f;
 					status_.isJumop = false;
-
-					if (!wasOnGround) {
-						landedThisFrame = true;   // ★追加
-					}
-
 					isOnGround = true;
 
 					if (wasFalling && audioManager) {
