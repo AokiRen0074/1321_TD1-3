@@ -1215,7 +1215,7 @@ void Game::Draw() {
 
 				// 画面中央下の目安座標
 				// 画面横幅1400の中央は700。文字数に合わせて少し左にオフセット
-				float startX = 550.0f;
+				float startX = 650.0f;
 				float startY = 850.0f; // 画面下部
 
 				float dotSize = 8.0f;    // 5x5なので、1ドットを大きめにすると読みやすい
