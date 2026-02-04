@@ -611,7 +611,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 
 						// プレイヤーのY座標を新しいステージの「上空」へ
 						float newY = scrollCamera->GetStageYPosition(nextIdx);
-						player->status_.pos.y = newY - 200.0f;
+						player->status_.pos.y = newY - 170.0f;
 					}
 				}
 				// --- 修正ここまで ---
