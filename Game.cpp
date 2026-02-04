@@ -175,6 +175,31 @@ void Game::Update(char keys[256], char preKeys[256]) {
 		player->InitPlayer(); // 速度などをゼロにする
 	}
 
+
+	if (keys[DIK_L] && !preKeys[DIK_L]) {
+		// 1. プレイヤーを初期位置（300, 704）に戻す
+		player->status_.pos.x = 300.0f;
+		player->status_.pos.y = 704.0f;
+
+		
+		isRunning = false;
+		cantStartCount = 0;
+		player->InitPlayer(); // 速度やジャンプ状態をリセット
+
+
+
+
+		scrollCamera->SetStageIndex(0);      // ステージ番号を0に戻す
+		scrollCamera->SetIsScrollMode(false); // スクロール固定を解除する
+		scrollCamera->Update(player->status_.pos); // プレイヤーの位置に瞬時に合わせる
+
+		// リセット音
+		if (audioManager != nullptr) {
+			audioManager->Play(SE_RESPAWN, false);
+		}
+	}
+
+
 	////////////////////////////////////////////
 
 	// ゲームオーバー判定
