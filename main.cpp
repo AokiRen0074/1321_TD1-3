@@ -80,6 +80,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		} else {
 			Novice::SetWindowMode(kWindowed);
 		}
+
+
+
+
+
 		/*for (int i = 0; i < 250; i++) {
 			router[i]->UpdateRouter(map->mapData);
 		}*/
