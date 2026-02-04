@@ -268,21 +268,13 @@ void Map::Update(Player& player) {
 		// if (!block.isActive) continue; 
 
 		for (auto& blet : Beltconveyors) {
-
-
-
-
 			// 【重要】当たり判定：ブロックの底面がベルトの上面に触れているか
 			if (block.isActive) {
 
-				if (block.linkId == 50) {
+				if (block.linkId == 77) {
 					// ベルトの向きに合わせて移動
-					if (blet.isReversed) {
+					if (blet.linkId==100) {
 						block.pos.x -= blet.speed*0.01f;
-					}
-					else {
-
-						block.pos.x += blet.speed;
 					}
 				}
 
