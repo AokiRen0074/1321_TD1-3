@@ -18,7 +18,7 @@ void AudioManager::LoadAll() {
 	volumes[SE_LANDING_FLOM_JUMP] = 1.0f;
 
 	// 死亡
-	handles[SE_DEATH] = Novice::LoadAudio("./Sounds/death.mp3");
+	handles[SE_DEATH] = Novice::LoadAudio("./Sounds/death2.mp3");
 	volumes[SE_DEATH] = 0.6f;
 
 	// 復活
@@ -26,8 +26,8 @@ void AudioManager::LoadAll() {
 	volumes[SE_RESPAWN] = 1.0f;
 
 	// ベルトコンベア
-	handles[SE_BELTCONVEYORS] = Novice::LoadAudio("./Sounds/beltconveyors.mp3");
-	volumes[SE_BELTCONVEYORS] = 0.4f;
+	handles[SE_BELTCONVEYORS] = Novice::LoadAudio("./Sounds/beltconveyors2.mp3");
+	volumes[SE_BELTCONVEYORS] = 0.8f;
 
 	///// BGM /////
 	// スタート(TITLE)
