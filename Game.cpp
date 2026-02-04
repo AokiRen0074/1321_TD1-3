@@ -672,8 +672,7 @@ void Game::Draw() {
 	// プレイヤー描画
 	player->DrawPlayer(offset);
 
-	// プレイヤー描画
-	player->DrawPlayer(offset);
+
 
 	// ===========================================================
 		// Wi-Fi風の信号強度表示
@@ -991,10 +990,7 @@ void Game::Draw() {
 		// 復活演出中のみ描画（この中には Novice::Draw系が書かれているはずです）
 		player->DrawRespawnAnim(offset);
 	}
-	else {
-		// 通常時はプレイヤーを描画
-		player->DrawPlayer(offset);
-	}
+	
 
 	// --- 暗転ブロックの描画 ---
 	if (fadeState_ != FADE_NONE) {
