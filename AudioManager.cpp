@@ -44,7 +44,7 @@ void AudioManager::LoadAll() {
 
 	// ステージ４のベルトコンベアゾーン
 	handles[BGM_LASTCOURSE] = Novice::LoadAudio("./Sounds/last_course.mp3");
-	volumes[BGM_LASTCOURSE] = 0.4f;
+	volumes[BGM_LASTCOURSE] = 1.0f;
 
 	// handles[BGM_MAIN] = Novice::LoadAudio("./Resources/Sounds/test_bgm.wav");
 }
