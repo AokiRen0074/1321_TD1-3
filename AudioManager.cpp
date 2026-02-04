@@ -40,7 +40,7 @@ void AudioManager::LoadAll() {
 
 	// クリア
 	handles[BGM_CLEAR] = Novice::LoadAudio("./Sounds/clearKakkoKari.mp3");
-	volumes[BGM_CLEAR] = 0.8f;
+	volumes[BGM_CLEAR] = 1.0f;
 
 	// ステージ４のベルトコンベアゾーン
 	handles[BGM_LASTCOURSE] = Novice::LoadAudio("./Sounds/last_course.mp3");
