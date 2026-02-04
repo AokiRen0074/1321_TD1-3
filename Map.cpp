@@ -26,7 +26,7 @@ void Map::Initialize() {
 	ここでブロックの画像を貼ってね
 	-----------------------------*/
 	blockTextures[1] = Novice::LoadTexture("./Images./block.png");
-	blockTextures[2] = Novice::LoadTexture("./halfBlock.png");// ハーフブロック用
+	// blockTextures[2] = Novice::LoadTexture("./halfBlock.png");// ハーフブロック用
 	blockTextures[3] = Novice::LoadTexture("./Images./ruta.png");// <-だれかルーター書いて；；
 
 
