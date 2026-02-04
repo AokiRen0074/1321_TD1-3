@@ -485,7 +485,7 @@ void Game::Update(char keys[256], char preKeys[256]) {
 				if (mouseX >= 1450 && mouseX <= 1450 + 400 &&
 					mouseY >= blockY && mouseY <= blockY + 50) {
 
-					Novice::PlayAudio(soundDelete, false, 1.0f);
+					Novice::PlayAudio(soundDelete, false, 0.3f);
 					// このコマンドを削除する
 					commandList.erase(commandList.begin() + i);
 					break;
