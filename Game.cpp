@@ -1085,16 +1085,20 @@ void Game::Draw() {
 		}
 
 		// 3. テキスト描画
-		if (gameClearTimer > 60) {
+		if (gameClearTimer > 110) {
 			// ★変更：中心座標を画面全体（1980）の真ん中へ
 			float cx = 1980.0f / 2.0f;
 			float cy = 1080.0f / 2.0f;
 
 			// アニメーション
-			float scale = (gameClearTimer - 60) / 20.0f;
+			float animTimer = (float)gameClearTimer - 110.0f;
+
+			float scale = animTimer / 20.0f;
 			if (scale > 1.0f) scale = 1.0f;
+
 			float bounce = scale + sinf(scale * 3.14f) * 0.15f;
-			if (gameClearTimer > 90) bounce = 1.0f;
+
+			if (animTimer > 20.0f) bounce = 1.0f;
 
 			float blockSize = 12.0f * bounce;
 			unsigned int mainColor = 0x00FF00FF;
